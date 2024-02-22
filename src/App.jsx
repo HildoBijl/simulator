@@ -1,10 +1,23 @@
-import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
+import { collection, doc, addDoc, setDoc } from 'firebase/firestore'
+import { db } from './firebase'
+import { useCollection } from 'react-firebase-hooks/firestore'
+
 function App() {
-  const [count, setCount] = useState(0)
+  // Load game data.
+  const [value, loading, error] = useCollection(collection(db, 'games'))
+  if (!value || loading || error)
+    return null
+
+  // Allow play count increment.
+  const increment = async (id) => {
+    const oldData = value.docs.find(doc => doc.id === id).data()
+    const newData = { ...oldData, playCount: oldData.playCount + 1 }
+    await setDoc(doc(db, 'games', id), newData)
+  }
 
   return (
     <>
@@ -16,18 +29,15 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR.
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <h1>Führungssimulator</h1>
+      {value.docs.map(doc => {
+        return <div className="card" key={doc.id}>
+          <p>Simulation title is <strong>{doc.data().name}</strong>. Number of plays: <strong>{doc.data().playCount}</strong>.</p>
+          <button onClick={() => increment(doc.id)}>
+            Play this game!
+          </button>
+        </div>
+      })}
     </>
   )
 }

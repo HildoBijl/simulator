@@ -1,13 +1,12 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
 import { collection, doc, setDoc } from 'firebase/firestore'
-import { db } from './firebase'
 import { useCollection } from 'react-firebase-hooks/firestore'
 
-function App() {
+import { db } from '../firebase'
+
+import './Home.css'
+
+export function Home() {
   // Load game data.
   const [value, loading, error] = useCollection(collection(db, 'games'))
 
@@ -32,14 +31,6 @@ function App() {
     return null
   return (
     <>
-      <div>
-        {/* <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a> */}
-      </div>
       <h1>Führungssimulator</h1>
       {value.docs.map(doc => {
         return <div className="card" key={doc.id}>
@@ -57,5 +48,3 @@ function App() {
     </>
   )
 }
-
-export default App

@@ -1,24 +1,16 @@
-import { useState } from 'react'
 import { collection, doc, setDoc } from 'firebase/firestore'
 import { useCollection } from 'react-firebase-hooks/firestore'
+import { useNavigate } from 'react-router-dom'
 
 import { db } from '../firebase'
-
-import './Home.css'
+import { Page } from '../components'
 
 export function Home() {
+  // Load in navigation.
+  const navigate = useNavigate()
+
   // Load game data.
   const [value, loading, error] = useCollection(collection(db, 'games'))
-
-  // Set up input field.
-  const [name, setName] = useState('')
-  const addGame = async () => {
-    const id = name.toLowerCase().replace(/[^a-z0-9]/g, '')
-    if (id.length < 2 || value.docs.find(doc => doc.id === id))
-      return
-    const data = { name, playCount: 0 }
-    await setDoc(doc(db, 'games', id), data)
-  }
 
   // Allow play count increment.
   const increment = async (id) => {
@@ -30,8 +22,9 @@ export function Home() {
   if (!value || loading || error)
     return null
   return (
-    <>
+    <Page addAppBar={false}>
       <h1>Führungssimulator</h1>
+      <p>Welcome student! You can play the games below.</p>
       {value.docs.map(doc => {
         return <div className="card" key={doc.id}>
           <p>Simulation title is <strong>{doc.data().name}</strong>. Number of plays: <strong>{doc.data().playCount}</strong>.</p>
@@ -40,11 +33,9 @@ export function Home() {
           </button>
         </div>
       })}
-      <h2>Add game</h2>
-      <input type="text" name="gameName" value={name} onChange={(evt) => setName(evt.target.value)} />
-      <button onClick={addGame}>
-        Add game
-      </button>
-    </>
+      <h2>Create new simulation</h2>
+      <p>Are you a teacher? Then you can build your own simulation.</p>
+      <button onClick={() => navigate('/create')}>Create new simulation</button>
+    </Page>
   )
 }

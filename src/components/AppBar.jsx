@@ -26,7 +26,7 @@ export function AppBar({ title, backButton }) {
 					<Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
 						{title || '[Seitentitel fehlt]'}
 					</Typography>
-					{user && backButton ? null : <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={() => navigate('/account')}>
+					{!user || backButton ? null : <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ ml: 2 }} onClick={() => navigate('/account')}>
 						<Person sx={{ width: '2.5rem', height: '2.5rem' }} />
 					</IconButton>}
 				</Toolbar>

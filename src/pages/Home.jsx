@@ -28,7 +28,7 @@ const TitleBarBox = styled(Box)(({ theme }) => ({
     '& .logo': {
       display: 'block',
       height: 'min(11vw, 11rem)',
-      margin: '0 2% 0 6%',
+      margin: '0 4% 0 6%',
       width: 'min(11vw, 11rem)',
     },
 

@@ -1,25 +1,28 @@
 import { useState } from 'react'
 import { collection, doc, setDoc } from 'firebase/firestore'
 import { useCollection } from 'react-firebase-hooks/firestore'
+import Button from '@mui/material/Button'
 
 import { db, useAuthData, signInWithGoogleRedirect } from '../firebase'
 import { Page } from '../components'
+
+const title = 'Simulationsübersicht'
 
 export function Create() {
   const { user, loading } = useAuthData()
   if (!user) {
     if (!loading)
       return <CreateAsStranger />
-    return <Page title="New simulation"><p>Checking sign-in status...</p></Page>
+    return <Page title={title} showLogo={true}><p>Anmeldestatus überprüfen...</p></Page>
   }
   return <CreateAsUser />
 }
 
 export function CreateAsStranger() {
-  return <Page title="New simulation">
-    <h2>Sign-in required</h2>
-    <p>To create a new simulation, you must be signed in.</p>
-    <button onClick={signInWithGoogleRedirect}>Sign in through Google</button>
+  return <Page title={title} showLogo={true}>
+    <h2>Anmeldung erforderlich</h2>
+    <p>Um eine neue Simulation zu erstellen, müssen Sie angemeldet sein. Zurzeit ist es nur möglich, sich über Google anzumelden.</p>
+    <Button variant="contained" onClick={signInWithGoogleRedirect} sx={{ mt: 1 }}>Anmeldung über Google</Button>
   </Page>
 }
 
@@ -39,9 +42,9 @@ export function CreateAsUser() {
 
   // Render the component.
   if (!value || loading || error)
-    return <Page title="New simulation"><p>Loading games...</p></Page>
+    return <Page title={title} showLogo={true}><p>Loading games...</p></Page>
   return (
-    <Page title="New simulation">
+    <Page title={title} showLogo={true}>
       <h2>Add game</h2>
       <input type="text" name="gameName" value={name} onChange={(evt) => setName(evt.target.value)} />
       <button onClick={addGame}>

@@ -6,24 +6,24 @@ import Button from '@mui/material/Button'
 import { db, useAuthData, signInWithGoogleRedirect } from '../firebase'
 import { Page } from '../components'
 
-const title = 'Simulationsübersicht'
+const CreatePage = ({ children }) => <Page title="Simulationsübersicht" showLogo={true}>{children}</Page>
 
 export function Create() {
   const { user, loading } = useAuthData()
   if (!user) {
     if (!loading)
       return <CreateAsStranger />
-    return <Page title={title} showLogo={true}><p>Anmeldestatus überprüfen...</p></Page>
+    return <CreatePage><p>Anmeldestatus überprüfen...</p></CreatePage>
   }
   return <CreateAsUser />
 }
 
 export function CreateAsStranger() {
-  return <Page title={title} showLogo={true}>
+  return <CreatePage>
     <h2>Anmeldung erforderlich</h2>
     <p>Um eine neue Simulation zu erstellen, müssen Sie angemeldet sein. Zurzeit ist es nur möglich, sich über Google anzumelden.</p>
     <Button variant="contained" onClick={signInWithGoogleRedirect} sx={{ mt: 1 }}>Anmeldung über Google</Button>
-  </Page>
+  </CreatePage>
 }
 
 export function CreateAsUser() {
@@ -42,14 +42,14 @@ export function CreateAsUser() {
 
   // Render the component.
   if (!value || loading || error)
-    return <Page title={title} showLogo={true}><p>Loading games...</p></Page>
+    return <CreatePage><p>Loading games...</p></CreatePage>
   return (
-    <Page title={title} showLogo={true}>
+    <CreatePage>
       <h2>Add game</h2>
       <input type="text" name="gameName" value={name} onChange={(evt) => setName(evt.target.value)} />
       <button onClick={addGame}>
         Add game
       </button>
-    </Page>
+    </CreatePage>
   )
 }

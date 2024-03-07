@@ -1,4 +1,8 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
 
 import { useUser, useSignedInCheck, signOut } from '../firebase'
 import { Page } from '../components'
@@ -17,7 +21,62 @@ export function Account() {
 
 	// Set up the page.
 	return <AccountPage>
+		<SignInStatus />
+		<DeleteAccount />
+	</AccountPage>
+}
+
+function SignInStatus() {
+	const user = useUser()
+	return <>
 		<p>Sie sind angemeldet als {user.displayName} &lt;{user.email}&gt;.</p>
 		<Button variant="contained" onClick={signOut}>Abmelden</Button>
-	</AccountPage>
+	</>
+}
+
+const TextFieldStyled = styled(TextField)(() => ({
+	marginRight: '1rem',
+	width: 'min(50ch, 100%)',
+
+	'& input': {
+		background: 'white',
+	}
+}))
+
+function DeleteAccount() {
+	const navigate = useNavigate()
+	const user = useUser()
+	const [confirmEmail, setConfirmEmail] = useState('')
+	const [lastSubmission, setLastSubmission] = useState()
+	const [deleting, setDeleting] = useState(false)
+
+	const submitForm = (evt) => {
+		evt.preventDefault()
+		setLastSubmission(confirmEmail)
+		if (confirmEmail !== user.email)
+			return // Don't delete.
+		setDeleting(true)
+		// ToDo: delete all contents related to the user too.
+		user.delete().then(() => {
+			navigate('/')
+		})
+	}
+
+	let isError = false, helperText = ''
+	if (deleting) {
+		helperText = 'Konto löschen...'
+	} else if (confirmEmail === lastSubmission && !deleting) {
+		isError = true
+		helperText = 'Konto konnte nicht gelöscht werden. Diese E-Mail-Adresse ist nicht mit Ihrem Konto verbunden.'
+	}
+
+	return <>
+		<h2>Konto löschen</h2>
+		<p>Wenn Sie Ihr Konto löschen, werden <strong>alle</strong> Ihre Daten gelöscht. Die Simulationen, deren alleiniger Eigentümer Sie sind, werden ebenfalls entfernt. Dies kann nicht rückgängig gemacht werden! Natürlich können Sie danach ein komplett neues Konto erstellen, aber das fängt dann wieder bei Null an.</p>
+		<p>Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Geben Sie dann Ihre E-Mail-Adresse zur Bestätigung unten ein.</p>
+		<form noValidate autoComplete="off" onSubmit={submitForm}>
+			<TextFieldStyled id="confirmEmail" label="E-Mail-Adresse" variant="outlined" size="small" value={confirmEmail} onChange={(evt) => setConfirmEmail(evt.target.value)} error={isError} helperText={helperText} />
+			<Button variant="contained" onClick={submitForm}>Konto löschen</Button>
+		</form>
+	</>
 }

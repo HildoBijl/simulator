@@ -35,6 +35,7 @@ function SignInStatus() {
 }
 
 const TextFieldStyled = styled(TextField)(() => ({
+	marginBottom: '0.5rem',
 	marginRight: '1rem',
 	width: 'min(50ch, 100%)',
 
@@ -53,7 +54,7 @@ function DeleteAccount() {
 	const submitForm = (evt) => {
 		evt.preventDefault()
 		setLastSubmission(confirmEmail)
-		if (confirmEmail !== user.email)
+		if (confirmEmail.trim().toLowerCase() !== user.email.trim().toLowerCase())
 			return // Don't delete.
 		setDeleting(true)
 		// ToDo: delete all contents related to the user too.

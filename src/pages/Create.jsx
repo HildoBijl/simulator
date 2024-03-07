@@ -39,7 +39,7 @@ export function CreateAsUser() {
 
   // Render the component.
   if (!value || loading || error)
-    return null
+    return <Page title="New simulation"><p>Loading games...</p></Page>
   return (
     <Page title="New simulation">
       <h2>Add game</h2>

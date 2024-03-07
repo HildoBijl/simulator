@@ -1,13 +1,41 @@
-import { useAuthData, signInWithGoogleRedirect, signOut } from '../firebase'
+import { collection, doc, setDoc } from 'firebase/firestore'
+import { useCollection } from 'react-firebase-hooks/firestore'
+import { useNavigate } from 'react-router-dom'
+
+import { db } from '../firebase'
+import { Page } from '../components'
 
 export function Test() {
-	const { user, loading } = useAuthData()
-	console.log(user)
+  // Load in navigation.
+  const navigate = useNavigate()
 
-	return <>
-		{user ? <p>Signed in as {user.displayName} &lt;{user.email}&gt;</p> : <p>You can sign in here.</p>}
-		{loading ? <p>Loading user data...</p> : null}
-		{!loading && !user ? <button onClick={signInWithGoogleRedirect}>Sign in through Google</button> : null}
-		{!loading && user ? <button onClick={signOut}>Sign out</button> : null}
-	</>
+  // Load game data.
+  const [value, loading, error] = useCollection(collection(db, 'games'))
+
+  // Allow play count increment.
+  const increment = async (id) => {
+    const oldData = value.docs.find(doc => doc.id === id).data()
+    await setDoc(doc(db, 'games', id), { playCount: oldData.playCount + 1 }, { merge: true })
+  }
+
+  // Render the component.
+  if (!value || loading || error)
+    return null
+  return (
+    <Page addAppBar={false}>
+      <h1>Führungssimulator</h1>
+      <p>Welcome student! You can play the games below.</p>
+      {value.docs.map(doc => {
+        return <div className="card" key={doc.id}>
+          <p>Simulation title is <strong>{doc.data().name}</strong>. Number of plays: <strong>{doc.data().playCount}</strong>.</p>
+          <button onClick={() => increment(doc.id)}>
+            Play this game!
+          </button>
+        </div>
+      })}
+      <h2>Create new simulation</h2>
+      <p>Are you a teacher? Then you can build your own simulation.</p>
+      <button onClick={() => navigate('/create')}>Create new simulation</button>
+    </Page>
+  )
 }

@@ -53,11 +53,14 @@ export function useUserData() {
 // useSetUserData gives a setUserData function that allows you to update userData.
 export function useSetUserData() {
 	const userId = useUserId()
+	const userData = useUserData()
 	return useCallback((data) => {
 		if (!userId)
 			throw new Error(`Invalid setUserData call: no user is known at the moment. Check if the user is signed in before making a setUserData call.`)
+		if (typeof data === 'function')
+			data = data(userData) // Allow for function setters.
 		if (data.constructor !== Object)
 			throw new Error(`Invalid user data: a request was made to set user data, but this request must be provided with a basic object. Received something of type "${data}".`)
 		return setDoc(doc(db, 'userData', userId), data, { merge: true })
-	}, [userId])
+	}, [userId, userData])
 }

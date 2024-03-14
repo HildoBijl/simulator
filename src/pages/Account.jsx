@@ -4,7 +4,8 @@ import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 
-import { useUser, useSignedInCheck, signOut } from '../firebase'
+import { useUser, useSignedInCheck, signOut, removeUserData } from '../firebase'
+import { removeUserFromAllSimulations } from '../simulations'
 import { Page } from '../components'
 
 const AccountPage = ({ children }) => <Page title="Konto" backButton="/create">{children}</Page>
@@ -51,16 +52,20 @@ function DeleteAccount() {
 	const [lastSubmission, setLastSubmission] = useState()
 	const [deleting, setDeleting] = useState(false)
 
-	const submitForm = (evt) => {
+	const submitForm = async (evt) => {
 		evt.preventDefault()
 		setLastSubmission(confirmEmail)
+
+		// Run final checks.
 		if (confirmEmail.trim().toLowerCase() !== user.email.trim().toLowerCase())
-			return // Don't delete.
+			return // Check failed.
 		setDeleting(true)
-		// ToDo: delete all contents related to the user too.
-		user.delete().then(() => {
-			navigate('/')
-		})
+
+		// Delete the user. Start with the most specific ones and end with the most fundamental ones.
+		await removeUserFromAllSimulations(user.uid)
+		await removeUserData(user.uid)
+		await user.delete()
+		navigate('/')
 	}
 
 	let isError = false, helperText = ''

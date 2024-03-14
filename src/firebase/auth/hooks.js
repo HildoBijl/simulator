@@ -1,6 +1,6 @@
 import { useContext, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { doc, setDoc } from 'firebase/firestore'
+import { doc, setDoc, deleteDoc } from 'firebase/firestore'
 import { useDocumentData } from 'react-firebase-hooks/firestore'
 
 import { db } from '../db'
@@ -46,7 +46,7 @@ export function useUserData() {
 	if (loading || error)
 		return undefined
 
-	// When the data is ready, return it.
+	// Data has been loaded!
 	return data || {}
 }
 
@@ -63,4 +63,8 @@ export function useSetUserData() {
 			throw new Error(`Invalid user data: a request was made to set user data, but this request must be provided with a basic object. Received something of type "${data}".`)
 		return setDoc(doc(db, 'userData', userId), data, { merge: true })
 	}, [userId, userData])
+}
+
+export function removeUserData(userId) {
+	return deleteDoc(doc(db, 'userData', userId))
 }

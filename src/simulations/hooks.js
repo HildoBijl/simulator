@@ -3,7 +3,6 @@ import { useDocumentData } from 'react-firebase-hooks/firestore'
 
 import { db, useUserData } from '../firebase'
 
-
 // useSimulationIds gets all the simulation IDs for a specific user.
 export function useSimulationIds() {
 	const userData = useUserData()

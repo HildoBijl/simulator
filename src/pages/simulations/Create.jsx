@@ -5,7 +5,7 @@ import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
 import { useAuthData, useUserId, signInWithGoogleRedirect } from '../../firebase'
-import { useSimulationIds, createNewSimulation } from '../../simulations'
+import { useSimulationIds, createNewSimulation, useSimulation } from '../../simulations'
 import { Page } from '../../components'
 
 const CreatePage = ({ children }) => <Page title="Simulationsübersicht" showLogo={true}>{children}</Page>
@@ -30,7 +30,7 @@ export function CreateAsStranger() {
 const Grid = styled('div')({
   display: 'grid',
   margin: '1rem 0',
-  gridTemplateColumns: '[start] 3fr repeat(2, minmax(140px, 1fr)) [end]',
+  gridTemplateColumns: '[start] 3fr repeat(2, minmax(120px, 1fr)) [end]',
 
   '& > div': {
     lineHeight: '1.5rem',
@@ -77,7 +77,7 @@ const Grid = styled('div')({
       display: 'inline-block',
       transform: 'translateY(-3px)',
     },
-    
+
     '&:hover': {
       backgroundColor: '#2c2c2c',
       '@media (prefers-color-scheme: light)': {
@@ -118,10 +118,17 @@ export function CreateAsUser() {
 }
 
 function Simulation({ id, hovering, startHover, endHover, onClick }) {
+  // Load the simulation data.
+  let simulation = useSimulation(id)
+  if (!simulation)
+    simulation = { title: 'Laden...' }
+
+  // Show a row for the simulation.
+  const title = simulation.title || 'Unbekannter Titel'
   return <>
-    <div className={clsx('title', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{id}</div>
-    <div className={clsx('numPlayed', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>0</div>
-    <div className={clsx('numFinished', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>0</div>
+    <div className={clsx('title', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{title}</div>
+    <div className={clsx('numPlayed', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numPlayed || 0}</div>
+    <div className={clsx('numFinished', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numFinished || 0}</div>
   </>
 }
 

@@ -41,17 +41,14 @@ export async function removeSimulationFromUserData(userId, simulationId) {
 
 // removeOwnerFromSimulation removes an owner from a simulation. It does not change the userData object. If the owner is the last owner, the simulation is removed.
 export async function removeOwnerFromSimulation(userId, simulationId) {
-	console.log('Removing')
 	// Load simulation data and check the owner.
 	const simulation = await getSimulation(simulationId)
-	console.log(simulation)
 	if (!simulation)
 		throw new Error(`Invalid removeOwner call: cannot find simulation "${simulationId}".`)
 	if (!simulation.owners.includes(userId))
 		throw new Error(`Invalid removeOwner call: cannot remove user "${userId}" from simulation "${simulationId}" since this user is not an owner of this simulation.`)
 
 	// Remove the owner from the simulation or, if it's the last owner, remove the simulation altogether.
-	console.log(simulation.owners)
 	if (simulation.owners.length > 1)
 		return await updateDoc(doc(db, 'simulations', simulationId), { owners: arrayRemove(userId) })
 	return await deleteDoc(doc(db, 'simulations', simulationId))
@@ -61,4 +58,14 @@ export async function removeOwnerFromSimulation(userId, simulationId) {
 export async function removeUserFromAllSimulations(userId) {
 	const simulationIds = await getUserSimulationIds(userId)
 	return await Promise.all(simulationIds.map(simulationId => removeOwnerFromSimulation(userId, simulationId)))
+}
+
+// unlinkUserFromSimulation will remove both the user from a simulation and remove the simulation from the userData.
+export async function unlinkUserFromSimulation(userId, simulationId) {
+	await Promise.all([removeOwnerFromSimulation(userId, simulationId), removeSimulationFromUserData(userId, simulationId)])
+}
+
+// updateSimulation will update certain values for a simulation with a given ID.
+export async function updateSimulation(simulationId, data) {
+	return updateDoc(doc(db, 'simulations', simulationId), data)
 }

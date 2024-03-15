@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { doc } from 'firebase/firestore'
 import { useDocumentData } from 'react-firebase-hooks/firestore'
 
@@ -13,6 +14,12 @@ export function useSimulationIds() {
 
 // useSimulation gets a simulation with a specific ID.
 export function useSimulation(id) {
-	const [data] = useDocumentData(doc(db, 'simulations', id))
-	return data
+	const [data, loading] = useDocumentData(doc(db, 'simulations', id))
+	return useMemo(() => {
+		if (loading)
+			return undefined // Sign of loading.
+		if (data)
+			return { id, ...data }
+		return null // Sign of an error.
+	}, [id, data, loading])
 }

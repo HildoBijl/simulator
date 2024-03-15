@@ -39,3 +39,11 @@ a {
 a:hover {
   color: #ea0029;
 }
+
+h2 {
+  margin: 1.5rem 0 0.75rem;
+}
+
+p {
+  margin: 0.75rem 0;
+}

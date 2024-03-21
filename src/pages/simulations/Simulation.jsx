@@ -1,5 +1,6 @@
 import { Fragment, useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
+import Button from '@mui/material/Button'
 
 import { useSimulation, useSimulationIdFromUrl } from '../../simulations'
 
@@ -40,6 +41,7 @@ export function SimulationWithId({ id }) {
 		<Page title={simulation.title}>
 			<Description simulation={simulation} />
 			<Media simulation={simulation} />
+			<Button variant="contained" sx={{ margin: '1rem 0' }} onClick={() => window.alert('Die Simulationsfunktionen sind leider noch nicht implementiert worden.')}>Simulation beginnen</Button>
 		</Page>
 	)
 }

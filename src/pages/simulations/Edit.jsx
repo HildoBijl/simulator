@@ -35,6 +35,7 @@ function EditForSimulation({ simulation }) {
 		<ChangeTitle simulation={simulation} />
 		<ChangeUrl simulation={simulation} />
 		<ChangeDescription simulation={simulation} />
+		<ChangeMedia simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</EditPage>
 }
@@ -100,6 +101,22 @@ function ChangeDescription({ simulation }) {
 		<h2>Beschreibung</h2>
 		<p>Die Beschreibung ist die Geschichte, die oben auf der Titelseite erscheint.</p>
 		<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={description} onChange={(event) => setAndSaveDescription(event.target.value)} />
+	</>
+}
+
+function ChangeMedia({ simulation }) {
+	// Set up a handler that saves the title.
+	const [image, setImage] = useState(simulation?.image || '')
+	const setAndSaveImage = async (image) => {
+		setImage(image)
+		await updateSimulation(simulation.id, { image })
+	}
+
+	// Render the form part.
+	return <>
+		<h2>Abbildung</h2>
+		<p>You can enter a URL to a picture. This will then appear on the site.</p>
+		<TextField variant="outlined" fullWidth label="Abbildung" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
 	</>
 }
 

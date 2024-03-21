@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useSimulation, useSimulationIdFromUrl } from '../../simulations'
@@ -31,7 +31,7 @@ export function SimulationWithId({ id }) {
 		}
 	}, [previousUrl, url])
 
-	// On an error or loading, show the right content.
+	// On an error or on loading, show the right notification.
 	if (simulation === null)
 		return <Error />
 	if (simulation === undefined)
@@ -40,14 +40,38 @@ export function SimulationWithId({ id }) {
 	// Render the simulation.
 	return (
 		<Page title={simulation.title}>
-			{simulation.description ?
-				simulation.description.split('\n\n').map((paragraph, index) => {
-					const paragraphSplit = paragraph.split('\n')
-					return <p key={index}>
-						{paragraphSplit.map((subParagraph, subIndex) => <Fragment key={subIndex}>{subParagraph}{subIndex < paragraphSplit.length - 1 ? <br /> : null}</Fragment>)}
-					</p>
-				}) :
-				<p>Diese Simulation hat noch keine Beschreibung.</p>}
+			<Description simulation={simulation} />
+			<Media simulation={simulation} />
 		</Page>
 	)
+}
+
+function Description({ simulation: { description } }) {
+	if (!description)
+		return <p>Diese Simulation hat noch keine Beschreibung.</p>
+
+	return description.split('\n\n').map((paragraph, index) => {
+		const paragraphSplit = paragraph.split('\n')
+		return <p key={index}>
+			{paragraphSplit.map((subParagraph, subIndex) => <Fragment key={subIndex}>{subParagraph}{subIndex < paragraphSplit.length - 1 ? <br /> : null}</Fragment>)}
+		</p>
+	})
+}
+
+function Media({ simulation }) {
+	const [valid, setValid] = useState(false)
+	const ref = useRef()
+
+	// On no image, do not display anything.
+	if (!simulation.image)
+		return null
+
+	// When the image loads or fails to load, update the validity setting.
+	if (ref.current) {
+		ref.current.onerror = () => setValid(false)
+		ref.current.onload = () => setValid(true)
+	}
+
+	// Show the picture, but only if it's valid.
+	return <img ref={ref} src={simulation.image} style={{ maxHeight: '480px', maxWidth: '100%', display: valid ? 'block' : 'none' }} />
 }

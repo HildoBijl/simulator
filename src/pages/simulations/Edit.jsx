@@ -3,6 +3,12 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
+import Box from '@mui/material/Box'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
+import Select from '@mui/material/Select'
+import { deleteField } from 'firebase/firestore'
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
 
 import { getBaseUrl } from '../../util'
@@ -107,26 +113,58 @@ function ChangeDescription({ simulation }) {
 }
 
 function ChangeMedia({ simulation }) {
-	// Set up a handler that saves the title.
-	const [image, setImage] = useState(simulation?.image || '')
-	const setAndSaveImage = async (image) => {
-		setImage(image)
-		await updateSimulation(simulation.id, { image })
-	}
+	const [mediaType, setMediaType] = useState(simulation?.media?.type || 'none')
 
 	// Render the form part.
+	const MediaComponent = getMediaComponent(mediaType)
 	return <>
 		<h2>Abbildung</h2>
-		<p>You can enter a URL to a picture. This will then appear on the site.</p>
-		<TextField variant="outlined" fullWidth label="Abbildung" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
+		<p>Wenn Sie der Titelseite ein Bild hinzufügen möchten, wählen Sie aus, wie Sie es bereitstellen möchten.</p>
+		<FormControl fullWidth>
+			<InputLabel>Abbildung</InputLabel>
+			<Select value={mediaType} label="Abbildung" onChange={(event) => setMediaType(event.target.value)}>
+				<MenuItem value="none">Keine</MenuItem>
+				<MenuItem value="internalImage">Bild hochladen</MenuItem>
+				<MenuItem value="externalImage">Link zu externem Bild</MenuItem>
+				<MenuItem value="externalVideo">Link zu YouTube-Video</MenuItem>
+			</Select>
+		</FormControl>
+		<MediaComponent simulation={simulation} />
 	</>
 }
 
-function UploadImage({ simulation }) {
+function getMediaComponent(mediaType) {
+	switch (mediaType) {
+		case 'none':
+			return NoMedia
+		case 'internalImage':
+			return UploadImage
+		case 'externalImage':
+			return ProvideImageLink
+		case 'externalVideo':
+			return ProvideVideoLink
+		default:
+			throw new Error(`Invalid media type: encountered a value of "${mediaType}" but this is not among the available options.`)
+	}
+}
+
+function NoMedia({ simulation }) {
+	const { id, media } = simulation
+
+	// Ensure that the media field is removed in the database.
+	useEffect(() => {
+		if (media)
+			updateSimulation(id, { media: deleteField() })
+	}, [id, media])
+
+	// Do not render any further message.
+	return null
+}
+
+function UploadImage() {
 	const [file, setFile] = useState()
 	const [percentage, setPercentage] = useState()
 	function handleChange(event) {
-		console.log(event.target)
 		window.e = event
 		setFile(event.target.files[0])
 	}
@@ -155,6 +193,25 @@ function UploadImage({ simulation }) {
 		<p>{percentage} % done</p>
 		<button onClick={handleUpload}>Upload!</button>
 	</>
+}
+
+function ProvideImageLink({ simulation }) {
+	// Set up a handler that saves the path to the image in the right format.
+	const [image, setImage] = useState((simulation?.media?.type === 'externalImage' ? simulation?.media?.path : '') || '')
+	const setAndSaveImage = async (image) => {
+		setImage(image)
+		await updateSimulation(simulation.id, { media: image ? { type: 'externalImage', path: image } : deleteField() })
+	}
+
+	// Render the input field.
+	return <>
+		<p>Geben Sie die URL des gewünschten Bildes an.</p>
+		<TextField variant="outlined" fullWidth label="Abbildung" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
+	</>
+}
+
+function ProvideVideoLink() {
+	return <p>Diese Funktion befindet sich noch in der Entwicklung.</p>
 }
 
 function RemoveSimulation({ simulation }) {

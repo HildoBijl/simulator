@@ -25,10 +25,8 @@ export function SimulationWithId({ id }) {
 	const url = simulation?.url
 	const previousUrl = usePrevious(url)
 	useEffect(() => {
-		if (previousUrl) {
-			console.log('Changed url from ' + previousUrl + ' to ' + url)
+		if (previousUrl)
 			window.history.pushState({}, undefined, `/s/${url}`)
-		}
 	}, [previousUrl, url])
 
 	// On an error or on loading, show the right notification.
@@ -59,19 +57,38 @@ function Description({ simulation: { description } }) {
 }
 
 function Media({ simulation }) {
-	const [valid, setValid] = useState(false)
-	const ref = useRef()
-
-	// On no image, do not display anything.
-	if (!simulation.image)
+	// On no media, do not display anything.
+	const { media } = simulation
+	if (!media)
 		return null
 
-	// When the image loads or fails to load, update the validity setting.
-	if (ref.current) {
-		ref.current.onerror = () => setValid(false)
-		ref.current.onload = () => setValid(true)
+	// Depending on the type of media, render the appropriate component.
+	const { type } = media
+	switch (type) {
+		case 'internalImage':
+			return null // ToDo
+		case 'externalImage':
+			return <ExternalImage media={simulation.media} />
+		case 'externalVideo':
+			return null // ToDo
+		default:
+			throw new Error(`Invalid media type: encountered a type "${type}" but this is not among the available options.`)
 	}
+}
+
+function ExternalImage({ media }) {
+	// When the image loads or fails to load, update the validity setting.
+	const [valid, setValid] = useState(false)
+	const ref = useRef()
+	useEffect(() => {
+		let active = true
+		if (ref.current) {
+			ref.current.onerror = () => active && setValid(false)
+			ref.current.onload = () => active && setValid(true)
+		}
+		return () => { active = false }
+	})
 
 	// Show the picture, but only if it's valid.
-	return <img ref={ref} src={simulation.image} style={{ maxHeight: '480px', maxWidth: '100%', display: valid ? 'block' : 'none' }} />
+	return <img ref={ref} src={media.path} style={{ maxHeight: '480px', maxWidth: '100%', display: valid ? 'block' : 'none' }} />
 }

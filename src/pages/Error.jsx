@@ -1,14 +1,15 @@
 import { useRouteError, Link } from 'react-router-dom'
+import Container from '@mui/material/Container'
 
 export function Error() {
   const error = useRouteError()
   console.error(error)
 
   return (
-    <div id="error-page">
+    <Container maxWidth="xl" sx={{ flexGrow: 1 }}>
       <h1>Ups!</h1>
       <p>Da ist etwas schief gelaufen.</p>
-			<p><Link to="">Zurück zur Startseite.</Link></p>
-    </div>
+      <p><Link to="">Zurück zur Startseite</Link></p>
+    </Container>
   )
 }

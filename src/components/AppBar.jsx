@@ -19,7 +19,7 @@ export function AppBar({ title, backButton, showLogo }) {
 	const user = useUser()
 
 	return <Box>
-		<MuiAppBar position="static">
+		<MuiAppBar position="static" enableColorOnDark>
 			<Container maxWidth="xl">
 				<Toolbar sx={{ padding: '0 !important' }}>
 					{backButton ? <IconButton size="large" edge="start" color="inherit" aria-label="back" sx={{ mr: 1 }} onClick={() => navigate(backButton)}>

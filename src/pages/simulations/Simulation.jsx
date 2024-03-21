@@ -1,8 +1,9 @@
-import { Fragment } from 'react'
+import { Fragment, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useSimulation, useSimulationIdFromUrl } from '../../simulations'
 
+import { usePrevious } from '../../util'
 import { Page } from '../../components'
 
 import { Error } from '../Error'
@@ -19,11 +20,24 @@ export function Simulation() {
 
 export function SimulationWithId({ id }) {
 	const simulation = useSimulation(id)
+
+	// Upon a change of the URL by the simulation creator, update the URL in the browser too.
+	const url = simulation?.url
+	const previousUrl = usePrevious(url)
+	useEffect(() => {
+		if (previousUrl) {
+			console.log('Changed url from ' + previousUrl + ' to ' + url)
+			window.history.pushState({}, undefined, `/s/${url}`)
+		}
+	}, [previousUrl, url])
+
+	// On an error or loading, show the right content.
 	if (simulation === null)
 		return <Error />
 	if (simulation === undefined)
 		return <Page title="Simulation laden..." />
 
+	// Render the simulation.
 	return (
 		<Page title={simulation.title}>
 			{simulation.description ?

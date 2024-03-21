@@ -9,7 +9,7 @@ export function Error() {
     <Container maxWidth="xl" sx={{ flexGrow: 1 }}>
       <h1>Ups!</h1>
       <p>Da ist etwas schief gelaufen.</p>
-      <p><Link to="">Zurück zur Startseite</Link></p>
+      <p><Link to="/">Zurück zur Startseite</Link></p>
     </Container>
   )
 }

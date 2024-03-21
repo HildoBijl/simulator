@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import { Home, Test, Error, Create, Edit, Account } from './pages'
+import { Home, Test, Error, Create, Edit, Account, Simulation } from './pages'
 
 export const router = createBrowserRouter([
   {
@@ -23,5 +23,9 @@ export const router = createBrowserRouter([
   {
     path: '/account',
     element: <Account />,
+  },
+  {
+    path: '/s/:simulationUrl',
+    element: <Simulation />
   },
 ])

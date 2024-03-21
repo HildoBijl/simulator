@@ -3,9 +3,10 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
 
 import { getBaseUrl } from '../../util'
-import { useUserId } from '../../firebase'
+import { useUserId, storage } from '../../firebase'
 import { useSimulation, unlinkUserFromSimulation, getSimulationByUrl, updateSimulation } from '../../simulations'
 import { Page } from '../../components'
 
@@ -36,6 +37,7 @@ function EditForSimulation({ simulation }) {
 		<ChangeUrl simulation={simulation} />
 		<ChangeDescription simulation={simulation} />
 		<ChangeMedia simulation={simulation} />
+		<UploadImage simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</EditPage>
 }
@@ -117,6 +119,41 @@ function ChangeMedia({ simulation }) {
 		<h2>Abbildung</h2>
 		<p>You can enter a URL to a picture. This will then appear on the site.</p>
 		<TextField variant="outlined" fullWidth label="Abbildung" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
+	</>
+}
+
+function UploadImage({ simulation }) {
+	const [file, setFile] = useState()
+	const [percentage, setPercentage] = useState()
+	function handleChange(event) {
+		console.log(event.target)
+		window.e = event
+		setFile(event.target.files[0])
+	}
+	console.log(file)
+	function handleUpload() {
+		if (!file)
+			alert('No file!')
+		const storageRef = ref(storage, file.name)
+		const uploadTask = uploadBytesResumable(storageRef, file)
+
+		uploadTask.on('state_changed', (snapshot) => {
+			console.log(snapshot)
+			setPercentage(Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+		}, (error) => console.error(error), (stuff) => {
+			console.log('Done?', stuff)
+			getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+				console.log(url)
+			})
+		})
+	}
+
+	return <>
+		<h2>Upload image</h2>
+		<p>Upload an image here for the simulation front.</p>
+		<input type="file" accept="image/*" onChange={handleChange} />
+		<p>{percentage} % done</p>
+		<button onClick={handleUpload}>Upload!</button>
 	</>
 }
 

@@ -14,8 +14,8 @@ export async function getSimulation(simulationId) {
 	return simulationDoc.exists() ? simulationDoc.data() : undefined
 }
 
-// getSimulationByURL takes a URL and retrieves the given simulation object, or undefined when it does not exist.
-export async function getSimulationByURL(url) {
+// getSimulationByUrl takes a URL and retrieves the given simulation object, or undefined when it does not exist.
+export async function getSimulationByUrl(url) {
 	const snapshot = await getDocs(query(collection(db, 'simulations'), where('url', '==', url)))
 	const simulationDocs = []
 	snapshot.forEach(doc => simulationDocs.push({ id: doc.id, ...doc.data() }))

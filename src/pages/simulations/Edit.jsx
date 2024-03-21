@@ -4,9 +4,9 @@ import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 
-import { getBaseURL } from '../../util'
+import { getBaseUrl } from '../../util'
 import { useUserId } from '../../firebase'
-import { useSimulation, unlinkUserFromSimulation, getSimulationByURL, updateSimulation } from '../../simulations'
+import { useSimulation, unlinkUserFromSimulation, getSimulationByUrl, updateSimulation } from '../../simulations'
 import { Page } from '../../components'
 
 const EditPage = ({ children }) => <Page title="Simulation bearbeiten" backButton="/create">{children}</Page>
@@ -33,7 +33,7 @@ export function Edit() {
 function EditForSimulation({ simulation }) {
 	return <EditPage>
 		<ChangeTitle simulation={simulation} />
-		<ChangeURL simulation={simulation} />
+		<ChangeUrl simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</EditPage>
 }
@@ -54,16 +54,16 @@ function ChangeTitle({ simulation }) {
 	</>
 }
 
-function ChangeURL({ simulation }) {
+function ChangeUrl({ simulation }) {
 	// Set up a handler that, upon a change, filters out unwanted symbols, checks for duplicates, and if all is in order saves the URL.
-	const [url, setURL] = useState(simulation?.url || '')
+	const [url, setUrl] = useState(simulation?.url || '')
 	const [conflict, setConflict] = useState()
 	const minUrlCharacters = 2
-	const setAndSaveURL = async (url) => {
+	const setAndSaveUrl = async (url) => {
 		url = url.toLowerCase().replace(/[^a-z0-9_-]/, '')
-		setURL(url)
+		setUrl(url)
 		if (url.length >= minUrlCharacters) {
-			const existingSimulation = await getSimulationByURL(url)
+			const existingSimulation = await getSimulationByUrl(url)
 			if (existingSimulation && existingSimulation.id !== simulation.id) {
 				setConflict(existingSimulation)
 			} else {
@@ -75,16 +75,16 @@ function ChangeURL({ simulation }) {
 
 	// Render the URL form part.
 	const theme = useTheme()
-	const fullURL = `${getBaseURL()}/s/${url}`
+	const fullUrl = `${getBaseUrl()}/s/${url}`
 	return <>
 		<h2>Simulation URL</h2>
 		<p>Die URL ist der Link, über den der Zugriff auf die Simulation erfolgt. Sie muss in Kleinbuchstaben ohne Leerzeichen angegeben werden.</p>
-		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveURL(event.target.value)} />
+		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveUrl(event.target.value)} />
 		{url.length < minUrlCharacters ?
 			<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Die URL muss mindestens zwei Zeichen lang sein.</p> :
 			conflict ?
 				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
-				<p>Die Simulation kann über <Link to={fullURL}>{fullURL}</Link> aufgerufen werden.</p>}
+				<p>Die Simulation kann über <Link to={fullUrl}>{fullUrl}</Link> aufgerufen werden.</p>}
 	</>
 }
 

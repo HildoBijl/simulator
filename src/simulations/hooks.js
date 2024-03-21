@@ -4,7 +4,7 @@ import { useDocumentData } from 'react-firebase-hooks/firestore'
 
 import { db, useUserData } from '../firebase'
 
-import { getSimulationByURL } from './functions'
+import { getSimulationByUrl } from './functions'
 
 // useSimulationIds gets all the simulation IDs for a specific user.
 export function useSimulationIds() {
@@ -34,7 +34,7 @@ export function useSimulationIdFromUrl(url) {
 	useEffect(() => {
 		let active = true // To prevent state changes after dismount.
 		if (url) {
-			getSimulationByURL(url).then(simulation => {
+			getSimulationByUrl(url).then(simulation => {
 				if (active)
 					setId(simulation?.id || null)
 			})

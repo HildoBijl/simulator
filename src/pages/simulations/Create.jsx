@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
-import { getBaseURL } from '../../util'
+import { getBaseUrl } from '../../util'
 import { useAuthData, useUserId, signInWithGoogleRedirect } from '../../firebase'
 import { useSimulationIds, createNewSimulation, useSimulation } from '../../simulations'
 import { Page } from '../../components'
@@ -132,7 +132,7 @@ function Simulation({ id, hovering, startHover, endHover, onClick }) {
   const title = simulation.title || 'Unbekannter Titel'
   return <>
     <div className={clsx('title', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{title}</div>
-    <div className={clsx('url', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.url ? <Link to={`${getBaseURL()}/s/${simulation.url}`}>{simulation.url}</Link> : '-'}</div>
+    <div className={clsx('url', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.url ? <Link to={`${getBaseUrl()}/s/${simulation.url}`}>{simulation.url}</Link> : '-'}</div>
     <div className={clsx('numPlayed', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numPlayed || 0}</div>
     <div className={clsx('numFinished', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numFinished || 0}</div>
   </>

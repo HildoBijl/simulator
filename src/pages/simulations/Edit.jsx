@@ -58,15 +58,18 @@ function ChangeURL({ simulation }) {
 	// Set up a handler that, upon a change, filters out unwanted symbols, checks for duplicates, and if all is in order saves the URL.
 	const [url, setURL] = useState(simulation?.url || '')
 	const [conflict, setConflict] = useState()
+	const minUrlCharacters = 2
 	const setAndSaveURL = async (url) => {
 		url = url.toLowerCase().replace(/[^a-z0-9_-]/, '')
 		setURL(url)
-		const existingSimulation = await getSimulationByURL(url)
-		if (existingSimulation && existingSimulation.id !== simulation.id) {
-			setConflict(existingSimulation)
-		} else {
-			setConflict(undefined)
-			await updateSimulation(simulation.id, { url })
+		if (url.length >= minUrlCharacters) {
+			const existingSimulation = await getSimulationByURL(url)
+			if (existingSimulation && existingSimulation.id !== simulation.id) {
+				setConflict(existingSimulation)
+			} else {
+				setConflict(undefined)
+				await updateSimulation(simulation.id, { url })
+			}
 		}
 	}
 
@@ -77,7 +80,11 @@ function ChangeURL({ simulation }) {
 		<h2>Simulation URL</h2>
 		<p>Die URL ist der Link, über den der Zugriff auf die Simulation erfolgt. Sie muss in Kleinbuchstaben ohne Leerzeichen angegeben werden.</p>
 		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveURL(event.target.value)} />
-		{conflict ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> : <p>Die Simulation kann über <Link to={fullURL}>{fullURL}</Link> aufgerufen werden.</p>}
+		{url.length < minUrlCharacters ?
+			<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Die URL muss mindestens zwei Zeichen lang sein.</p> :
+			conflict ?
+				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
+				<p>Die Simulation kann über <Link to={fullURL}>{fullURL}</Link> aufgerufen werden.</p>}
 	</>
 }
 
@@ -98,13 +105,13 @@ function RemoveSimulation({ simulation }) {
 		return <>
 			<h2>Simulation löschen</h2>
 			<p>Sie sind der einzige Eigentümer dieser Simulation. Wenn Sie sie entfernen, wird sie dauerhaft gelöscht. Alle Spuren werden aus dem Datenspeicher entfernt und niemand wird mehr in der Lage sein, sie zu spielen.</p>
-			<Button variant="contained" onClick={confirmRemoval}>Simulation löschen</Button>
+			<Button variant="contained" onClick={confirmRemoval} sx={{ mb: '1rem' }}>Simulation löschen</Button>
 		</>
 	}
 
 	return <>
 		<h2>Sich entfernen als Eigentümer</h2>
 		<p>Es gibt mehrere Eigentümer dieser Simulation. Sie können sich selbst als Eigentümer entfernen. Die Simulation bleibt bestehen und kann von dem/den verbleibenden Eigentümer(n) verwaltet werden.</p>
-		<Button variant="contained" onClick={confirmRemoval}>Sich entfernen als Eigentümer</Button>
+		<Button variant="contained" onClick={confirmRemoval} sx={{ mb: '1rem' }}>Sich entfernen als Eigentümer</Button>
 	</>
 }

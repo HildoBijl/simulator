@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { Timestamp } from 'firebase/firestore'
 import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
@@ -48,10 +47,11 @@ function ChangeTitle({ simulation }) {
 	}
 
 	// Render the form part.
-	return <div style={{ margin: '2rem 0 0.5rem' }}>
+	return <>
+		<h2>Titel</h2>
 		<p>Der Titel ist das, was die Studierenden beim ersten Öffnen der Simulation sehen.</p>
 		<TextField variant="outlined" fullWidth label="Titel" value={title} onChange={(event) => setAndSaveTitle(event.target.value)} />
-	</div>
+	</>
 }
 
 function ChangeURL({ simulation }) {
@@ -69,15 +69,16 @@ function ChangeURL({ simulation }) {
 			await updateSimulation(simulation.id, { url })
 		}
 	}
-	
+
 	// Render the URL form part.
 	const theme = useTheme()
 	const fullURL = `${getBaseURL()}/s/${url}`
-	return <div style={{ margin: '2rem 0 0.5rem' }}>
+	return <>
+		<h2>Simulation URL</h2>
 		<p>Die URL ist der Link, über den der Zugriff auf die Simulation erfolgt. Sie muss in Kleinbuchstaben ohne Leerzeichen angegeben werden.</p>
 		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveURL(event.target.value)} />
-		{conflict ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL "{url}" existiert bereits. Versuchen Sie eine andere URL.</p> : <p>Die Simulation kann über <Link to={fullURL}>{fullURL}</Link> aufgerufen werden.</p>}
-	</div>
+		{conflict ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> : <p>Die Simulation kann über <Link to={fullURL}>{fullURL}</Link> aufgerufen werden.</p>}
+	</>
 }
 
 function RemoveSimulation({ simulation }) {

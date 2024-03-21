@@ -34,6 +34,7 @@ function EditForSimulation({ simulation }) {
 	return <EditPage>
 		<ChangeTitle simulation={simulation} />
 		<ChangeUrl simulation={simulation} />
+		<ChangeDescription simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</EditPage>
 }
@@ -77,14 +78,28 @@ function ChangeUrl({ simulation }) {
 	const theme = useTheme()
 	const fullUrl = `${getBaseUrl()}/s/${url}`
 	return <>
-		<h2>Simulation URL</h2>
+		<h2>URL</h2>
 		<p>Die URL ist der Link, über den der Zugriff auf die Simulation erfolgt. Sie muss in Kleinbuchstaben ohne Leerzeichen angegeben werden.</p>
-		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveUrl(event.target.value)} />
+		<TextField variant="outlined" fullWidth label="URL" value={url} onChange={(event) => setAndSaveUrl(event.target.value)} />
 		{url.length < minUrlCharacters ?
 			<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Die URL muss mindestens zwei Zeichen lang sein.</p> :
 			conflict ?
 				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
 				<p>Die Simulation kann über <Link to={fullUrl}>{fullUrl}</Link> aufgerufen werden.</p>}
+	</>
+}
+
+function ChangeDescription({ simulation }) {
+	const [description, setDescription] = useState(simulation?.description || '')
+	const setAndSaveDescription = async (description) => {
+		setDescription(description)
+		await updateSimulation(simulation.id, { description })
+	}
+
+	return <>
+		<h2>Beschreibung</h2>
+		<p>Die Beschreibung ist die Geschichte, die oben auf der Titelseite erscheint.</p>
+		<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={description} onChange={(event) => setAndSaveDescription(event.target.value)} />
 	</>
 }
 

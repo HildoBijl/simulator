@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useSimulation, useSimulationIdFromUrl } from '../../simulations'
@@ -25,7 +26,14 @@ export function SimulationWithId({ id }) {
 
 	return (
 		<Page title={simulation.title}>
-			<p>The simulation will be shown here.</p>
+			{simulation.description ?
+				simulation.description.split('\n\n').map((paragraph, index) => {
+					const paragraphSplit = paragraph.split('\n')
+					return <p key={index}>
+						{paragraphSplit.map((subParagraph, subIndex) => <Fragment key={subIndex}>{subParagraph}{subIndex < paragraphSplit.length - 1 ? <br /> : null}</Fragment>)}
+					</p>
+				}) :
+				<p>Diese Simulation hat noch keine Beschreibung.</p>}
 		</Page>
 	)
 }

@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
+import { collection, doc, query, where, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
 
 import { db, getUserData } from '../firebase'
 
@@ -12,6 +12,16 @@ export async function getUserSimulationIds(userId) {
 export async function getSimulation(simulationId) {
 	const simulationDoc = await getDoc(doc(db, 'simulations', simulationId))
 	return simulationDoc.exists() ? simulationDoc.data() : undefined
+}
+
+// getSimulationByURL takes a URL and retrieves the given simulation object, or undefined when it does not exist.
+export async function getSimulationByURL(url) {
+	const snapshot = await getDocs(query(collection(db, 'simulations'), where('url', '==', url)))
+	const simulationDocs = []
+	snapshot.forEach(doc => simulationDocs.push({ id: doc.id, ...doc.data() }))
+	if (simulationDocs.length > 1)
+		throw new Error(`Invalid simulation URL: there are ${simulationDocs.length} simulations with the URL "${url}".`)
+	return simulationDocs[0]
 }
 
 // createNewSimulation creates a new simulation with as owner the user with the given ID. It returns the ID of the new simulation.

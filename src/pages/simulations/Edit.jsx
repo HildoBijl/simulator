@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Timestamp } from 'firebase/firestore'
+import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 
+import { getBaseURL } from '../../util'
 import { useUserId } from '../../firebase'
-import { useSimulation, unlinkUserFromSimulation, updateSimulation } from '../../simulations'
+import { useSimulation, unlinkUserFromSimulation, getSimulationByURL, updateSimulation } from '../../simulations'
 import { Page } from '../../components'
 
 const EditPage = ({ children }) => <Page title="Simulation bearbeiten" backButton="/create">{children}</Page>
@@ -31,18 +34,50 @@ export function Edit() {
 function EditForSimulation({ simulation }) {
 	return <EditPage>
 		<ChangeTitle simulation={simulation} />
+		<ChangeURL simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</EditPage>
 }
 
 function ChangeTitle({ simulation }) {
+	// Set up a handler that saves the title.
 	const [title, setTitle] = useState(simulation?.title || '')
 	const setAndSaveTitle = async (title) => {
 		setTitle(title)
 		await updateSimulation(simulation.id, { title })
 	}
 
-	return <div style={{ margin: '2.5rem 0 1rem' }}><TextField variant="outlined" label="Titel" value={title} onChange={(event) => setAndSaveTitle(event.target.value)} /></div>
+	// Render the form part.
+	return <div style={{ margin: '2rem 0 0.5rem' }}>
+		<p>Der Titel ist das, was die Studierenden beim ersten Öffnen der Simulation sehen.</p>
+		<TextField variant="outlined" fullWidth label="Titel" value={title} onChange={(event) => setAndSaveTitle(event.target.value)} />
+	</div>
+}
+
+function ChangeURL({ simulation }) {
+	// Set up a handler that, upon a change, filters out unwanted symbols, checks for duplicates, and if all is in order saves the URL.
+	const [url, setURL] = useState(simulation?.url || '')
+	const [conflict, setConflict] = useState()
+	const setAndSaveURL = async (url) => {
+		url = url.toLowerCase().replace(/[^a-z0-9_-]/, '')
+		setURL(url)
+		const existingSimulation = await getSimulationByURL(url)
+		if (existingSimulation && existingSimulation.id !== simulation.id) {
+			setConflict(existingSimulation)
+		} else {
+			setConflict(undefined)
+			await updateSimulation(simulation.id, { url })
+		}
+	}
+	
+	// Render the URL form part.
+	const theme = useTheme()
+	const fullURL = `${getBaseURL()}/s/${url}`
+	return <div style={{ margin: '2rem 0 0.5rem' }}>
+		<p>Die URL ist der Link, über den der Zugriff auf die Simulation erfolgt. Sie muss in Kleinbuchstaben ohne Leerzeichen angegeben werden.</p>
+		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveURL(event.target.value)} />
+		{conflict ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL "{url}" existiert bereits. Versuchen Sie eine andere URL.</p> : <p>Die Simulation kann über <Link to={fullURL}>{fullURL}</Link> aufgerufen werden.</p>}
+	</div>
 }
 
 function RemoveSimulation({ simulation }) {

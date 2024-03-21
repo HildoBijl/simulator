@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
+import { getBaseURL } from '../../util'
 import { useAuthData, useUserId, signInWithGoogleRedirect } from '../../firebase'
 import { useSimulationIds, createNewSimulation, useSimulation } from '../../simulations'
 import { Page } from '../../components'
@@ -30,7 +31,7 @@ export function CreateAsStranger() {
 const Grid = styled('div')({
   display: 'grid',
   margin: '1rem 0',
-  gridTemplateColumns: '[start] 3fr repeat(2, minmax(120px, 1fr)) [end]',
+  gridTemplateColumns: '[start] 3fr minmax(80px, 1fr) repeat(2, minmax(120px, 1fr)) [end]',
 
   '& > div': {
     lineHeight: '1.5rem',
@@ -56,6 +57,9 @@ const Grid = styled('div')({
 
   '& .title': {
 
+  },
+  '& .url': {
+    textAlign: 'center',
   },
   '& .numPlayed': {
     textAlign: 'center',
@@ -107,7 +111,8 @@ export function CreateAsUser() {
   return (
     <CreatePage>
       <Grid>
-        <div className="title head">Titel der Simulation</div>
+        <div className="title head">Titel</div>
+        <div className="url head">URL</div>
         <div className="numPlayed head">Angefangen</div>
         <div className="numFinished head">Abgeschlossen</div>
         {simulationIds.map(simulationId => <Simulation key={simulationId} id={simulationId} onClick={() => navigate(`/create/${simulationId}`)} hovering={hoverRow === simulationId} startHover={() => setHoverRow(simulationId)} endHover={() => setHoverRow()} />)}
@@ -127,6 +132,7 @@ function Simulation({ id, hovering, startHover, endHover, onClick }) {
   const title = simulation.title || 'Unbekannter Titel'
   return <>
     <div className={clsx('title', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{title}</div>
+    <div className={clsx('url', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.url ? <Link to={`${getBaseURL()}/s/${simulation.url}`}>{simulation.url}</Link> : '-'}</div>
     <div className={clsx('numPlayed', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numPlayed || 0}</div>
     <div className={clsx('numFinished', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numFinished || 0}</div>
   </>

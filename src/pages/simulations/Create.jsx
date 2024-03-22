@@ -31,7 +31,7 @@ export function CreateAsStranger() {
 const Grid = styled('div')({
   display: 'grid',
   margin: '1rem 0',
-  gridTemplateColumns: '[start] 3fr minmax(80px, 1fr) repeat(2, minmax(120px, 1fr)) [end]',
+  gridTemplateColumns: '[start] 5fr minmax(120px, 1fr) repeat(2, minmax(60px, 1fr)) [end]',
 
   '& > div': {
     lineHeight: '1.5rem',
@@ -113,8 +113,8 @@ export function CreateAsUser() {
       <Grid>
         <div className="title head">Titel</div>
         <div className="url head">URL</div>
-        <div className="numPlayed head">Angefangen</div>
-        <div className="numFinished head">Abgeschlossen</div>
+        <div className="numPlayed head">Angef.</div>
+        <div className="numFinished head">Abges.</div>
         {simulationIds.map(simulationId => <Simulation key={simulationId} id={simulationId} onClick={() => navigate(`/create/${simulationId}`)} hovering={hoverRow === simulationId} startHover={() => setHoverRow(simulationId)} endHover={() => setHoverRow()} />)}
         <NewSimulation />
       </Grid>

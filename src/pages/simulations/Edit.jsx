@@ -213,7 +213,9 @@ function UploadImage({ simulation }) {
 	// On no given file, show either the file itself or an upload button.
 	if (simulation?.media?.type === 'internalImage') {
 		return <>
-			<p><InternalImage path={simulation.media.path} extraUpdateParameter={simulation.media} style={imageStyle} /></p>
+			<div style={{ margin: '1rem 0' }}>
+				<InternalImage path={simulation.media.path} extraUpdateParameter={simulation.media} style={imageStyle} />
+			</div>
 			<ImageUpload onChange={setAndSaveFile} />
 		</>
 	}
@@ -244,7 +246,9 @@ function ProvideImageLink({ simulation }) {
 	return <>
 		<p>Geben Sie die URL des gewünschten Bildes an.</p>
 		<TextField variant="outlined" fullWidth label="Abbildung" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
-		<p><ExternalImage path={image} style={imageStyle} /></p>
+		<div style={{ margin: '1rem 0' }}>
+			<ExternalImage path={image} style={imageStyle} />
+		</div>
 	</>
 }
 
@@ -261,7 +265,9 @@ function ProvideVideoLink({ simulation }) {
 	return <>
 		<p>Geben Sie die YouTube-ID des gewünschten YouTube-Videos an. (Zum Beispiel "aBc1DE_f2G3h".)</p>
 		<TextField variant="outlined" fullWidth label="YouTube-Video ID" value={video} onChange={(event) => setAndSaveVideo(event.target.value)} />
-		<p><YouTubeVideo id={video} height={imageHeight} /></p>
+		<div style={{ margin: '1rem 0' }}>
+			<YouTubeVideo id={video} height={imageHeight} />
+		</div>
 	</>
 }
 

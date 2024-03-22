@@ -59,10 +59,13 @@ export async function removeOwnerFromSimulation(userId, simulationId) {
 	if (!simulation.owners.includes(userId))
 		throw new Error(`Invalid removeOwner call: cannot remove user "${userId}" from simulation "${simulationId}" since this user is not an owner of this simulation.`)
 
-	// Remove the owner from the simulation or, if it's the last owner, remove the simulation altogether.
+	// Upon multiple owners, remove the owner from the simulation.
 	if (simulation.owners.length > 1)
 		return await updateDoc(doc(db, 'simulations', simulationId), { owners: arrayRemove(userId) })
-	return await deleteDoc(doc(db, 'simulations', simulationId))
+
+	// When this is the last owner, remove the simulation.
+	await deleteMediaFile(simulation?.media)
+	await deleteDoc(doc(db, 'simulations', simulationId))
 }
 
 // removeUserFromAllSimulations removes a user as owner from all the simulation he/she is the owner of.

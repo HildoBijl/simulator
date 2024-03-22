@@ -204,7 +204,7 @@ function UploadImage({ simulation }) {
 		if (file.size > maxFileSize * 1024 ** 2)
 			return <>
 				<p style={errorStyle(theme)}>Die Datei ist zu groß. Die maximale Dateigröße beträgt {maxFileSize} MB, aber die angegebene Datei ist {Math.round(file.size / 1024 ** 2 * 10) / 10} MB groß.</p>
-				<input type="file" accept="image/*" onChange={setAndSaveFile} />
+				<ImageUpload onChange={setAndSaveFile} />
 			</>
 		return <p>Das Bild wird gerade hochgeladen. Der Upload ist zu {percentage}% abgeschlossen.</p>
 	}
@@ -213,15 +213,21 @@ function UploadImage({ simulation }) {
 	if (simulation?.media?.type === 'internalImage') {
 		return <>
 			<p><InternalImage path={simulation.media.path} extraUpdateParameter={simulation.media} style={imageStyle} /></p>
-			<p>Sie können ein neues Bild hochladen, um dieses zu überschreiben.</p>
-			<input type="file" accept="image/*" onChange={setAndSaveFile} />
+			<ImageUpload onChange={setAndSaveFile} />
 		</>
 	}
 
 	return <>
 		<p>Laden Sie Ihre Datei hier hoch.</p>
-		<input type="file" accept="image/*" onChange={setAndSaveFile} />
+		<ImageUpload onChange={setAndSaveFile} />
 	</>
+}
+
+function ImageUpload({ onChange }) {
+	return <Button variant="contained" component="label">
+		Neues Bild hochladen
+		<input type="file" accept="image/*" onChange={onChange} hidden />
+	</Button>
 }
 
 function ProvideImageLink({ simulation }) {

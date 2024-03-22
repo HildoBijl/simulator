@@ -3,7 +3,6 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
-import Box from '@mui/material/Box'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
@@ -12,8 +11,8 @@ import { deleteField } from 'firebase/firestore'
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
 
 import { getBaseUrl } from '../../util'
-import { useUserId, storage } from '../../firebase'
-import { useSimulation, unlinkUserFromSimulation, getSimulationByUrl, updateSimulation } from '../../simulations'
+import { useUserId, storage, useStorageUrl } from '../../firebase'
+import { useSimulation, unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, deleteMediaFile } from '../../simulations'
 import { Page } from '../../components'
 
 const EditPage = ({ children }) => <Page title="Simulation bearbeiten" backButton="/create">{children}</Page>
@@ -43,7 +42,6 @@ function EditForSimulation({ simulation }) {
 		<ChangeUrl simulation={simulation} />
 		<ChangeDescription simulation={simulation} />
 		<ChangeMedia simulation={simulation} />
-		<UploadImage simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</EditPage>
 }
@@ -94,7 +92,7 @@ function ChangeUrl({ simulation }) {
 			<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Die URL muss mindestens zwei Zeichen lang sein.</p> :
 			conflict ?
 				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
-				<p>Die Simulation kann über <Link to={fullUrl}>{fullUrl}</Link> aufgerufen werden.</p>}
+				<p>Die Simulation kann über <Link to={fullUrl} target="_blank" rel="noopener noreferrer">{fullUrl}</Link> aufgerufen werden.</p>}
 	</>
 }
 
@@ -153,45 +151,72 @@ function NoMedia({ simulation }) {
 
 	// Ensure that the media field is removed in the database.
 	useEffect(() => {
-		if (media)
+		if (media) {
+			deleteMediaFile(media)
 			updateSimulation(id, { media: deleteField() })
+		}
 	}, [id, media])
 
 	// Do not render any further message.
 	return null
 }
 
-function UploadImage() {
+const maxFileSize = 2 // MB
+function UploadImage({ simulation }) {
+	const theme = useTheme()
 	const [file, setFile] = useState()
 	const [percentage, setPercentage] = useState()
-	function handleChange(event) {
-		window.e = event
-		setFile(event.target.files[0])
-	}
-	console.log(file)
-	function handleUpload() {
-		if (!file)
-			alert('No file!')
-		const storageRef = ref(storage, file.name)
+	const imageUrl = useStorageUrl(simulation?.media?.type === 'internalImage' && simulation.media.path, simulation?.media)
+
+	const setAndSaveFile = async (event) => {
+		// Set the file locally.
+		const file = event.target.files[0]
+		setFile(file)
+		if (file.size > maxFileSize * 1024 ** 2)
+			return
+
+		// Remove a potential old file and start uploading the new file.
+		await deleteMediaFile(simulation.media)
+		const extension = file.name.split('.').pop()
+		const path = `simulations/${simulation.id}/startImage.${extension}`
+		const storageRef = ref(storage, path)
 		const uploadTask = uploadBytesResumable(storageRef, file)
 
-		uploadTask.on('state_changed', (snapshot) => {
-			console.log(snapshot)
-			setPercentage(Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 100)
-		}, (error) => console.error(error), (stuff) => {
-			console.log('Done?', stuff)
-			getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-				console.log(url)
+		// Keep track of upload updates.
+		uploadTask.on('state_changed',
+			snapshot => { // On change in upload percentage.
+				setPercentage(Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+			},
+			error => { // On error.
+				console.error(error)
+				updateSimulation(simulation.id, { media: deleteField() })
+			},
+			async () => { // On finished uploading.
+				await updateSimulation(simulation.id, { media: { type: 'internalImage', path } })
+				setFile(undefined)
 			})
-		})
+	}
+
+	// On a given file, either show an upload error or upload notification.
+	if (file) {
+		if (file.size > maxFileSize * 1024 ** 2)
+			return <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Die Datei ist zu groß. Die maximale Dateigröße beträgt {maxFileSize} MB, aber die angegebene Datei ist {Math.round(file.size / 1024 ** 2 * 10) / 10} MB groß.</p>
+		return <p>Das Bild wird gerade hochgeladen. Der Upload ist zu {percentage}% abgeschlossen.</p>
+	}
+
+	// On no given file, show either the file itself or an upload button.
+	if (simulation?.media?.type === 'internalImage') {
+		return <>
+			<p>Sie haben bereits ein Bild hochgeladen.</p>
+			{imageUrl ? <img src={imageUrl} style={{ maxHeight: '200px', maxWidth: '100%' }} /> : null}
+			<p>Sie können ein neues Bild hochladen, um dieses zu überschreiben.</p>
+			<input type="file" accept="image/*" onChange={setAndSaveFile} />
+		</>
 	}
 
 	return <>
-		<h2>Upload image</h2>
-		<p>Upload an image here for the simulation front.</p>
-		<input type="file" accept="image/*" onChange={handleChange} />
-		<p>{percentage} % done</p>
-		<button onClick={handleUpload}>Upload!</button>
+		<p>Laden Sie Ihre Datei hier hoch.</p>
+		<input type="file" accept="image/*" onChange={setAndSaveFile} />
 	</>
 }
 
@@ -200,6 +225,7 @@ function ProvideImageLink({ simulation }) {
 	const [image, setImage] = useState((simulation?.media?.type === 'externalImage' ? simulation?.media?.path : '') || '')
 	const setAndSaveImage = async (image) => {
 		setImage(image)
+		await deleteMediaFile(simulation.media)
 		await updateSimulation(simulation.id, { media: image ? { type: 'externalImage', path: image } : deleteField() })
 	}
 

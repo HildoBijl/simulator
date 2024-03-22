@@ -89,9 +89,9 @@ function ChangeUrl({ simulation }) {
 	const theme = useTheme()
 	const fullUrl = `${getBaseUrl()}/s/${url}`
 	return <>
-		<h2>URL</h2>
+		<h2>Simulation URL</h2>
 		<p>Die URL ist der Link, über den der Zugriff auf die Simulation erfolgt. Sie muss in Kleinbuchstaben ohne Leerzeichen angegeben werden.</p>
-		<TextField variant="outlined" fullWidth label="URL" value={url} onChange={(event) => setAndSaveUrl(event.target.value)} />
+		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveUrl(event.target.value)} />
 		{url.length < minUrlCharacters ?
 			<p style={errorStyle(theme)}>Die URL muss mindestens zwei Zeichen lang sein.</p> :
 			conflict ?
@@ -245,7 +245,7 @@ function ProvideImageLink({ simulation }) {
 	// Render the input field.
 	return <>
 		<p>Geben Sie die URL des gewünschten Bildes an.</p>
-		<TextField variant="outlined" fullWidth label="Abbildung" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
+		<TextField variant="outlined" fullWidth label="Abbildung URL" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
 		<div style={{ margin: '1rem 0' }}>
 			<ExternalImage path={image} style={imageStyle} />
 		</div>

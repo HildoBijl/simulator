@@ -263,7 +263,7 @@ function ProvideVideoLink({ simulation }) {
 
 	// Render the input field.
 	return <>
-		<p>Geben Sie die YouTube-ID des gewünschten YouTube-Videos an. (Zum Beispiel "aBc1DE_f2G3h".)</p>
+		<p>Geben Sie die YouTube-ID des gewünschten YouTube-Videos an. (Zum Beispiel &quot;aBc1DE_f2G3h&quot;.)</p>
 		<TextField variant="outlined" fullWidth label="YouTube-Video ID" value={video} onChange={(event) => setAndSaveVideo(event.target.value)} />
 		<div style={{ margin: '1rem 0' }}>
 			<YouTubeVideo id={video} height={imageHeight} />

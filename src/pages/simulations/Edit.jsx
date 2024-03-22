@@ -8,14 +8,17 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import { deleteField } from 'firebase/firestore'
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
+import { ref, uploadBytesResumable } from 'firebase/storage'
 
 import { getBaseUrl } from '../../util'
-import { useUserId, storage, useStorageUrl } from '../../firebase'
+import { useUserId, storage } from '../../firebase'
 import { useSimulation, unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, deleteMediaFile } from '../../simulations'
-import { Page } from '../../components'
+import { InternalImage, ExternalImage, Page } from '../../components'
 
 const EditPage = ({ children }) => <Page title="Simulation bearbeiten" backButton="/create">{children}</Page>
+
+const errorStyle = (theme) => ({ color: theme.palette.error.main, fontWeight: 500 })
+const imageStyle = { maxHeight: '200px', maxWidth: '100%' }
 
 export function Edit() {
 	const navigate = useNavigate()
@@ -89,9 +92,9 @@ function ChangeUrl({ simulation }) {
 		<p>Die URL ist der Link, über den der Zugriff auf die Simulation erfolgt. Sie muss in Kleinbuchstaben ohne Leerzeichen angegeben werden.</p>
 		<TextField variant="outlined" fullWidth label="URL" value={url} onChange={(event) => setAndSaveUrl(event.target.value)} />
 		{url.length < minUrlCharacters ?
-			<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Die URL muss mindestens zwei Zeichen lang sein.</p> :
+			<p style={errorStyle(theme)}>Die URL muss mindestens zwei Zeichen lang sein.</p> :
 			conflict ?
-				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
+				<p style={errorStyle(theme)}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
 				<p>Die Simulation kann über <Link to={fullUrl} target="_blank" rel="noopener noreferrer">{fullUrl}</Link> aufgerufen werden.</p>}
 	</>
 }
@@ -166,7 +169,6 @@ function UploadImage({ simulation }) {
 	const theme = useTheme()
 	const [file, setFile] = useState()
 	const [percentage, setPercentage] = useState()
-	const imageUrl = useStorageUrl(simulation?.media?.type === 'internalImage' && simulation.media.path, simulation?.media)
 
 	const setAndSaveFile = async (event) => {
 		// Set the file locally.
@@ -200,15 +202,17 @@ function UploadImage({ simulation }) {
 	// On a given file, either show an upload error or upload notification.
 	if (file) {
 		if (file.size > maxFileSize * 1024 ** 2)
-			return <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Die Datei ist zu groß. Die maximale Dateigröße beträgt {maxFileSize} MB, aber die angegebene Datei ist {Math.round(file.size / 1024 ** 2 * 10) / 10} MB groß.</p>
+			return <>
+				<p style={errorStyle(theme)}>Die Datei ist zu groß. Die maximale Dateigröße beträgt {maxFileSize} MB, aber die angegebene Datei ist {Math.round(file.size / 1024 ** 2 * 10) / 10} MB groß.</p>
+				<input type="file" accept="image/*" onChange={setAndSaveFile} />
+			</>
 		return <p>Das Bild wird gerade hochgeladen. Der Upload ist zu {percentage}% abgeschlossen.</p>
 	}
 
 	// On no given file, show either the file itself or an upload button.
 	if (simulation?.media?.type === 'internalImage') {
 		return <>
-			<p>Sie haben bereits ein Bild hochgeladen.</p>
-			{imageUrl ? <img src={imageUrl} style={{ maxHeight: '200px', maxWidth: '100%' }} /> : null}
+			<p><InternalImage path={simulation.media.path} extraUpdateParameter={simulation.media} style={imageStyle} /></p>
 			<p>Sie können ein neues Bild hochladen, um dieses zu überschreiben.</p>
 			<input type="file" accept="image/*" onChange={setAndSaveFile} />
 		</>
@@ -233,6 +237,7 @@ function ProvideImageLink({ simulation }) {
 	return <>
 		<p>Geben Sie die URL des gewünschten Bildes an.</p>
 		<TextField variant="outlined" fullWidth label="Abbildung" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
+		<p><ExternalImage path={image} style={imageStyle} /></p>
 	</>
 }
 

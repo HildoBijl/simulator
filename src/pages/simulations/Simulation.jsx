@@ -1,11 +1,11 @@
-import { Fragment, useState, useEffect, useRef } from 'react'
+import { Fragment, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import Button from '@mui/material/Button'
 
 import { useSimulation, useSimulationIdFromUrl } from '../../simulations'
 
 import { usePrevious } from '../../util'
-import { Page } from '../../components'
+import { InternalImage, ExternalImage, Page } from '../../components'
 
 import { Error } from '../Error'
 
@@ -68,29 +68,12 @@ function Media({ simulation }) {
 	const { type } = media
 	switch (type) {
 		case 'internalImage':
-			return null // ToDo
+			return <InternalImage path={simulation.media.path} style={{ maxHeight: '480px', maxWidth: '100%', display: 'block' }} />
 		case 'externalImage':
-			return <ExternalImage media={simulation.media} />
+			return <ExternalImage path={simulation.media.path} style={{ maxHeight: '480px', maxWidth: '100%', display: 'block' }} />
 		case 'externalVideo':
 			return null // ToDo
 		default:
 			throw new Error(`Invalid media type: encountered a type "${type}" but this is not among the available options.`)
 	}
-}
-
-function ExternalImage({ media }) {
-	// When the image loads or fails to load, update the validity setting.
-	const [valid, setValid] = useState(false)
-	const ref = useRef()
-	useEffect(() => {
-		let active = true
-		if (ref.current) {
-			ref.current.onerror = () => active && setValid(false)
-			ref.current.onload = () => active && setValid(true)
-		}
-		return () => { active = false }
-	})
-
-	// Show the picture, but only if it's valid.
-	return <img ref={ref} src={media.path} style={{ maxHeight: '480px', maxWidth: '100%', display: valid ? 'block' : 'none' }} />
 }

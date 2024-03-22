@@ -158,7 +158,7 @@ function NoMedia({ simulation }) {
 			deleteMediaFile(media)
 			updateSimulation(id, { media: deleteField() })
 		}
-	}, [id, media])
+	}, []) // eslint-disable-line react-hooks/exhaustive-deps
 
 	// Do not render any further message.
 	return null

@@ -5,7 +5,7 @@ import Button from '@mui/material/Button'
 import { useSimulation, useSimulationIdFromUrl } from '../../simulations'
 
 import { usePrevious } from '../../util'
-import { InternalImage, ExternalImage, Page } from '../../components'
+import { InternalImage, ExternalImage, YouTubeVideo, Page } from '../../components'
 
 import { Error } from '../Error'
 
@@ -41,7 +41,7 @@ export function SimulationWithId({ id }) {
 		<Page title={simulation.title}>
 			<Description simulation={simulation} />
 			<Media simulation={simulation} />
-			<Button variant="contained" sx={{ margin: '1rem 0' }} onClick={() => window.alert('Die Simulationsfunktionen sind leider noch nicht implementiert worden.')}>Simulation beginnen</Button>
+			<Button variant="contained" sx={{ margin: '1rem 0' }} onClick={() => window.alert('Die Simulationsfunktionen sind leider noch nicht implementiert worden.')}>Simulation anfangen</Button>
 		</Page>
 	)
 }
@@ -65,14 +65,16 @@ function Media({ simulation }) {
 		return null
 
 	// Depending on the type of media, render the appropriate component.
+	const height = 480
+	const imageStyle = { maxHeight: `${height}px`, maxWidth: '100%', display: 'block' }
 	const { type } = media
 	switch (type) {
 		case 'internalImage':
-			return <InternalImage path={simulation.media.path} style={{ maxHeight: '480px', maxWidth: '100%', display: 'block' }} />
+			return <InternalImage path={simulation.media.path} style={imageStyle} />
 		case 'externalImage':
-			return <ExternalImage path={simulation.media.path} style={{ maxHeight: '480px', maxWidth: '100%', display: 'block' }} />
-		case 'externalVideo':
-			return null // ToDo
+			return <ExternalImage path={simulation.media.path} style={imageStyle} />
+		case 'youtubeVideo':
+			return <YouTubeVideo id={simulation.media.id} height={height} />
 		default:
 			throw new Error(`Invalid media type: encountered a type "${type}" but this is not among the available options.`)
 	}

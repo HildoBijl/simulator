@@ -13,12 +13,13 @@ import { ref, uploadBytesResumable } from 'firebase/storage'
 import { getBaseUrl } from '../../util'
 import { useUserId, storage } from '../../firebase'
 import { useSimulation, unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, deleteMediaFile } from '../../simulations'
-import { InternalImage, ExternalImage, Page } from '../../components'
+import { InternalImage, ExternalImage, YouTubeVideo, Page } from '../../components'
 
 const EditPage = ({ children }) => <Page title="Simulation bearbeiten" backButton="/create">{children}</Page>
 
 const errorStyle = (theme) => ({ color: theme.palette.error.main, fontWeight: 500 })
-const imageStyle = { maxHeight: '200px', maxWidth: '100%' }
+const imageHeight = 200
+const imageStyle = { maxHeight: `${imageHeight}px`, maxWidth: '100%' }
 
 export function Edit() {
 	const navigate = useNavigate()
@@ -127,7 +128,7 @@ function ChangeMedia({ simulation }) {
 				<MenuItem value="none">Keine</MenuItem>
 				<MenuItem value="internalImage">Bild hochladen</MenuItem>
 				<MenuItem value="externalImage">Link zu externem Bild</MenuItem>
-				<MenuItem value="externalVideo">Link zu YouTube-Video</MenuItem>
+				<MenuItem value="youtubeVideo">YouTube-Video</MenuItem>
 			</Select>
 		</FormControl>
 		<MediaComponent simulation={simulation} />
@@ -142,7 +143,7 @@ function getMediaComponent(mediaType) {
 			return UploadImage
 		case 'externalImage':
 			return ProvideImageLink
-		case 'externalVideo':
+		case 'youtubeVideo':
 			return ProvideVideoLink
 		default:
 			throw new Error(`Invalid media type: encountered a value of "${mediaType}" but this is not among the available options.`)
@@ -247,8 +248,21 @@ function ProvideImageLink({ simulation }) {
 	</>
 }
 
-function ProvideVideoLink() {
-	return <p>Diese Funktion befindet sich noch in der Entwicklung.</p>
+function ProvideVideoLink({ simulation }) {
+	// Set up a handler that saves the path to the image in the right format.
+	const [video, setVideo] = useState((simulation?.media?.type === 'youtubeVideo' ? simulation?.media?.id : '') || '')
+	const setAndSaveVideo = async (video) => {
+		setVideo(video)
+		await deleteMediaFile(simulation.media)
+		await updateSimulation(simulation.id, { media: video ? { type: 'youtubeVideo', id: video } : deleteField() })
+	}
+
+	// Render the input field.
+	return <>
+		<p>Geben Sie die YouTube-ID des gewünschten YouTube-Videos an. (Zum Beispiel "aBc1DE_f2G3h".)</p>
+		<TextField variant="outlined" fullWidth label="YouTube-Video ID" value={video} onChange={(event) => setAndSaveVideo(event.target.value)} />
+		<p><YouTubeVideo id={video} height={imageHeight} /></p>
+	</>
 }
 
 function RemoveSimulation({ simulation }) {

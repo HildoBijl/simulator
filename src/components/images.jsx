@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 
 import { useStorageUrl } from '../firebase'
 
-export function InternalImage({ path, style = {} }) {
-	const url = useStorageUrl(path)
+export function InternalImage({ path, extraUpdateParameter, style = {} }) {
+	const url = useStorageUrl(path, extraUpdateParameter)
 	if (!url)
 		return null
 	return <img src={url} style={style} />

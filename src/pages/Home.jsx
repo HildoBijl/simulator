@@ -84,7 +84,7 @@ export function Blocks() {
       </Block>
       <Block item xs={12} md={6}>
         <div>
-          <h2>Für Lehrenden</h2>
+          <h2>Für Lehrende</h2>
           <p>Sie können Ihre eigenen Simulationen erstellen und sie mit Ihren Studierenden teilen.</p>
           <Button variant="contained"onClick={() => navigate('/create')}>Eine neue Simulation erstellen</Button>
         </div>

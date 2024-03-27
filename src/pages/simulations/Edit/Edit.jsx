@@ -12,7 +12,7 @@ const EditPage = ({ children, tabs }) => <Page title="Simulation bearbeiten" bac
 export function Edit() {
 	const navigate = useNavigate()
 	const { simulationId } = useParams()
-	const simulation = useSimulation(simulationId)
+	const simulation = useSimulation(simulationId, true)
 
 	// When the simulation is missing, go back to the create page.
 	useEffect(() => {

@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { doc } from 'firebase/firestore'
-import { useDocumentData } from 'react-firebase-hooks/firestore'
+import { useDocumentData, useDocumentDataOnce } from 'react-firebase-hooks/firestore'
 
 import { db, useUserData } from '../firebase'
 
@@ -15,8 +15,9 @@ export function useSimulationIds() {
 }
 
 // useSimulation gets a simulation with a specific ID.
-export function useSimulation(id) {
-	const [data, loading] = useDocumentData(doc(db, 'simulations', id))
+export function useSimulation(id, once = false) {
+	const useCollectionDataLoader = once ? useDocumentDataOnce : useDocumentData
+	const [data, loading] = useCollectionDataLoader(doc(db, 'simulations', id))
 	return useMemo(() => {
 		if (loading)
 			return undefined // Sign of loading.

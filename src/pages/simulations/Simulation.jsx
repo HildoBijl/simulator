@@ -38,7 +38,7 @@ export function SimulationWithId({ id }) {
 
 	// Render the simulation.
 	return (
-		<Page title={simulation.title}>
+		<Page title={simulation.title || '[Simulationstitel fehlt]'}>
 			<Description simulation={simulation} />
 			<Media simulation={simulation} />
 			<Button variant="contained" sx={{ margin: '1rem 0' }} onClick={() => window.alert('Die Simulationsfunktionen sind leider noch nicht implementiert worden.')}>Simulation anfangen</Button>
@@ -48,7 +48,7 @@ export function SimulationWithId({ id }) {
 
 function Description({ simulation: { description } }) {
 	if (!description)
-		return <p>Diese Simulation hat noch keine Beschreibung.</p>
+		return <p>[Diese Simulation hat noch keine Beschreibung.]</p>
 
 	return description.replace(/\n\n+/g, '\n\n').split('\n\n').map((paragraph, index) => {
 		const paragraphSplit = paragraph.split('\n')

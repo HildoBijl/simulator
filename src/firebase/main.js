@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app'
 
 const firebaseConfig = {
   apiKey: "AIzaSyC4-GR7Vd0r3DWiIu4Vkko7iMTg32t37oc",
-  authDomain: "simulator-54576.firebaseapp.com",
+  authDomain: "simulator-54576.web.app",
   projectId: "simulator-54576",
   storageBucket: "simulator-54576.appspot.com",
   messagingSenderId: "380108420737",

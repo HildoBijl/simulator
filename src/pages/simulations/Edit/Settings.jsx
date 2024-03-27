@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
@@ -10,44 +10,23 @@ import Select from '@mui/material/Select'
 import { deleteField } from 'firebase/firestore'
 import { ref, uploadBytesResumable } from 'firebase/storage'
 
-import { getBaseUrl } from '../../util'
-import { useUserId, storage } from '../../firebase'
-import { useSimulation, unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, deleteMediaFile } from '../../simulations'
-import { InternalImage, ExternalImage, YouTubeVideo, Page } from '../../components'
-
-const EditPage = ({ children }) => <Page title="Simulation bearbeiten" backButton="/create">{children}</Page>
+import { getBaseUrl } from '../../../util'
+import { useUserId, storage } from '../../../firebase'
+import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, deleteMediaFile } from '../../../simulations'
+import { InternalImage, ExternalImage, YouTubeVideo } from '../../../components'
 
 const errorStyle = (theme) => ({ color: theme.palette.error.main, fontWeight: 500 })
 const imageHeight = 200
 const imageStyle = { maxHeight: `${imageHeight}px`, maxWidth: '100%' }
 
-export function Edit() {
-	const navigate = useNavigate()
-	const { simulationId } = useParams()
-	const simulation = useSimulation(simulationId)
-
-	// When the simulation is missing, go back to the create page.
-	useEffect(() => {
-		if (simulation === null)
-			navigate('/create')
-	}, [simulation, navigate])
-
-	// On missing data, we're probably still loading the simulation.
-	if (!simulation)
-		return <EditPage><p>Simulation laden...</p></EditPage>
-
-	// Show the simulation form itself.
-	return <EditForSimulation simulation={simulation} />
-}
-
-function EditForSimulation({ simulation }) {
-	return <EditPage>
+export function Settings({ simulation }) {
+	return <>
 		<ChangeUrl simulation={simulation} />
 		<ChangeTitle simulation={simulation} />
 		<ChangeDescription simulation={simulation} />
 		<ChangeMedia simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
-	</EditPage>
+	</>
 }
 
 function FormPart({ children }) {

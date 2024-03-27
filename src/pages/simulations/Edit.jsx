@@ -42,28 +42,20 @@ export function Edit() {
 
 function EditForSimulation({ simulation }) {
 	return <EditPage>
-		<ChangeTitle simulation={simulation} />
 		<ChangeUrl simulation={simulation} />
+		<ChangeTitle simulation={simulation} />
 		<ChangeDescription simulation={simulation} />
 		<ChangeMedia simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</EditPage>
 }
 
-function ChangeTitle({ simulation }) {
-	// Set up a handler that saves the title.
-	const [title, setTitle] = useState(simulation?.title || '')
-	const setAndSaveTitle = async (title) => {
-		setTitle(title)
-		await updateSimulation(simulation.id, { title })
-	}
+function FormPart({ children }) {
+	return <div style={{ margin: '2rem 0' }}>{children}</div>
+}
 
-	// Render the form part.
-	return <>
-		<h2>Titel</h2>
-		<p>Der Titel ist das, was die Studierenden beim ersten Öffnen der Simulation sehen.</p>
-		<TextField variant="outlined" fullWidth label="Titel" value={title} onChange={(event) => setAndSaveTitle(event.target.value)} />
-	</>
+function FormSubPart({ children }) {
+	return <div style={{ margin: '1rem 0' }}>{children}</div>
 }
 
 function ChangeUrl({ simulation }) {
@@ -88,16 +80,28 @@ function ChangeUrl({ simulation }) {
 	// Render the URL form part.
 	const theme = useTheme()
 	const fullUrl = `${getBaseUrl()}/s/${url}`
-	return <>
-		<h2>Simulation URL</h2>
-		<p>Die URL ist der Link, über den der Zugriff auf die Simulation erfolgt. Sie muss in Kleinbuchstaben ohne Leerzeichen angegeben werden.</p>
+	return <FormPart>
 		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveUrl(event.target.value)} />
 		{url.length < minUrlCharacters ?
 			<p style={errorStyle(theme)}>Die URL muss mindestens zwei Zeichen lang sein.</p> :
 			conflict ?
 				<p style={errorStyle(theme)}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
 				<p>Die Simulation kann über <Link to={fullUrl} target="_blank" rel="noopener noreferrer">{fullUrl}</Link> aufgerufen werden.</p>}
-	</>
+	</FormPart>
+}
+
+function ChangeTitle({ simulation }) {
+	// Set up a handler that saves the title.
+	const [title, setTitle] = useState(simulation?.title || '')
+	const setAndSaveTitle = async (title) => {
+		setTitle(title)
+		await updateSimulation(simulation.id, { title })
+	}
+
+	// Render the form part.
+	return <FormPart>
+		<TextField variant="outlined" fullWidth label="Titel" value={title} onChange={(event) => setAndSaveTitle(event.target.value)} />
+	</FormPart>
 }
 
 function ChangeDescription({ simulation }) {
@@ -107,11 +111,9 @@ function ChangeDescription({ simulation }) {
 		await updateSimulation(simulation.id, { description })
 	}
 
-	return <>
-		<h2>Beschreibung</h2>
-		<p>Die Beschreibung ist die Geschichte, die oben auf der Titelseite erscheint.</p>
+	return <FormPart>
 		<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={description} onChange={(event) => setAndSaveDescription(event.target.value)} />
-	</>
+	</FormPart>
 }
 
 function ChangeMedia({ simulation }) {
@@ -120,8 +122,6 @@ function ChangeMedia({ simulation }) {
 	// Render the form part.
 	const MediaComponent = getMediaComponent(mediaType)
 	return <>
-		<h2>Abbildung</h2>
-		<p>Wenn Sie der Titelseite ein Bild hinzufügen möchten, wählen Sie aus, wie Sie es bereitstellen möchten.</p>
 		<FormControl fullWidth>
 			<InputLabel>Abbildung</InputLabel>
 			<Select value={mediaType} label="Abbildung" onChange={(event) => setMediaType(event.target.value)}>
@@ -213,17 +213,16 @@ function UploadImage({ simulation }) {
 	// On no given file, show either the file itself or an upload button.
 	if (simulation?.media?.type === 'internalImage') {
 		return <>
-			<div style={{ margin: '1rem 0' }}>
+			<FormSubPart>
 				<InternalImage path={simulation.media.path} extraUpdateParameter={simulation.media} style={imageStyle} />
-			</div>
+			</FormSubPart>
 			<ImageUpload onChange={setAndSaveFile} />
 		</>
 	}
 
-	return <>
-		<p>Laden Sie Ihre Datei hier hoch.</p>
+	return <FormSubPart>
 		<ImageUpload onChange={setAndSaveFile} />
-	</>
+	</FormSubPart>
 }
 
 function ImageUpload({ onChange }) {
@@ -244,11 +243,12 @@ function ProvideImageLink({ simulation }) {
 
 	// Render the input field.
 	return <>
-		<p>Geben Sie die URL des gewünschten Bildes an.</p>
-		<TextField variant="outlined" fullWidth label="Abbildung URL" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
-		<div style={{ margin: '1rem 0' }}>
+		<FormSubPart>
+			<TextField variant="outlined" fullWidth label="Abbildung URL" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
+		</FormSubPart>
+		<FormSubPart>
 			<ExternalImage path={image} style={imageStyle} />
-		</div>
+		</FormSubPart>
 	</>
 }
 
@@ -263,11 +263,12 @@ function ProvideVideoLink({ simulation }) {
 
 	// Render the input field.
 	return <>
-		<p>Geben Sie die YouTube-ID des gewünschten YouTube-Videos an. (Zum Beispiel &quot;aBc1DE_f2G3h&quot;.)</p>
-		<TextField variant="outlined" fullWidth label="YouTube-Video ID" value={video} onChange={(event) => setAndSaveVideo(event.target.value)} />
-		<div style={{ margin: '1rem 0' }}>
+		<FormSubPart>
+			<TextField variant="outlined" fullWidth label="YouTube-Video ID (z.B. &quot;aBc1DE_f2G3h&quot;)" value={video} onChange={(event) => setAndSaveVideo(event.target.value)} />
+		</FormSubPart>
+		<FormSubPart>
 			<YouTubeVideo id={video} height={imageHeight} />
-		</div>
+		</FormSubPart>
 	</>
 }
 

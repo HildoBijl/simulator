@@ -50,7 +50,7 @@ function Description({ simulation: { description } }) {
 	if (!description)
 		return <p>Diese Simulation hat noch keine Beschreibung.</p>
 
-	return description.split('\n\n').map((paragraph, index) => {
+	return description.replace(/\n\n+/g, '\n\n').split('\n\n').map((paragraph, index) => {
 		const paragraphSplit = paragraph.split('\n')
 		return <p key={index}>
 			{paragraphSplit.map((subParagraph, subIndex) => <Fragment key={subIndex}>{subParagraph}{subIndex < paragraphSplit.length - 1 ? <br /> : null}</Fragment>)}

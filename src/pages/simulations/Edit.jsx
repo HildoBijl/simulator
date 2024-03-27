@@ -51,7 +51,7 @@ function EditForSimulation({ simulation }) {
 }
 
 function FormPart({ children }) {
-	return <div style={{ margin: '2rem 0' }}>{children}</div>
+	return <div style={{ margin: '1.5rem 0' }}>{children}</div>
 }
 
 function FormSubPart({ children }) {
@@ -82,8 +82,7 @@ function ChangeUrl({ simulation }) {
 	const fullUrl = `${getBaseUrl()}/s/${url}`
 	return <FormPart>
 		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveUrl(event.target.value)} />
-		{url.length < minUrlCharacters ?
-			<p style={errorStyle(theme)}>Die URL muss mindestens zwei Zeichen lang sein.</p> :
+		{url.length < minUrlCharacters ? null :
 			conflict ?
 				<p style={errorStyle(theme)}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
 				<p>Die Simulation kann über <Link to={fullUrl} target="_blank" rel="noopener noreferrer">{fullUrl}</Link> aufgerufen werden.</p>}

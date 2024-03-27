@@ -1,11 +1,12 @@
-import { useState, createContext, useContext } from 'react'
+import { useState, createContext } from 'react'
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 
-import { AppBar } from './AppBar'
+import { AppBar } from '../AppBar'
 
+export const TabContext = createContext(0)
 export function Page({ children, addAppBar = true, title, backButton, showLogo, style, tabs }) {
 	// Set up a state and handler for the tabs.
 	const [tab, setTab] = useState(0)
@@ -26,9 +27,4 @@ export function Page({ children, addAppBar = true, title, backButton, showLogo, 
 			</TabContext.Provider>
 		</Container>
 	</>
-}
-
-const TabContext = createContext(0)
-export function useTab() {
-	return useContext(TabContext)
 }

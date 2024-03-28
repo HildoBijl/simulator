@@ -17,9 +17,11 @@ export function Page({ children, addAppBar = true, title, backButton, showLogo, 
 		{addAppBar ? <AppBar title={title} backButton={backButton} showLogo={showLogo} /> : null}
 		{tabs ?
 			<Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-				<Tabs value={tab} onChange={handleChange} variant="fullWidth">
-					{tabs.map((value, index) => <Tab key={index} label={value} />)}
-				</Tabs>
+				<Container maxWidth="xl">
+					<Tabs value={tab} onChange={handleChange} variant="fullWidth">
+						{tabs.map((value, index) => <Tab key={index} label={value} />)}
+					</Tabs>
+				</Container>
 			</Box> : null}
 		<Container maxWidth="xl" sx={{ flexGrow: 1 }} style={style}>
 			<TabContext.Provider value={tab}>

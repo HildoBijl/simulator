@@ -10,7 +10,7 @@ import Select from '@mui/material/Select'
 import { deleteField } from 'firebase/firestore'
 import { ref, uploadBytesResumable } from 'firebase/storage'
 
-import { getBaseUrl } from '../../../util'
+import { getBaseUrl, useTrackedState } from '../../../util'
 import { useUserId, storage } from '../../../firebase'
 import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, deleteMediaFile } from '../../../simulations'
 import { InternalImage, ExternalImage, YouTubeVideo } from '../../../components'
@@ -38,8 +38,9 @@ function FormSubPart({ children }) {
 }
 
 function ChangeUrl({ simulation }) {
-	// Set up a handler that, upon a change, filters out unwanted symbols, checks for duplicates, and if all is in order saves the URL.
-	const [url, setUrl] = useState(simulation?.url || '')
+	// Set up a handler that, upon a change, filters out unwanted symbols, checks for duplicates, and if all is in order saves the URL. Use a state, since the state here may differ from the database state, which must always be valid.
+	const simulationUrl = simulation?.url || ''
+	const [url, setUrl] = useTrackedState(simulationUrl)
 	const [conflict, setConflict] = useState()
 	const minUrlCharacters = 2
 	const setAndSaveUrl = async (url) => {
@@ -69,33 +70,19 @@ function ChangeUrl({ simulation }) {
 }
 
 function ChangeTitle({ simulation }) {
-	// Set up a handler that saves the title.
-	const [title, setTitle] = useState(simulation?.title || '')
-	const setAndSaveTitle = async (title) => {
-		setTitle(title)
-		await updateSimulation(simulation.id, { title })
-	}
-
-	// Render the form part.
 	return <FormPart>
-		<TextField variant="outlined" fullWidth label="Titel" value={title} onChange={(event) => setAndSaveTitle(event.target.value)} />
+		<TextField variant="outlined" fullWidth label="Titel" value={simulation.title || ''} onChange={(event) => updateSimulation(simulation.id, { title: event.target.value })} />
 	</FormPart>
 }
 
 function ChangeDescription({ simulation }) {
-	const [description, setDescription] = useState(simulation?.description || '')
-	const setAndSaveDescription = async (description) => {
-		setDescription(description)
-		await updateSimulation(simulation.id, { description })
-	}
-
 	return <FormPart>
-		<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={description} onChange={(event) => setAndSaveDescription(event.target.value)} />
+		<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={simulation.description || ''} onChange={(event) => updateSimulation(simulation.id, { description: event.target.value })} />
 	</FormPart>
 }
 
 function ChangeMedia({ simulation }) {
-	const [mediaType, setMediaType] = useState(simulation?.media?.type || 'none')
+	const [mediaType, setMediaType] = useTrackedState(simulation?.media?.type || 'none')
 
 	// Render the form part.
 	const MediaComponent = getMediaComponent(mediaType)
@@ -178,27 +165,22 @@ function UploadImage({ simulation }) {
 			})
 	}
 
-	// On a given file, either show an upload error or upload notification.
+	// When a file is selected, show an upload notification, or an error if there's a problem.
 	if (file) {
-		if (file.size > maxFileSize * 1024 ** 2)
+		if (file.size > maxFileSize * 1024 ** 2) { // File too large?
 			return <>
 				<p style={errorStyle(theme)}>Die Datei ist zu groß. Die maximale Dateigröße beträgt {maxFileSize} MB, aber die angegebene Datei ist {Math.round(file.size / 1024 ** 2 * 10) / 10} MB groß.</p>
 				<ImageUpload onChange={setAndSaveFile} />
 			</>
+		}
 		return <p>Das Bild wird gerade hochgeladen. Der Upload ist zu {percentage}% abgeschlossen.</p>
 	}
 
-	// On no given file, show either the file itself or an upload button.
-	if (simulation?.media?.type === 'internalImage') {
-		return <>
-			<FormSubPart>
-				<InternalImage path={simulation.media.path} extraUpdateParameter={simulation.media} style={imageStyle} />
-			</FormSubPart>
-			<ImageUpload onChange={setAndSaveFile} />
-		</>
-	}
-
+	// When no file is selected, show (if present) the already existing image, together with an upload button.
 	return <FormSubPart>
+		{simulation?.media?.type === 'internalImage' ? <FormSubPart>
+			<InternalImage path={simulation.media.path} extraUpdateParameter={simulation.media} style={imageStyle} />
+		</FormSubPart> : null}
 		<ImageUpload onChange={setAndSaveFile} />
 	</FormSubPart>
 }
@@ -212,7 +194,7 @@ function ImageUpload({ onChange }) {
 
 function ProvideImageLink({ simulation }) {
 	// Set up a handler that saves the path to the image in the right format.
-	const [image, setImage] = useState((simulation?.media?.type === 'externalImage' ? simulation?.media?.path : '') || '')
+	const [image, setImage] = useTrackedState((simulation?.media?.type === 'externalImage' ? simulation?.media?.path : '') || '')
 	const setAndSaveImage = async (image) => {
 		setImage(image)
 		await deleteMediaFile(simulation.media)
@@ -232,7 +214,7 @@ function ProvideImageLink({ simulation }) {
 
 function ProvideVideoLink({ simulation }) {
 	// Set up a handler that saves the path to the image in the right format.
-	const [video, setVideo] = useState((simulation?.media?.type === 'youtubeVideo' ? simulation?.media?.id : '') || '')
+	const [video, setVideo] = useTrackedState((simulation?.media?.type === 'youtubeVideo' ? simulation?.media?.id : '') || '')
 	const setAndSaveVideo = async (video) => {
 		setVideo(video)
 		await deleteMediaFile(simulation.media)

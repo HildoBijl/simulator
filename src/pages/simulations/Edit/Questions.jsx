@@ -35,12 +35,13 @@ function QuestionsInternal({ simulation, questions }) {
 		const ref = getQuestionRef(simulation.id)
 		setExpanded(expanded => ({ ...expanded, [ref.id]: true }))
 		await setDoc(ref, {})
-		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id) })
+		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id), startingQuestion: simulation.startingQuestion || ref.id })
 	}
 
 	// Render the questions through an Accordion.
 	return (
 		<div style={{ margin: '1.5rem 0' }}>
+			<StartingQuestion {...{ simulation, questions }} />
 			{questions.map((question, index) => <Accordion key={question.id} expanded={!!expanded[question.id]} onChange={() => flipExpand(question.id)}>
 				<AccordionSummary expandIcon={<ExpandMoreIcon />}>
 					<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.title || emptyTitle}
@@ -55,6 +56,20 @@ function QuestionsInternal({ simulation, questions }) {
 			</Accordion>
 		</div>
 	)
+}
+
+function StartingQuestion({ simulation, questions }) {
+	const startingQuestion = simulation.startingQuestion || questions[0]?.id || 'none'
+	return <FormPart>
+		<FormControl fullWidth>
+			<InputLabel>Startfrage</InputLabel>
+			<Select value={startingQuestion} label="Startfrage" onChange={(event) => console.log('Updating to ' + event.target.value) || updateSimulation(simulation.id, { startingQuestion: event.target.value })}>
+				{questions.length > 0 ?
+					questions.map((question, index) => <MenuItem key={question.id} value={question.id}>{`${index + 1}.  ${question.title || emptyTitle}`}</MenuItem>) :
+					<MenuItem key="none" value="none">Es sind noch keine Fragen vorhanden.</MenuItem>}
+			</Select>
+		</FormControl>
+	</FormPart>
 }
 
 function Question({ simulation, questions, question }) {
@@ -79,7 +94,6 @@ function OrderDropdown({ simulation, questions, question }) {
 			return
 		const oldOrder = simulation.questionOrder
 		const newOrder = from < to ? [...oldOrder.slice(0, from), ...oldOrder.slice(from + 1, to + 1), oldOrder[from], ...oldOrder.slice(to + 1)] : [...oldOrder.slice(0, to), oldOrder[from], ...oldOrder.slice(to, from), ...oldOrder.slice(from + 1)]
-		console.log(oldOrder, newOrder)
 		await updateSimulation(simulation.id, { questionOrder: newOrder })
 	}
 	return <FormPart>

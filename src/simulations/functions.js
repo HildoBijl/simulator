@@ -9,13 +9,13 @@ export async function getUserSimulationIds(userId) {
 	return userData?.simulations
 }
 
-// getSimulation takes a simulationId and retrieves the given simulation object.
+// getSimulation takes a simulationId and retrieves the given (raw) simulation object.
 export async function getSimulation(simulationId) {
 	const simulationDoc = await getDoc(doc(db, 'simulations', simulationId))
 	return simulationDoc.exists() ? simulationDoc.data() : undefined
 }
 
-// getSimulationByUrl takes a URL and retrieves the given simulation object, or undefined when it does not exist.
+// getSimulationByUrl takes a URL and retrieves the given (raw) simulation object, or undefined when it does not exist.
 export async function getSimulationByUrl(url) {
 	const snapshot = await getDocs(query(collection(db, 'simulations'), where('url', '==', url)))
 	const simulationDocs = []

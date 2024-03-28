@@ -4,6 +4,7 @@ import { useDocumentData, useDocumentDataOnce } from 'react-firebase-hooks/fires
 
 import { db, useUserData } from '../firebase'
 
+import { useSimulationQuestions } from './questions'
 import { getSimulationByUrl } from './functions'
 
 // useSimulationIds gets all the simulation IDs for a specific user.
@@ -14,17 +15,40 @@ export function useSimulationIds() {
 	return userData.simulations || []
 }
 
+// useSimulationObject returns the raw simulation object from the database. It is not merged yet with other parameters, like the questions.
+export function useSimulationObject(id, once = false) {
+	// Load in all required data.
+	const useCollectionDataLoader = once ? useDocumentDataOnce : useDocumentData
+	const [simulation, simulationLoading] = useCollectionDataLoader(doc(db, 'simulations', id))
+
+	// Assemble the data, depending on the loading status.
+	return useMemo(() => {
+		if (simulationLoading)
+			return undefined // Sign of loading.
+		if (simulation)
+			return { id, ...simulation }
+		return null // Sign of an error.
+	}, [id, simulationLoading, simulation])
+}
+
 // useSimulation gets a simulation with a specific ID.
 export function useSimulation(id, once = false) {
-	const useCollectionDataLoader = once ? useDocumentDataOnce : useDocumentData
-	const [data, loading] = useCollectionDataLoader(doc(db, 'simulations', id))
+	// Load in all required data.
+	const simulation = useSimulationObject(id, once)
+	const questions = useSimulationQuestions(id, once)
+
+	// Assemble the data, depending on the loading status.
 	return useMemo(() => {
-		if (loading)
+		if (simulation === undefined || questions === undefined)
 			return undefined // Sign of loading.
-		if (data)
-			return { id, ...data }
+		if (simulation && questions)
+			return {
+				...simulation,
+				questions,
+				questionList: (simulation.questionOrder || []).map(questionId => questions[questionId])
+			}
 		return null // Sign of an error.
-	}, [id, data, loading])
+	}, [simulation, questions])
 }
 
 // useSimulationIdFromUrl takes a simulation URL and returns an ID from it.

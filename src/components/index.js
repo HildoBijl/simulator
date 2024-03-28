@@ -1,4 +1,4 @@
-export * from './images'
-export * from './videos'
+export * from './text'
+export * from './media'
 export * from './AppBar'
 export * from './Page'

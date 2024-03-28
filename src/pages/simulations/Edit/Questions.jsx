@@ -36,9 +36,11 @@ function QuestionsInternal({ simulation }) {
 	}
 
 	// Render the questions through an Accordion.
-	return (
-		<div style={{ margin: '1.5rem 0' }}>
+	return <>
+		<FormPart>
 			<StartingQuestion {...{ simulation }} />
+		</FormPart>
+		<div style={{ margin: '1.5rem 0' }}>
 			{simulation.questionList.map((question, index) => <Accordion key={question.id} expanded={!!expanded[question.id]} onChange={() => flipExpand(question.id)}>
 				<AccordionSummary expandIcon={<ExpandMoreIcon />}>
 					<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.title || emptyTitle}
@@ -48,11 +50,11 @@ function QuestionsInternal({ simulation }) {
 			)}
 			<Accordion key={simulation.questionList.length} onClick={addQuestion}>
 				<AccordionSummary>
-					<div style={{ fontSize: '2em', lineHeight: '1em', textAlign: 'center', width: '100%' }}>+</div>
+					<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
 				</AccordionSummary>
 			</Accordion>
 		</div>
-	)
+	</>
 }
 
 function StartingQuestion({ simulation }) {
@@ -133,7 +135,7 @@ function OrderDropdown({ simulation, question }) {
 					if (index === 0)
 						text = 'Position 1, am Anfang'
 					else if (index === simulation.questionList.length - 1)
-						text = `Position ${index + 1}, am ende, nach "${otherQuestion.title || emptyTitle}`
+						text = `Position ${index + 1}, am ende, nach "${otherQuestion.title || emptyTitle}"`
 					else
 						text = `Position ${index + 1}, nach "${otherQuestion.title || emptyTitle}"`
 					return <MenuItem key={index} value={index}>{text}</MenuItem>

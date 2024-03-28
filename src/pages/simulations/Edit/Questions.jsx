@@ -10,9 +10,9 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
-import { setDoc, arrayUnion } from 'firebase/firestore'
+import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
 
-import { FormPart, FormSubPart } from '../../../components'
+import { FormPart } from '../../../components'
 import { updateSimulation, useSimulationQuestions, getQuestionRef, updateQuestion, deleteQuestion } from '../../../simulations'
 
 const emptyTitle = '[Fragentitel fehlt]'
@@ -81,12 +81,33 @@ function Question({ simulation, questions, question }) {
 			<FormPart>
 				<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={question.description || ''} onChange={(event) => updateQuestion(simulation.id, question.id, { description: event.target.value })} />
 			</FormPart>
+			<FollowUpDropdown {...{ simulation, questions, question }} />
 			<OrderDropdown {...{ simulation, questions, question }} />
 		</AccordionDetails>
 		<AccordionActions>
 			<Button onClick={() => deleteQuestion(simulation.id, question.id)}>Löschen</Button>
 		</AccordionActions>
 	</>
+}
+
+function FollowUpDropdown({ simulation, questions, question }) {
+	// Set up a handler to save the follow-up question.
+	const setFollowUpQuestion = async (questionId) => {
+		return await updateQuestion(simulation.id, question.id, { followUpQuestion: questionId === 'default' ? deleteField() : questionId })
+	}
+
+	// Render the dropdown field.
+	const questionIndex = questions.indexOf(question)
+	return <FormPart>
+		<FormControl fullWidth>
+			<InputLabel>Standard Folgefrage</InputLabel>
+			<Select value={question.followUpQuestion || 'default'} label="Standard Folgefrage" onChange={(event) => setFollowUpQuestion(event.target.value)}>
+				<MenuItem key="default" value="default">Standard: Nächste Frage in der Reihenfolge (jetzt {questionIndex === questions.length - 1 ? 'das Ende der Simulation' : `Frage ${questionIndex + 2}`})</MenuItem>
+				{questions.map((otherQuestion, index) => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{index + 1}. {otherQuestion.title || emptyTitle}</MenuItem>)}
+				<MenuItem key="end" value="end">Ende: Nach dieser Frage ist die Simulation beendet</MenuItem>
+			</Select>
+		</FormControl>
+	</FormPart>
 }
 
 function OrderDropdown({ simulation, questions, question }) {

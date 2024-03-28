@@ -16,3 +16,12 @@ export async function updateDocument(path, id, data) {
 export async function deleteDocument(path, id) {
 	return await deleteDoc(doc(db, path, id))
 }
+
+// getDocuments takes a snapshot of a set of documents and turns it into a basic object with the documents. By default it also adds the document ID to the objects for easier reference, but this can be turned off.
+export function getDocuments(snapshot, includeId = true) {
+	const documents = {}
+	snapshot.docs.forEach(doc => {
+		documents[doc.id] = includeId ? { id: doc.id, ...doc.data() } : doc.data()
+	})
+	return documents
+}

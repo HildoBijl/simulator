@@ -3,17 +3,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import { deleteField } from 'firebase/firestore'
 import { ref, uploadBytesResumable } from 'firebase/storage'
 
 import { getBaseUrl, useTrackedState } from '../../../util'
 import { useUserId, storage } from '../../../firebase'
 import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, deleteMediaFile } from '../../../simulations'
-import { InternalImage, ExternalImage, YouTubeVideo } from '../../../components'
+import { InternalImage, ExternalImage, YouTubeVideo, FormPart, FormSubPart } from '../../../components'
 
 const errorStyle = (theme) => ({ color: theme.palette.error.main, fontWeight: 500 })
 const imageHeight = 200
@@ -27,14 +27,6 @@ export function Settings({ simulation }) {
 		<ChangeMedia simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</>
-}
-
-function FormPart({ children }) {
-	return <div style={{ margin: '1.5rem 0' }}>{children}</div>
-}
-
-function FormSubPart({ children }) {
-	return <div style={{ margin: '1rem 0' }}>{children}</div>
 }
 
 function ChangeUrl({ simulation }) {

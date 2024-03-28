@@ -1,4 +1,4 @@
-import { arrayRemove } from 'firebase/firestore'
+import { arrayRemove, deleteField } from 'firebase/firestore'
 
 import { getDocumentRef, updateDocument, deleteDocument } from '../../firebase'
 
@@ -15,7 +15,18 @@ export async function updateQuestion(simulationId, questionId, data) {
 }
 
 // deleteQuestion will remove a certain question from the database.
-export async function deleteQuestion(simulationId, questionId) {
-	await updateSimulation(simulationId, { questionOrder: arrayRemove(questionId) })
-	return await deleteDocument(`simulations/${simulationId}/questions`, questionId)
+export async function deleteQuestion(simulation, questionId) {
+	const update = { questionOrder: arrayRemove(questionId) }
+
+	// If the starting question is the question to be removed, update the starting question.
+	if (simulation.startingQuestion === questionId) {
+		if (simulation.questionOrder.length === 1)
+			update.startingQuestion = deleteField() // Last question. Delete it.
+		else
+			update.startingQuestion = simulation.questionOrder.find(currQuestionId => currQuestionId !== questionId) // Find the first question in the order that's not this question.
+	}
+
+	// Apply the updates.
+	await updateSimulation(simulation.id, update)
+	return await deleteDocument(`simulations/${simulation.id}/questions`, questionId)
 }

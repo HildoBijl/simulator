@@ -56,11 +56,17 @@ function QuestionsInternal({ simulation }) {
 }
 
 function StartingQuestion({ simulation }) {
+	// Set up a handler to set the starting question.
+	const setStartingQuestion = async (questionId) => {
+		return await updateSimulation(simulation.id, { startingQuestion: questionId === 'none' ? deleteField() : questionId })
+	}
+
+	// Render the dropdown list.
 	const startingQuestion = simulation.startingQuestion || simulation.questionList[0]?.id || 'none'
 	return <FormPart>
 		<FormControl fullWidth>
 			<InputLabel>Startfrage</InputLabel>
-			<Select value={startingQuestion} label="Startfrage" onChange={(event) => updateSimulation(simulation.id, { startingQuestion: event.target.value })}>
+			<Select value={startingQuestion} label="Startfrage" onChange={(event) => setStartingQuestion(event.target.value)}>
 				{simulation.questionList.length > 0 ?
 					simulation.questionList.map((question, index) => <MenuItem key={question.id} value={question.id}>{`${index + 1}.  ${question.title || emptyTitle}`}</MenuItem>) :
 					<MenuItem key="none" value="none">Es sind noch keine Fragen vorhanden.</MenuItem>}
@@ -82,7 +88,7 @@ function Question({ simulation, question }) {
 			<OrderDropdown {...{ simulation, question }} />
 		</AccordionDetails>
 		<AccordionActions>
-			<Button onClick={() => deleteQuestion(simulation.id, question.id)}>Löschen</Button>
+			<Button onClick={() => deleteQuestion(simulation, question.id)}>Löschen</Button>
 		</AccordionActions>
 	</>
 }

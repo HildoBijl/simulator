@@ -78,6 +78,9 @@ function Question({ simulation, questions, question }) {
 			<FormPart>
 				<TextField variant="outlined" fullWidth label="Titel" value={question.title || ''} onChange={(event) => updateQuestion(simulation.id, question.id, { title: event.target.value })} />
 			</FormPart>
+			<FormPart>
+				<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={question.description || ''} onChange={(event) => updateQuestion(simulation.id, question.id, { description: event.target.value })} />
+			</FormPart>
 			<OrderDropdown {...{ simulation, questions, question }} />
 		</AccordionDetails>
 		<AccordionActions>

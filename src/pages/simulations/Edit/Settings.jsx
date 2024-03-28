@@ -22,8 +22,12 @@ const imageStyle = { maxHeight: `${imageHeight}px`, maxWidth: '100%' }
 export function Settings({ simulation }) {
 	return <>
 		<ChangeUrl simulation={simulation} />
-		<ChangeTitle simulation={simulation} />
-		<ChangeDescription simulation={simulation} />
+		<FormPart>
+			<TextField variant="outlined" fullWidth label="Titel" value={simulation.title || ''} onChange={(event) => updateSimulation(simulation.id, { title: event.target.value })} />
+		</FormPart>
+		<FormPart>
+			<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={simulation.description || ''} onChange={(event) => updateSimulation(simulation.id, { description: event.target.value })} />
+		</FormPart>
 		<ChangeMedia simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</>
@@ -58,18 +62,6 @@ function ChangeUrl({ simulation }) {
 			conflict ?
 				<p style={errorStyle(theme)}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
 				<p>Die Simulation kann über <Link to={fullUrl} target="_blank" rel="noopener noreferrer">{fullUrl}</Link> aufgerufen werden.</p>}
-	</FormPart>
-}
-
-function ChangeTitle({ simulation }) {
-	return <FormPart>
-		<TextField variant="outlined" fullWidth label="Titel" value={simulation.title || ''} onChange={(event) => updateSimulation(simulation.id, { title: event.target.value })} />
-	</FormPart>
-}
-
-function ChangeDescription({ simulation }) {
-	return <FormPart>
-		<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={simulation.description || ''} onChange={(event) => updateSimulation(simulation.id, { description: event.target.value })} />
 	</FormPart>
 }
 

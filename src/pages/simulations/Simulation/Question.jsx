@@ -21,14 +21,14 @@ export function Question({ simulation, question, goToQuestion }) {
 			<Button variant="contained" sx={{ margin: '1rem 0' }} onClick={() => goToNextQuestion()}>Weiter</Button>
 		</> : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
-				{question.options.map((option, index) => <Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => setSelection(index) }} />)}
+				{question.options.map((option, index) => <Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => setSelection(index), deselect: () => setSelection(undefined) }} />)}
 			</div>
-			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion()}>Wahl bestätigen</Button>
+			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} disabled={selection === undefined} onClick={() => goToNextQuestion()}>Wahl bestätigen</Button>
 		</>}
 	</Page>
 }
 
-function Option({ option, index, selected, select }) {
+function Option({ option, index, selected, select, deselect }) {
 	const [isHovered, setIsHovered] = useState(false)
 	const theme = useTheme()
 	const letter = numberToLetter(index)
@@ -36,7 +36,7 @@ function Option({ option, index, selected, select }) {
 
 	// Set up handlers for interaction functionalities.
 	const handlers = {
-		onClick: () => select(),
+		onClick: () => selected ? deselect() : select(),
 		onMouseEnter: () => setIsHovered(true),
 		onMouseLeave: () => setIsHovered(false),
 	}
@@ -46,7 +46,7 @@ function Option({ option, index, selected, select }) {
 		background: (selected ? darken(theme.palette.primary.main, 0.25) : (isHovered ? darken(theme.palette.primary.main, 0.15) : darken(theme.palette.primary.main, 0))),
 		borderRadius: '1.5rem',
 		color: theme.palette.primary.contrastText,
-		cursor: selected ? 'default' : 'pointer',
+		cursor: 'pointer',
 	}
 	const letterStyle = {
 		...commonStyle,

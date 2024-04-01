@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -50,13 +50,23 @@ function Option({ simulation, question, index, expanded, flipExpand }) {
 	const description = option.description || ''
 	const title = description.split('\n')[0] || '[Optionsbeschreibung fehlt]'
 
+	// Add an effect to auto-focus the description field upon expanding.
+	const descriptionRef = useRef()
+	useEffect(() => {
+		const field = descriptionRef.current
+		if (expanded && field) {
+			field.focus()
+			field.setSelectionRange(field.value.length, field.value.length)
+		}
+	}, [expanded])
+
 	// Render the option form.
 	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 			<span style={{ marginRight: '0.75rem' }}>{numberToLetter(index).toUpperCase()}.</span>{title}
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
-			<TrackedTextField label="Beschreibung" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={index} arrayField="description" multiline={true} />
+			<TrackedTextField inputRef={descriptionRef} label="Beschreibung" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={index} arrayField="description" multiline={true} />
 			{/* <FollowUpDropdown {...{ simulation, question }} /> */}
 		</AccordionDetails>
 		<AccordionActions key="actions">

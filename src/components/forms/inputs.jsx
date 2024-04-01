@@ -5,7 +5,7 @@ import { updateDocument } from '../../firebase'
 
 import { FormPart } from './containers'
 
-export function TrackedTextField({ path, documentId, field, label, value, arrayValue = [], arrayIndex, arrayField, multiline }) {
+export function TrackedTextField({ path, documentId, field, label, value, arrayValue = [], arrayIndex, arrayField, multiline, ...otherProps }) {
 	// Set up a tracking system for the cursor position, so that it doesn't jump upon changes.
 	const [cursor, setCursor] = useState(null)
 	const ref = useRef(null)
@@ -30,6 +30,6 @@ export function TrackedTextField({ path, documentId, field, label, value, arrayV
 
 	// Render the form.
 	return <FormPart>
-		<TextField inputRef={ref} variant="outlined" fullWidth multiline={multiline} label={label} value={value || ''} onChange={handleChange} />
+		<TextField inputRef={ref} variant="outlined" fullWidth multiline={multiline} label={label} value={value || ''} onChange={handleChange} {...otherProps} />
 	</FormPart>
 }

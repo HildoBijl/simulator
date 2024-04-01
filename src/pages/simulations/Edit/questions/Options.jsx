@@ -11,6 +11,8 @@ import { numberToLetter } from '../../../../util'
 import { TrackedTextField } from '../../../../components'
 import { updateQuestion } from '../../../../simulations'
 
+import { emptyOption } from './util'
+
 export function Options({ simulation, question }) {
 	// Set up manual expansion controls.
 	const options = question.options || []
@@ -32,7 +34,7 @@ export function Options({ simulation, question }) {
 
 	// Render the options through an Accordion.
 	return <>
-		<h5 style={{ color: 'rgba(0,0,0,0.6)', fontSize: '0.9rem', fontWeight: 400, margin: '-0.5rem 0 0 0.4rem' }}>Antwortmöglichkeiten</h5>
+		<h5 style={{ color: 'rgba(255,255,255,0.7)', '@media (prefers-color-scheme: light)': { color: 'rgba(0,0,0,0.6)' }, fontSize: '0.9rem', fontWeight: 400, margin: '-0.5rem 0 0 0.4rem' }}>Antwortmöglichkeiten</h5>
 		<div>
 			{options.map((option, index) => <Option key={index} {...{ simulation, question, index, expanded: !!expanded[index], flipExpand: () => flipExpand(index), removeOption: () => removeOption(index) }} />)}
 			{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>
@@ -48,7 +50,7 @@ function Option({ simulation, question, index, expanded, flipExpand }) {
 	// Determine some derived/default properties.
 	const option = question.options[index]
 	const description = option.description || ''
-	const title = description.split('\n')[0] || '[Optionsbeschreibung fehlt]'
+	const title = description.split('\n')[0] || emptyOption
 
 	// Add an effect to auto-focus the description field upon expanding.
 	const descriptionRef = useRef()

@@ -44,12 +44,12 @@ function SimulationWithId({ id }) {
 
 function SimulationWithData({ simulation }) {
 	// Define the simulation state.
-	const [question, setQuestion] = useState()
+	const [questionId, setQuestionId] = useState()
 
 	// When there's no question yet, we're on the start page.
-	if (!question)
-		return <StartPage simulation={simulation} start={() => setQuestion(simulation.startingQuestion || simulation.questions[0])} />
-	if (question === 'end')
-		return <EndPage simulation={simulation} reset={() => setQuestion(undefined)} />
-	return <Question simulation={simulation} question={simulation.questions[question]} goToQuestion={(questionId) => setQuestion(questionId)} />
+	if (!questionId)
+		return <StartPage simulation={simulation} start={() => setQuestionId(simulation.startingQuestion || simulation.questions[0])} />
+	if (questionId === 'end')
+		return <EndPage simulation={simulation} reset={() => setQuestionId(undefined)} />
+	return <Question key={questionId} simulation={simulation} question={simulation.questions[questionId]} goToQuestion={(questionId) => setQuestionId(questionId)} />
 }

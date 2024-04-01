@@ -1,7 +1,7 @@
-import { collection, doc, query, where, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
+import { collection, doc, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
 import { ref, deleteObject } from 'firebase/storage'
 
-import { db, storage, getUserData } from '../firebase'
+import { db, storage, getUserData, addDocument, getDocument, updateDocument, deleteDocument } from '../firebase'
 
 // getUserSimulationIds takes a userId and returns all simultion IDs for that user.
 export async function getUserSimulationIds(userId) {
@@ -11,7 +11,7 @@ export async function getUserSimulationIds(userId) {
 
 // getSimulation takes a simulationId and retrieves the given (raw) simulation object.
 export async function getSimulation(simulationId) {
-	const simulationDoc = await getDoc(doc(db, 'simulations', simulationId))
+	const simulationDoc = getDocument('simulations', simulationId)
 	return simulationDoc.exists() ? simulationDoc.data() : undefined
 }
 
@@ -32,7 +32,7 @@ export async function createNewSimulation(userId) {
 		throw new Error(`Invalid game creation: could not create a game since no user is signed in.`)
 
 	// Set up a new simulation.
-	const simulationDocument = await addDoc(collection(db, 'simulations'), { owners: [userId] })
+	const simulationDocument = await addDocument('simulations', { owners: [userId] })
 	const simulationId = simulationDocument.id
 
 	// Make sure that the userData is also updated with this new simulation.
@@ -42,12 +42,12 @@ export async function createNewSimulation(userId) {
 
 // addSimulationToUserData will add a simulation ID to the simulations that a user owns. It changes the userData, but not the simulation.
 export async function addSimulationToUserData(userId, simulationId) {
-	await setDoc(doc(db, 'userData', userId), { simulations: arrayUnion(simulationId) }, { merge: true })
+	await updateDocument('userData', userId, { simulations: arrayUnion(simulationId) }, true)
 }
 
 // removeSimulationFromUserData removes a simulation ID from the simulations that a user owns. It changes the userData, but not the simulation.
 export async function removeSimulationFromUserData(userId, simulationId) {
-	return await updateDoc(doc(db, 'userData', userId), { simulations: arrayRemove(simulationId) })
+	return await updateDocument('userData', userId, { simulations: arrayRemove(simulationId) })
 }
 
 // removeOwnerFromSimulation removes an owner from a simulation. It does not change the userData object. If the owner is the last owner, the simulation is removed.
@@ -65,7 +65,7 @@ export async function removeOwnerFromSimulation(userId, simulationId) {
 
 	// When this is the last owner, remove the simulation.
 	await deleteMediaFile(simulation?.media)
-	await deleteDoc(doc(db, 'simulations', simulationId))
+	await deleteDocument(db, 'simulations', simulationId)
 }
 
 // removeUserFromAllSimulations removes a user as owner from all the simulation he/she is the owner of.
@@ -81,7 +81,7 @@ export async function unlinkUserFromSimulation(userId, simulationId) {
 
 // updateSimulation will update certain values for a simulation with a given ID.
 export async function updateSimulation(simulationId, data) {
-	return updateDoc(doc(db, 'simulations', simulationId), data)
+	return updateDocument('simulations', simulationId, data)
 }
 
 // deleteMedia takes a simulation media parameter and deletes the corresponding internal media file if it exists. It requires the simulation to already be downloaded.

@@ -13,7 +13,7 @@ import { ref, uploadBytesResumable } from 'firebase/storage'
 import { getBaseUrl, useTrackedState } from '../../../util'
 import { useUserId, storage } from '../../../firebase'
 import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, deleteMediaFile } from '../../../simulations'
-import { InternalImage, ExternalImage, YouTubeVideo, FormPart, FormSubPart } from '../../../components'
+import { TrackedTextField, InternalImage, ExternalImage, YouTubeVideo, FormPart, FormSubPart } from '../../../components'
 
 const errorStyle = (theme) => ({ color: theme.palette.error.main, fontWeight: 500 })
 const imageHeight = 200
@@ -22,12 +22,8 @@ const imageStyle = { maxHeight: `${imageHeight}px`, maxWidth: '100%' }
 export function Settings({ simulation }) {
 	return <>
 		<ChangeUrl simulation={simulation} />
-		<FormPart>
-			<TextField variant="outlined" fullWidth label="Titel" value={simulation.title || ''} onChange={(event) => updateSimulation(simulation.id, { title: event.target.value })} />
-		</FormPart>
-		<FormPart>
-			<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={simulation.description || ''} onChange={(event) => updateSimulation(simulation.id, { description: event.target.value })} />
-		</FormPart>
+		<TrackedTextField label="Titel" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
+		<TrackedTextField label="Beschreibung" value={simulation.description} path="simulations" documentId={simulation.id} field="description" multiline={true} />
 		<ChangeMedia simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</>

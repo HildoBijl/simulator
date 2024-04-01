@@ -34,7 +34,7 @@ export function Options({ simulation, question }) {
 
 	// Render the options through an Accordion.
 	return <>
-		<h5 style={{ color: 'rgba(255,255,255,0.7)', '@media (prefers-color-scheme: light)': { color: 'rgba(0,0,0,0.6)' }, fontSize: '0.9rem', fontWeight: 400, margin: '-0.5rem 0 0 0.4rem' }}>Antwortmöglichkeiten</h5>
+		<h5 style={{ color: 'rgba(255,255,255,0.7)', '@media (prefersColorScheme: light)': { color: 'rgba(0,0,0,0.6)' }, fontSize: '0.9rem', fontWeight: 400, margin: '-0.5rem 0 0 0.4rem' }}>Antwortmöglichkeiten</h5>
 		<div>
 			{options.map((option, index) => <Option key={index} {...{ simulation, question, index, expanded: !!expanded[index], flipExpand: () => flipExpand(index), removeOption: () => removeOption(index) }} />)}
 			{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>

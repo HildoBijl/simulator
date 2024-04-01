@@ -1,7 +1,6 @@
 import { collection, doc, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
-import { ref, deleteObject } from 'firebase/storage'
 
-import { db, storage, getUserData, addDocument, getDocument, updateDocument, deleteDocument } from '../firebase'
+import { db, getUserData, addDocument, getDocument, updateDocument, deleteDocument, deleteMediaFile } from '../firebase'
 
 // getUserSimulationIds takes a userId and returns all simultion IDs for that user.
 export async function getUserSimulationIds(userId) {
@@ -82,12 +81,4 @@ export async function unlinkUserFromSimulation(userId, simulationId) {
 // updateSimulation will update certain values for a simulation with a given ID.
 export async function updateSimulation(simulationId, data) {
 	return updateDocument('simulations', simulationId, data)
-}
-
-// deleteMedia takes a simulation media parameter and deletes the corresponding internal media file if it exists. It requires the simulation to already be downloaded.
-export async function deleteMediaFile(media) {
-	if (media?.type === 'internalImage') {
-		const imageRef = ref(storage, media.path)
-		await deleteObject(imageRef)
-	}
 }

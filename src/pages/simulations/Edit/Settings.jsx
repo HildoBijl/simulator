@@ -1,30 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import { deleteField } from 'firebase/firestore'
-import { ref, uploadBytesResumable } from 'firebase/storage'
 
 import { getBaseUrl, useTrackedState } from '../../../util'
-import { useUserId, storage } from '../../../firebase'
-import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, deleteMediaFile } from '../../../simulations'
-import { TrackedTextField, InternalImage, ExternalImage, YouTubeVideo, FormPart, FormSubPart } from '../../../components'
-
-const errorStyle = (theme) => ({ color: theme.palette.error.main, fontWeight: 500 })
-const imageHeight = 200
-const imageStyle = { maxHeight: `${imageHeight}px`, maxWidth: '100%' }
+import { useUserId } from '../../../firebase'
+import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation } from '../../../simulations'
+import { FormPart, TrackedTextField, MediaUploader } from '../../../components'
 
 export function Settings({ simulation }) {
 	return <>
 		<ChangeUrl simulation={simulation} />
 		<TrackedTextField label="Titel" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
 		<TrackedTextField label="Beschreibung" value={simulation.description} path="simulations" documentId={simulation.id} field="description" multiline={true} />
-		<ChangeMedia simulation={simulation} />
+		<MediaUploader label="Abbildung" value={simulation.media} path="simulations" documentId={simulation.id} fileName="startImage" />
 		<RemoveSimulation simulation={simulation} />
 	</>
 }
@@ -56,160 +46,9 @@ function ChangeUrl({ simulation }) {
 		<TextField variant="outlined" fullWidth label="Simulation URL" value={url} onChange={(event) => setAndSaveUrl(event.target.value)} />
 		{url.length < minUrlCharacters ? null :
 			conflict ?
-				<p style={errorStyle(theme)}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
+				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
 				<p>Die Simulation kann über <Link to={fullUrl} target="_blank" rel="noopener noreferrer">{fullUrl}</Link> aufgerufen werden.</p>}
 	</FormPart>
-}
-
-function ChangeMedia({ simulation }) {
-	const [mediaType, setMediaType] = useTrackedState(simulation?.media?.type || 'none')
-
-	// Render the form part.
-	const MediaComponent = getMediaComponent(mediaType)
-	return <>
-		<FormControl fullWidth>
-			<InputLabel>Abbildung</InputLabel>
-			<Select value={mediaType} label="Abbildung" onChange={(event) => setMediaType(event.target.value)}>
-				<MenuItem value="none">Keine</MenuItem>
-				<MenuItem value="internalImage">Bild hochladen</MenuItem>
-				<MenuItem value="externalImage">Link zu externem Bild</MenuItem>
-				<MenuItem value="youtubeVideo">YouTube-Video</MenuItem>
-			</Select>
-		</FormControl>
-		<MediaComponent simulation={simulation} />
-	</>
-}
-
-function getMediaComponent(mediaType) {
-	switch (mediaType) {
-		case 'none':
-			return NoMedia
-		case 'internalImage':
-			return UploadImage
-		case 'externalImage':
-			return ProvideImageLink
-		case 'youtubeVideo':
-			return ProvideVideoLink
-		default:
-			throw new Error(`Invalid media type: encountered a value of "${mediaType}" but this is not among the available options.`)
-	}
-}
-
-function NoMedia({ simulation }) {
-	const { id, media } = simulation
-
-	// Ensure that the media field is removed in the database.
-	useEffect(() => {
-		if (media) {
-			deleteMediaFile(media)
-			updateSimulation(id, { media: deleteField() })
-		}
-	}, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-	// Do not render any further message.
-	return null
-}
-
-const maxFileSize = 2 // MB
-function UploadImage({ simulation }) {
-	const theme = useTheme()
-	const [file, setFile] = useState()
-	const [percentage, setPercentage] = useState()
-
-	const setAndSaveFile = async (event) => {
-		// Set the file locally.
-		const file = event.target.files[0]
-		setFile(file)
-		if (file.size > maxFileSize * 1024 ** 2)
-			return
-
-		// Remove a potential old file and start uploading the new file.
-		await deleteMediaFile(simulation.media)
-		const extension = file.name.split('.').pop()
-		const path = `simulations/${simulation.id}/startImage.${extension}`
-		const storageRef = ref(storage, path)
-		const uploadTask = uploadBytesResumable(storageRef, file)
-
-		// Keep track of upload updates.
-		uploadTask.on('state_changed',
-			snapshot => { // On change in upload percentage.
-				setPercentage(Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 100)
-			},
-			error => { // On error.
-				console.error(error)
-				updateSimulation(simulation.id, { media: deleteField() })
-			},
-			async () => { // On finished uploading.
-				await updateSimulation(simulation.id, { media: { type: 'internalImage', path } })
-				setFile(undefined)
-			})
-	}
-
-	// When a file is selected, show an upload notification, or an error if there's a problem.
-	if (file) {
-		if (file.size > maxFileSize * 1024 ** 2) { // File too large?
-			return <>
-				<p style={errorStyle(theme)}>Die Datei ist zu groß. Die maximale Dateigröße beträgt {maxFileSize} MB, aber die angegebene Datei ist {Math.round(file.size / 1024 ** 2 * 10) / 10} MB groß.</p>
-				<ImageUpload onChange={setAndSaveFile} />
-			</>
-		}
-		return <p>Das Bild wird gerade hochgeladen. Der Upload ist zu {percentage}% abgeschlossen.</p>
-	}
-
-	// When no file is selected, show (if present) the already existing image, together with an upload button.
-	return <FormSubPart>
-		{simulation?.media?.type === 'internalImage' ? <FormSubPart>
-			<InternalImage path={simulation.media.path} extraUpdateParameter={simulation.media} style={imageStyle} />
-		</FormSubPart> : null}
-		<ImageUpload onChange={setAndSaveFile} />
-	</FormSubPart>
-}
-
-function ImageUpload({ onChange }) {
-	return <Button variant="contained" component="label">
-		Neues Bild hochladen
-		<input type="file" accept="image/*" onChange={onChange} hidden />
-	</Button>
-}
-
-function ProvideImageLink({ simulation }) {
-	// Set up a handler that saves the path to the image in the right format.
-	const [image, setImage] = useTrackedState((simulation?.media?.type === 'externalImage' ? simulation?.media?.path : '') || '')
-	const setAndSaveImage = async (image) => {
-		setImage(image)
-		await deleteMediaFile(simulation.media)
-		await updateSimulation(simulation.id, { media: image ? { type: 'externalImage', path: image } : deleteField() })
-	}
-
-	// Render the input field.
-	return <>
-		<FormSubPart>
-			<TextField variant="outlined" fullWidth label="Abbildung URL" value={image} onChange={(event) => setAndSaveImage(event.target.value)} />
-		</FormSubPart>
-		<FormSubPart>
-			<ExternalImage path={image} style={imageStyle} />
-		</FormSubPart>
-	</>
-}
-
-function ProvideVideoLink({ simulation }) {
-	// Set up a handler that saves the path to the image in the right format.
-	const [video, setVideo] = useTrackedState((simulation?.media?.type === 'youtubeVideo' ? simulation?.media?.id : '') || '')
-	const setAndSaveVideo = async (video) => {
-		setVideo(video)
-		await deleteMediaFile(simulation.media)
-		await updateSimulation(simulation.id, { media: video ? { type: 'youtubeVideo', id: video } : deleteField() })
-	}
-
-	// Render the input field.
-	return <>
-		<FormSubPart>
-			<TextField variant="outlined" fullWidth label="YouTube-Video ID (z.B. &quot;aBc1DE_f2G3h&quot;)" value={video} onChange={(event) => setAndSaveVideo(event.target.value)} />
-		</FormSubPart>
-		<FormSubPart>
-			<YouTubeVideo id={video} height={imageHeight} />
-		</FormSubPart>
-	</>
 }
 
 function RemoveSimulation({ simulation }) {

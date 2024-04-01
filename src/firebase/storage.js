@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getStorage, ref, getDownloadURL } from 'firebase/storage'
+import { getStorage, ref, getDownloadURL, deleteObject } from 'firebase/storage'
 
 import { app } from './main'
 
@@ -19,4 +19,16 @@ export function useStorageUrl(path, extraUpdateParameter) {
 		return () => { active = false }
 	}, [path, extraUpdateParameter])
 	return url
+}
+
+// deleteFile takes a path to a file and deletes it.
+export async function deleteFile(path) {
+	const fileRef = ref(storage, path)
+	return await deleteObject(fileRef)
+}
+
+// deleteMedia takes a (self-defined) media parameter and deletes the corresponding internal media file if it exists.
+export async function deleteMediaFile(media) {
+	if (media?.type === 'internalImage')
+		return deleteFile(media.path)
 }

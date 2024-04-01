@@ -5,7 +5,7 @@ import { updateDocument } from '../../firebase'
 
 import { FormPart } from './containers'
 
-export function TrackedTextField({ path, documentId, field, label, value, multiline }) {
+export function TrackedTextField({ path, documentId, field, label, value, arrayValue = [], arrayIndex, arrayField, multiline }) {
 	// Set up a tracking system for the cursor position, so that it doesn't jump upon changes.
 	const [cursor, setCursor] = useState(null)
 	const ref = useRef(null)
@@ -16,7 +16,16 @@ export function TrackedTextField({ path, documentId, field, label, value, multil
 	}, [ref, cursor, value])
 	const handleChange = (event) => {
 		setCursor(event.target.selectionStart)
-		updateDocument(path, documentId, { [field]: event.target.value })
+		const newValue = event.target.value
+		if (arrayIndex !== undefined) { // Do we change a part of an array?
+			if (arrayField) { // The array contains objects and we need to change an element in the array.
+				updateDocument(path, documentId, { [field]: [...arrayValue.slice(0, arrayIndex), { ...arrayValue[arrayIndex], [arrayField]: newValue }, ...arrayValue.slice(arrayIndex + 1)] })
+			} else { // The array contains only the text fields.
+				updateDocument(path, documentId, { [field]: [...arrayValue.slice(0, arrayIndex), value, ...arrayValue.slice(arrayIndex + 1)] })
+			}
+		} else { // We change a regular field.
+			updateDocument(path, documentId, { [field]: newValue })
+		}
 	}
 
 	// Render the form.

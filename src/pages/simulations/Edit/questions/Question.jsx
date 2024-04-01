@@ -13,12 +13,13 @@ import { deleteField } from 'firebase/firestore'
 import { FormPart, TrackedTextField, MediaUploader } from '../../../../components'
 import { updateSimulation, updateQuestion, deleteQuestion } from '../../../../simulations'
 
+import { accordionStyle } from './util'
 import { Options } from './Options'
 
 const emptyTitle = '[Fragentitel fehlt]'
 
 export function Question({ simulation, question, index, expanded, flipExpand }) {
-	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
+	return <Accordion sx={accordionStyle} expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 			<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.title || emptyTitle}
 		</AccordionSummary>
@@ -27,7 +28,7 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 			<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />
 			<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
 			<FollowUpDropdown {...{ simulation, question }} />
-			<Options />
+			<Options {...{ simulation, question }} />
 			<OrderDropdown {...{ simulation, question }} />
 		</AccordionDetails>
 		<AccordionActions key="actions">

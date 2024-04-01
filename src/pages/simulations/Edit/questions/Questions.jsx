@@ -10,6 +10,7 @@ import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
 import { FormPart } from '../../../../components'
 import { updateSimulation, getQuestionRef } from '../../../../simulations'
 
+import { accordionStyle } from './util'
 import { Question } from './Question'
 
 const emptyTitle = '[Fragentitel fehlt]'
@@ -37,14 +38,14 @@ function QuestionsInternal({ simulation }) {
 		<FormPart>
 			<StartingQuestion {...{ simulation }} />
 		</FormPart>
-		<div style={{ margin: '1.5rem 0' }}>
+		<FormPart>
 			{simulation.questionList.map((question, index) => <Question key={question.id} {...{ simulation, question, index, expanded: !!expanded[question.id], flipExpand: () => flipExpand(question.id) }} />)}
-			<Accordion key={simulation.questionList.length} onClick={addQuestion}>
+			<Accordion sx={accordionStyle} onClick={addQuestion} expanded={false}>
 				<AccordionSummary>
 					<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
 				</AccordionSummary>
 			</Accordion>
-		</div>
+		</FormPart>
 	</>
 }
 

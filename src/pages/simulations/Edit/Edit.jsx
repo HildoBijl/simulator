@@ -5,7 +5,7 @@ import { useSimulation } from '../../../simulations'
 import { Page, useTab } from '../../../components'
 
 import { Settings } from './Settings'
-import { Questions } from './Questions'
+import { Questions } from './questions'
 
 const EditPage = ({ children, tabs }) => <Page title="Simulation bearbeiten" backButton="/create" tabs={tabs}>{children}</Page>
 

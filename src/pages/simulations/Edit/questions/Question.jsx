@@ -1,94 +1,39 @@
-import { useState } from 'react'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
-import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import AccordionSummary from '@mui/material/AccordionSummary'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
-import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { deleteField } from 'firebase/firestore'
 
-import { FormPart, TrackedTextField, MediaUploader } from '../../../components'
-import { updateSimulation, getQuestionRef, updateQuestion, deleteQuestion } from '../../../simulations'
+import { FormPart, TrackedTextField, MediaUploader } from '../../../../components'
+import { updateSimulation, updateQuestion, deleteQuestion } from '../../../../simulations'
+
+import { Options } from './Options'
 
 const emptyTitle = '[Fragentitel fehlt]'
 
-export function Questions({ simulation }) {
-	// Load in the questions.
-	return <QuestionsInternal {...{ simulation }} />
-}
-
-function QuestionsInternal({ simulation }) {
-	// Set up manual expansion controls.
-	const [expanded, setExpanded] = useState({})
-	const flipExpand = (id) => setExpanded(expanded => ({ ...expanded, [id]: !expanded[id] }))
-
-	// Set up an addQuestion handler that opens a new question upon entry.
-	const addQuestion = async () => {
-		const ref = getQuestionRef(simulation.id)
-		setExpanded(expanded => ({ ...expanded, [ref.id]: true }))
-		await setDoc(ref, {})
-		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id), startingQuestion: simulation.startingQuestion || ref.id })
-	}
-
-	// Render the questions through an Accordion.
-	return <>
-		<FormPart>
-			<StartingQuestion {...{ simulation }} />
-		</FormPart>
-		<div style={{ margin: '1.5rem 0' }}>
-			{simulation.questionList.map((question, index) => <Accordion key={question.id} expanded={!!expanded[question.id]} onChange={() => flipExpand(question.id)}>
-				<AccordionSummary expandIcon={<ExpandMoreIcon />}>
-					<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.title || emptyTitle}
-				</AccordionSummary>
-				<Question {...{ simulation, question }} />
-			</Accordion>
-			)}
-			<Accordion key={simulation.questionList.length} onClick={addQuestion}>
-				<AccordionSummary>
-					<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
-				</AccordionSummary>
-			</Accordion>
-		</div>
-	</>
-}
-
-function StartingQuestion({ simulation }) {
-	// Set up a handler to set the starting question.
-	const setStartingQuestion = async (questionId) => {
-		return await updateSimulation(simulation.id, { startingQuestion: questionId === 'none' ? deleteField() : questionId })
-	}
-
-	// Render the dropdown list.
-	const startingQuestion = simulation.startingQuestion || simulation.questionList[0]?.id || 'none'
-	return <FormPart>
-		<FormControl fullWidth>
-			<InputLabel>Startfrage</InputLabel>
-			<Select value={startingQuestion} label="Startfrage" onChange={(event) => setStartingQuestion(event.target.value)}>
-				{simulation.questionList.length > 0 ?
-					simulation.questionList.map((question, index) => <MenuItem key={question.id} value={question.id}>{`${index + 1}.  ${question.title || emptyTitle}`}</MenuItem>) :
-					<MenuItem key="none" value="none">Es sind noch keine Fragen vorhanden.</MenuItem>}
-			</Select>
-		</FormControl>
-	</FormPart>
-}
-
-function Question({ simulation, question }) {
-	return <>
-		<AccordionDetails sx={{ py: 0, my: -2 }}>
+export function Question({ simulation, question, index, expanded, flipExpand }) {
+	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
+		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
+			<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.title || emptyTitle}
+		</AccordionSummary>
+		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 			<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
 			<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />
 			<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
 			<FollowUpDropdown {...{ simulation, question }} />
+			<Options />
 			<OrderDropdown {...{ simulation, question }} />
 		</AccordionDetails>
-		<AccordionActions>
+		<AccordionActions key="actions">
 			<Button onClick={() => deleteQuestion(simulation, question)}>Löschen</Button>
 		</AccordionActions>
-	</>
+	</Accordion>
 }
 
 function FollowUpDropdown({ simulation, question }) {

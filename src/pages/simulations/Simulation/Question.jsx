@@ -1,6 +1,6 @@
 import Button from '@mui/material/Button'
 
-import { Page, InputParagraph } from '../../../components'
+import { Page, InputParagraph, Media } from '../../../components'
 
 export function Question({ simulation, question, goToQuestion }) {
 	// Set up a handler to go to the next question.
@@ -8,6 +8,7 @@ export function Question({ simulation, question, goToQuestion }) {
 
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'}>
 		<InputParagraph>{question.description}</InputParagraph>
+		<Media media={question.media} />
 		<Button variant="contained" sx={{ margin: '1rem 0' }} onClick={() => goToNextQuestion()}>Frage beantworten/abschließen</Button>
 	</Page>
 }

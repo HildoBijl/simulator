@@ -14,7 +14,7 @@ export function Settings({ simulation }) {
 		<ChangeUrl simulation={simulation} />
 		<TrackedTextField label="Titel" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
 		<TrackedTextField label="Beschreibung" value={simulation.description} path="simulations" documentId={simulation.id} field="description" multiline={true} />
-		<MediaUploader label="Abbildung" value={simulation.media} path="simulations" documentId={simulation.id} fileName="startImage" />
+		<MediaUploader label="Abbildung" value={simulation.media} path="simulations" documentId={simulation.id} fileName="StartImage" />
 		<RemoveSimulation simulation={simulation} />
 	</>
 }

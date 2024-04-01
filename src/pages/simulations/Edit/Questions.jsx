@@ -4,7 +4,6 @@ import AccordionActions from '@mui/material/AccordionActions'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import TextField from '@mui/material/TextField'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
@@ -12,7 +11,7 @@ import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
 
-import { FormPart } from '../../../components'
+import { FormPart, TrackedTextField, MediaUploader } from '../../../components'
 import { updateSimulation, getQuestionRef, updateQuestion, deleteQuestion } from '../../../simulations'
 
 const emptyTitle = '[Fragentitel fehlt]'
@@ -80,17 +79,14 @@ function StartingQuestion({ simulation }) {
 function Question({ simulation, question }) {
 	return <>
 		<AccordionDetails sx={{ py: 0, my: -2 }}>
-			<FormPart>
-				<TextField variant="outlined" fullWidth label="Titel" value={question.title || ''} onChange={(event) => updateQuestion(simulation.id, question.id, { title: event.target.value })} />
-			</FormPart>
-			<FormPart>
-				<TextField variant="outlined" fullWidth multiline label="Beschreibung" value={question.description || ''} onChange={(event) => updateQuestion(simulation.id, question.id, { description: event.target.value })} />
-			</FormPart>
+			<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
+			<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />
+			<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
 			<FollowUpDropdown {...{ simulation, question }} />
 			<OrderDropdown {...{ simulation, question }} />
 		</AccordionDetails>
 		<AccordionActions>
-			<Button onClick={() => deleteQuestion(simulation, question.id)}>Löschen</Button>
+			<Button onClick={() => deleteQuestion(simulation, question)}>Löschen</Button>
 		</AccordionActions>
 	</>
 }

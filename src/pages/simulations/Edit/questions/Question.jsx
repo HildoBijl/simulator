@@ -13,23 +13,21 @@ import { deleteField } from 'firebase/firestore'
 import { FormPart, TrackedTextField, MediaUploader } from '../../../../components'
 import { updateSimulation, updateQuestion, deleteQuestion } from '../../../../simulations'
 
-import { accordionStyle } from './util'
+import { emptyQuestion, accordionStyle } from './util'
 import { Options } from './Options'
-
-const emptyTitle = '[Fragentitel fehlt]'
 
 export function Question({ simulation, question, index, expanded, flipExpand }) {
 	return <Accordion sx={accordionStyle} expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
-			<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.title || emptyTitle}
+			<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.title || emptyQuestion}
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 			<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
 			<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />
 			<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
-			<FollowUpDropdown {...{ simulation, question }} />
-			<Options {...{ simulation, question }} />
-			<OrderDropdown {...{ simulation, question }} />
+			<FollowUpDropdown {...{ simulation, question, index }} />
+			<Options {...{ simulation, question, index }} />
+			<OrderDropdown {...{ simulation, question, index }} />
 		</AccordionDetails>
 		<AccordionActions key="actions">
 			<Button onClick={() => deleteQuestion(simulation, question)}>Löschen</Button>
@@ -37,28 +35,26 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 	</Accordion>
 }
 
-function FollowUpDropdown({ simulation, question }) {
+function FollowUpDropdown({ simulation, question, index: questionIndex }) {
 	// Set up a handler to save the follow-up question.
 	const setFollowUpQuestion = async (questionId) => {
 		return await updateQuestion(simulation.id, question.id, { followUpQuestion: questionId === 'default' ? deleteField() : questionId })
 	}
 
 	// Render the dropdown field.
-	const questionIndex = simulation.questionList.indexOf(question)
 	return <FormPart>
 		<FormControl fullWidth>
 			<InputLabel>Standard Folgefrage</InputLabel>
 			<Select value={question.followUpQuestion || 'default'} label="Standard Folgefrage" onChange={(event) => setFollowUpQuestion(event.target.value)}>
 				<MenuItem key="default" value="default">Standard: Nächste Frage in der Reihenfolge (jetzt {questionIndex === simulation.questionList.length - 1 ? 'das Ende der Simulation' : `Frage ${questionIndex + 2}`})</MenuItem>
-				{simulation.questionList.map((otherQuestion, index) => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{index + 1}. {otherQuestion.title || emptyTitle}</MenuItem>)}
+				{simulation.questionList.map((otherQuestion, index) => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{index + 1}. {otherQuestion.title || emptyQuestion}</MenuItem>)}
 				<MenuItem key="end" value="end">Ende: Nach dieser Frage ist die Simulation beendet</MenuItem>
 			</Select>
 		</FormControl>
 	</FormPart>
 }
 
-function OrderDropdown({ simulation, question }) {
-	const questionIndex = simulation.questionList.indexOf(question)
+function OrderDropdown({ simulation, index: questionIndex }) {
 	const moveQuestion = async (to) => {
 		const from = questionIndex
 		if (from === to)
@@ -77,9 +73,9 @@ function OrderDropdown({ simulation, question }) {
 					if (index === 0)
 						text = 'Position 1, am Anfang'
 					else if (index === simulation.questionList.length - 1)
-						text = `Position ${index + 1}, am ende, nach "${otherQuestion.title || emptyTitle}"`
+						text = `Position ${index + 1}, am ende, nach "${otherQuestion.title || emptyQuestion}"`
 					else
-						text = `Position ${index + 1}, nach "${otherQuestion.title || emptyTitle}"`
+						text = `Position ${index + 1}, nach "${otherQuestion.title || emptyQuestion}"`
 					return <MenuItem key={index} value={index}>{text}</MenuItem>
 				})}
 			</Select>

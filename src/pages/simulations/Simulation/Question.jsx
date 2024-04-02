@@ -10,20 +10,24 @@ import { emptyOption } from '../Edit'
 export function Question({ simulation, question, goToQuestion }) {
 	const [selection, setSelection] = useState()
 
-	// Set up a handler to go to the next question.
-	const goToNextQuestion = () => goToQuestion(question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end')
+	// Set up a handler to go to the next question. This is either the option follow-up, if it is defined, or otherwise the question follow-up.
 	const options = question.options || []
+	const confirmChoice = () => {
+		if (selection !== undefined && options[selection] && options[selection].followUpQuestion)
+			return goToQuestion(options[selection].followUpQuestion)
+		return goToQuestion(question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end')
+	}
 
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'}>
 		<InputParagraph>{question.description}</InputParagraph>
 		<Media media={question.media} />
 		{options.length === 0 ? <>
-			<Button variant="contained" sx={{ margin: '1rem 0' }} onClick={() => goToNextQuestion()}>Weiter</Button>
+			<Button variant="contained" sx={{ margin: '1rem 0' }} onClick={() => confirmChoice()}>Weiter</Button>
 		</> : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
 				{question.options.map((option, index) => <Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => setSelection(index), deselect: () => setSelection(undefined) }} />)}
 			</div>
-			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} disabled={selection === undefined} onClick={() => goToNextQuestion()}>Wahl bestätigen</Button>
+			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} disabled={selection === undefined} onClick={() => confirmChoice()}>Wahl bestätigen</Button>
 		</>}
 	</Page>
 }
@@ -62,7 +66,7 @@ function Option({ option, index, selected, select, deselect }) {
 	const descriptionStyle = {
 		...commonStyle,
 		flex: '1 1 auto',
-		padding: '0 0.75rem',
+		padding: '0 1rem',
 	}
 
 	// Render the option.

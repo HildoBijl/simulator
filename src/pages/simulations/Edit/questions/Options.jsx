@@ -9,7 +9,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { deleteField, arrayUnion, arrayRemove } from 'firebase/firestore'
+import { arrayUnion, arrayRemove } from 'firebase/firestore'
 
 import { numberToLetter } from '../../../../util'
 import { FormPart, TrackedTextField } from '../../../../components'

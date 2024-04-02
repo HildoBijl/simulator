@@ -8,7 +8,7 @@ export function Media({ media, height = 480 }) {
 		return null
 
 	// Depending on the type of media, render the appropriate component.
-	const imageStyle = { maxHeight: `${height}px`, maxWidth: '100%', display: 'block' }
+	const imageStyle = { margin: '1rem 0', maxHeight: `${height}px`, maxWidth: '100%', display: 'block' }
 	const { type } = media
 	switch (type) {
 		case 'internalImage':

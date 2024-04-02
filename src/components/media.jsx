@@ -49,7 +49,7 @@ export function ExternalImage({ path, style = {} }) {
 export function YouTubeVideo({ id, height = 400, width = height * 1.5 }) {
 	if (!id)
 		return null
-	return <div className="video-responsive">
+	return <div className="video-responsive" style={{ margin: '1rem 0' }}>
 		<iframe style={{ height, width, maxHeight: `60vw`, maxWidth: '100%' }} src={`https://www.youtube.com/embed/${id}`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title="Embedded YouTube" />
 	</div>
 }

@@ -22,7 +22,7 @@ export function Question({ simulation, question, goToQuestion }) {
 		<InputParagraph>{question.description}</InputParagraph>
 		<Media media={question.media} />
 		{options.length === 0 ? <>
-			<Button variant="contained" sx={{ margin: '1rem 0' }} onClick={() => confirmChoice()}>Weiter</Button>
+			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => confirmChoice()}>Weiter</Button>
 		</> : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
 				{question.options.map((option, index) => <Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => setSelection(index), deselect: () => setSelection(undefined) }} />)}

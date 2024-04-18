@@ -8,10 +8,9 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { deleteField } from 'firebase/firestore'
 
 import { FormPart, TrackedTextField, MediaUploader } from '../../../../components'
-import { updateSimulation, updateQuestion, deleteQuestion } from '../../../../simulations'
+import { updateSimulation, deleteQuestion } from '../../../../simulations'
 
 import { emptyQuestion, accordionStyle } from './util'
 import { Options } from './Options'
@@ -25,8 +24,6 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 			<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
 			<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />
 			<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
-			<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
-			<FollowUpDropdown {...{ simulation, question, index }} />
 			<Options {...{ simulation, question, index }} />
 			<OrderDropdown {...{ simulation, question, index }} />
 		</AccordionDetails>
@@ -34,25 +31,6 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 			<Button onClick={() => deleteQuestion(simulation, question)}>Löschen</Button>
 		</AccordionActions>
 	</Accordion>
-}
-
-function FollowUpDropdown({ simulation, question, index: questionIndex }) {
-	// Set up a handler to save the follow-up question.
-	const setFollowUpQuestion = async (questionId) => {
-		return await updateQuestion(simulation.id, question.id, { followUpQuestion: questionId === 'default' ? deleteField() : questionId })
-	}
-
-	// Render the dropdown field.
-	return <FormPart>
-		<FormControl fullWidth>
-			<InputLabel>Standard Folgefrage</InputLabel>
-			<Select value={question.followUpQuestion || 'default'} label="Standard Folgefrage" onChange={(event) => setFollowUpQuestion(event.target.value)}>
-				<MenuItem key="default" value="default">Standard: Nächste Frage in der Reihenfolge (jetzt {questionIndex === simulation.questionList.length - 1 ? 'das Ende der Simulation' : `Frage ${questionIndex + 2}`})</MenuItem>
-				{simulation.questionList.map((otherQuestion, index) => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{index + 1}. {otherQuestion.title || emptyQuestion}</MenuItem>)}
-				<MenuItem key="end" value="end">Ende: Nach dieser Frage ist die Simulation beendet</MenuItem>
-			</Select>
-		</FormControl>
-	</FormPart>
 }
 
 function OrderDropdown({ simulation, index: questionIndex }) {

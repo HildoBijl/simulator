@@ -10,7 +10,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { arrayUnion, arrayRemove } from 'firebase/firestore'
+import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 
 import { numberToLetter } from '../../../../util'
 import { FormPart, TrackedTextField } from '../../../../components'
@@ -23,6 +23,7 @@ export function Options({ simulation, question, index: questionIndex }) {
 
 	// Set up manual expansion controls.
 	const options = question.options || []
+	const [defaultsExpanded, setDefaultsExpanded] = useState(false)
 	const [expanded, setExpanded] = useState(options.map(() => false))
 	const flipExpand = (index) => setExpanded(expanded => [...expanded.slice(0, index), !expanded[index], ...expanded.slice(index + 1)])
 
@@ -43,6 +44,7 @@ export function Options({ simulation, question, index: questionIndex }) {
 	return <>
 		<h5 style={{ color: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: 400, margin: '-0.5rem 0 0 0.4rem' }}>Antwortmöglichkeiten</h5>
 		<div>
+			<Defaults {...{ simulation, question, questionIndex, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />
 			{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, questionIndex, optionIndex, expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
 			{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>
 				<AccordionSummary>
@@ -51,6 +53,18 @@ export function Options({ simulation, question, index: questionIndex }) {
 			</Accordion> : null}
 		</div>
 	</>
+}
+
+function Defaults({ simulation, question, questionIndex, expanded, flipExpand }) {
+	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
+		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
+			Standardeinstellungen für Antwortmöglichkeiten
+		</AccordionSummary>
+		<AccordionDetails key="details" sx={{ py: 0, mt: -2 }}>
+			<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
+			<FollowUpDropdown {...{ simulation, question, questionIndex }} />
+		</AccordionDetails>
+	</Accordion>
 }
 
 function Option({ simulation, question, questionIndex, optionIndex, expanded, flipExpand }) {
@@ -85,12 +99,15 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 	</Accordion>
 }
 
-function FollowUpDropdown({ simulation, question, optionIndex }) {
+function FollowUpDropdown({ simulation, question, questionIndex, optionIndex }) {
+	const forQuestion = (optionIndex === undefined)
 	const options = question.options || []
 	const option = options[optionIndex]
 
 	// Set up a handler to save the follow-up question.
 	const setFollowUpQuestion = async (questionId) => {
+		if (forQuestion)
+			return await updateQuestion(simulation.id, question.id, { followUpQuestion: questionId === 'default' ? deleteField() : questionId })
 		const newOption = { ...option, followUpQuestion: questionId }
 		if (questionId === 'default')
 			delete newOption.followUpQuestion
@@ -98,11 +115,13 @@ function FollowUpDropdown({ simulation, question, optionIndex }) {
 	}
 
 	// Render the dropdown field.
+	const label = `${forQuestion ? 'Standard' : 'Option'} Folgefrage`
+	const value = (forQuestion ? question.followUpQuestion : option.followUpQuestion) || 'default'
 	return <FormPart>
 		<FormControl fullWidth>
-			<InputLabel>Option Folgefrage</InputLabel>
-			<Select value={option.followUpQuestion || 'default'} label="Option Folgefrage" onChange={(event) => setFollowUpQuestion(event.target.value)}>
-				<MenuItem key="default" value="default">Standard: Die Einstellung der Hauptfrage verwenden</MenuItem>
+			<InputLabel>{label}</InputLabel>
+			<Select value={value} label={label} onChange={(event) => setFollowUpQuestion(event.target.value)}>
+				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Frage in der Reihenfolge (jetzt {questionIndex === simulation.questionList.length - 1 ? 'das Ende der Simulation' : `Frage ${questionIndex + 2}`})</> : <>Standard: Die Einstellung der Hauptfrage verwenden</>}</MenuItem>
 				{simulation.questionList.map((otherQuestion, index) => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{index + 1}. {otherQuestion.title || emptyQuestion}</MenuItem>)}
 				<MenuItem key="end" value="end">Ende: Nach dieser Frage ist die Simulation beendet</MenuItem>
 			</Select>

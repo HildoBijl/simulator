@@ -2,7 +2,7 @@ import { createTheme } from '@mui/material/styles';
 
 import './main.css'
 
-export const createCustomTheme = ({ prefersDarkMode }) => createTheme({
+export const createCustomTheme = ({ mode }) => createTheme({
   palette: {
     primary: {
       main: '#e2001a',
@@ -10,6 +10,6 @@ export const createCustomTheme = ({ prefersDarkMode }) => createTheme({
     secondary: {
       main: '#213547',
     },
-    mode: prefersDarkMode ? 'dark' : 'light',
+    mode,
   },
 })

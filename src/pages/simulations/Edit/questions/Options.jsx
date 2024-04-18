@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -19,6 +19,8 @@ import { updateQuestion } from '../../../../simulations'
 import { emptyQuestion, emptyOption } from './util'
 
 export function Options({ simulation, question, index: questionIndex }) {
+	const theme = useTheme()
+
 	// Set up manual expansion controls.
 	const options = question.options || []
 	const [expanded, setExpanded] = useState(options.map(() => false))
@@ -38,9 +40,8 @@ export function Options({ simulation, question, index: questionIndex }) {
 	}
 
 	// Render the options through an Accordion.
-	const prefersLight = useMediaQuery('(prefers-color-scheme: light)')
 	return <>
-		<h5 style={{ color: prefersLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: 400, margin: '-0.5rem 0 0 0.4rem' }}>Antwortmöglichkeiten</h5>
+		<h5 style={{ color: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: 400, margin: '-0.5rem 0 0 0.4rem' }}>Antwortmöglichkeiten</h5>
 		<div>
 			{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, questionIndex, optionIndex, expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
 			{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>

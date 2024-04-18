@@ -9,30 +9,35 @@ import { emptyOption } from '../Edit'
 
 export function Question({ simulation, question, goToQuestion }) {
 	const [selection, setSelection] = useState()
+	const [confirmed, setConfirmed] = useState(false)
 
 	// Set up a handler to go to the next question. This is either the option follow-up, if it is defined, or otherwise the question follow-up.
 	const options = question.options || []
-	const confirmChoice = () => {
+	const confirmChoice = () => setConfirmed(true)
+	const goToNextQuestion = () => {
 		if (selection !== undefined && options[selection] && options[selection].followUpQuestion)
 			return goToQuestion(options[selection].followUpQuestion)
 		return goToQuestion(question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end')
 	}
 
+	// Render the question with description, media, options and buttons.
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'}>
 		<InputParagraph>{question.description}</InputParagraph>
 		<Media media={question.media} />
-		{options.length === 0 ? <>
-			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => confirmChoice()}>Weiter</Button>
-		</> : <>
+		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
-				{question.options.map((option, index) => <Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => setSelection(index), deselect: () => setSelection(undefined) }} />)}
+				{question.options.map((option, index) => confirmed ?
+					<Option key={index} {...{ simulation, question, option, index, disabled: index !== selection, feedback: index === selection && 'Feedback! ToDo' }} /> :
+					<Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => setSelection(index), deselect: () => setSelection(undefined) }} />)}
 			</div>
-			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} disabled={selection === undefined} onClick={() => confirmChoice()}>Wahl bestätigen</Button>
 		</>}
+		{options.length === 0 || confirmed ?
+			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion()}>Weiter</Button> :
+			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} disabled={selection === undefined} onClick={() => confirmChoice()}>Wahl bestätigen</Button>}
 	</Page>
 }
 
-function Option({ option, index, selected, select, deselect }) {
+function Option({ option, index, selected, select, deselect, disabled }) {
 	const [isHovered, setIsHovered] = useState(false)
 	const theme = useTheme()
 	const letter = numberToLetter(index)
@@ -47,10 +52,10 @@ function Option({ option, index, selected, select, deselect }) {
 
 	// Define styles for the various elements.
 	const commonStyle = {
-		background: (selected ? darken(theme.palette.primary.main, 0.25) : (isHovered ? darken(theme.palette.primary.main, 0.15) : darken(theme.palette.primary.main, 0))),
+		background: disabled ? (theme.palette.mode === 'light' ? '#bbb' : '#444') : (selected ? darken(theme.palette.primary.main, 0.25) : (isHovered && select ? darken(theme.palette.primary.main, 0.15) : darken(theme.palette.primary.main, 0))),
 		borderRadius: '1.5rem',
-		color: theme.palette.primary.contrastText,
-		cursor: 'pointer',
+		color: disabled ? darken(theme.palette.primary.contrastText, 0.5) : theme.palette.primary.contrastText,
+		cursor: (select ? 'pointer' : 'default'),
 	}
 	const letterStyle = {
 		...commonStyle,

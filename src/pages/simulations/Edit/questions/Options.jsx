@@ -76,6 +76,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 			<TrackedTextField inputRef={descriptionRef} label="Beschreibung" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" multiline={true} />
 			<FollowUpDropdown {...{ simulation, question, questionIndex, optionIndex }} />
+			<TrackedTextField label="Option Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
 		</AccordionDetails>
 		<AccordionActions key="actions">
 			<Button onClick={() => updateQuestion(simulation.id, question.id, { options: arrayRemove(option) })}>Löschen</Button>

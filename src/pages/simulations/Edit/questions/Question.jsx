@@ -26,6 +26,7 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 			<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />
 			<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
 			<FollowUpDropdown {...{ simulation, question, index }} />
+			<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
 			<Options {...{ simulation, question, index }} />
 			<OrderDropdown {...{ simulation, question, index }} />
 		</AccordionDetails>

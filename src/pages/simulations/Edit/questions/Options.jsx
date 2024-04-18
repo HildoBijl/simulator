@@ -90,7 +90,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 			<TrackedTextField inputRef={descriptionRef} label="Beschreibung" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" multiline={true} />
-			<TrackedTextField label="Option Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
+			<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
 			<FollowUpDropdown {...{ simulation, question, questionIndex, optionIndex }} />
 		</AccordionDetails>
 		<AccordionActions key="actions">
@@ -115,15 +115,15 @@ function FollowUpDropdown({ simulation, question, questionIndex, optionIndex }) 
 	}
 
 	// Render the dropdown field.
-	const label = `${forQuestion ? 'Standard' : 'Option'} Folgefrage`
+	const label = `${forQuestion ? 'Standard ' : ''}Folgefrage`
 	const value = (forQuestion ? question.followUpQuestion : option.followUpQuestion) || 'default'
 	return <FormPart>
 		<FormControl fullWidth>
 			<InputLabel>{label}</InputLabel>
 			<Select value={value} label={label} onChange={(event) => setFollowUpQuestion(event.target.value)}>
-				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Frage in der Reihenfolge (jetzt {questionIndex === simulation.questionList.length - 1 ? 'das Ende der Simulation' : `Frage ${questionIndex + 2}`})</> : <>Standard: Die Einstellung der Hauptfrage verwenden</>}</MenuItem>
+				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Frage in der Reihenfolge (jetzt {questionIndex === simulation.questionList.length - 1 ? 'das Ende der Simulation' : `Frage ${questionIndex + 2}`})</> : <>Die Standardeinstellung verwenden</>}</MenuItem>
 				{simulation.questionList.map((otherQuestion, index) => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{index + 1}. {otherQuestion.title || emptyQuestion}</MenuItem>)}
-				<MenuItem key="end" value="end">Ende: Nach dieser Frage ist die Simulation beendet</MenuItem>
+				<MenuItem key="end" value="end">Ende: Danach wird die Simulation beendet</MenuItem>
 			</Select>
 		</FormControl>
 	</FormPart>

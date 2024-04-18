@@ -27,7 +27,7 @@ export function Question({ simulation, question, goToQuestion }) {
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
 				{question.options.map((option, index) => confirmed ?
-					<Option key={index} {...{ simulation, question, option, index, disabled: index !== selection, feedback: index === selection && 'Feedback! ToDo' }} /> :
+					<Option key={index} {...{ simulation, question, option, index, disabled: index !== selection, feedback: index === selection && (options[selection].feedback || question.feedback) }} /> :
 					<Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => setSelection(index), deselect: () => setSelection(undefined) }} />)}
 			</div>
 		</>}
@@ -37,7 +37,7 @@ export function Question({ simulation, question, goToQuestion }) {
 	</Page>
 }
 
-function Option({ option, index, selected, select, deselect, disabled }) {
+function Option({ option, index, selected, select, deselect, disabled, feedback }) {
 	const [isHovered, setIsHovered] = useState(false)
 	const theme = useTheme()
 	const letter = numberToLetter(index)
@@ -73,12 +73,23 @@ function Option({ option, index, selected, select, deselect, disabled }) {
 		flex: '1 1 auto',
 		padding: '0 1rem',
 	}
+	const feedbackStyle = {
+		background: theme.palette.primary.main,
+		borderRadius: '1.5rem',
+		color: theme.palette.primary.contrastText,
+		fontSize: '0.85rem',
+		margin: '0.1rem 0 0.5rem',
+		padding: '0 1rem',
+	}
 
 	// Render the option.
-	return <div style={{ alignItems: 'flex-start', display: 'flex', flexFlow: 'row nowrap', margin: '0.25rem 0' }}>
-		<div style={letterStyle} {...handlers}>{letter.toUpperCase()}</div>
-		<div style={descriptionStyle} {...handlers}>
-			<InputParagraph>{description}</InputParagraph>
+	return <>
+		<div style={{ alignItems: 'flex-start', display: 'flex', flexFlow: 'row nowrap', margin: '0.25rem 0' }}>
+			<div style={letterStyle} {...handlers}>{letter.toUpperCase()}</div>
+			<div style={descriptionStyle} {...handlers}>
+				<InputParagraph>{description}</InputParagraph>
+			</div>
 		</div>
-	</div>
+		{feedback ? <div style={feedbackStyle}><InputParagraph>{feedback}</InputParagraph></div> : null}
+	</>
 }

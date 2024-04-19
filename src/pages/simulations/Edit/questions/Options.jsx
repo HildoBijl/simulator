@@ -16,7 +16,7 @@ import { numberToLetter } from '../../../../util'
 import { FormPart, TrackedTextField } from '../../../../components'
 import { updateQuestion } from '../../../../simulations'
 
-import { emptyQuestion, emptyOption } from './util'
+import { emptyQuestion, emptyOption } from '../util'
 
 export function Options({ simulation, question, index: questionIndex }) {
 	const theme = useTheme()

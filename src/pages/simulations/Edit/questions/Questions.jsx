@@ -10,7 +10,7 @@ import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
 import { FormPart } from '../../../../components'
 import { updateSimulation, getQuestionRef } from '../../../../simulations'
 
-import { emptyQuestion, accordionStyle } from './util'
+import { emptyQuestion, accordionStyle } from '../util'
 import { Question } from './Question'
 
 export function Questions({ simulation }) {

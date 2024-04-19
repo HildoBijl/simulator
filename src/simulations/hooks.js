@@ -4,8 +4,9 @@ import { useDocumentData, useDocumentDataOnce } from 'react-firebase-hooks/fires
 
 import { db, useUserData } from '../firebase'
 
-import { useSimulationQuestions } from './questions'
 import { getSimulationByUrl } from './functions'
+import { useSimulationQuestions } from './questions'
+import { useSimulationVariables } from './variables'
 
 // useSimulationIds gets all the simulation IDs for a specific user.
 export function useSimulationIds() {
@@ -36,19 +37,21 @@ export function useSimulation(id, once = false) {
 	// Load in all required data.
 	const simulation = useSimulationObject(id, once)
 	const questions = useSimulationQuestions(id, once)
+	const variables = useSimulationVariables(id, once)
 
 	// Assemble the data, depending on the loading status.
 	return useMemo(() => {
-		if (simulation === undefined || questions === undefined)
+		if (simulation === undefined || questions === undefined || variables === undefined)
 			return undefined // Sign of loading.
-		if (simulation && questions)
+		if (simulation && questions && variables)
 			return {
 				...simulation,
 				questions,
-				questionList: (simulation.questionOrder || []).map(questionId => questions[questionId])
+				questionList: (simulation.questionOrder || []).map(questionId => questions[questionId]),
+				variables,
 			}
 		return null // Sign of an error.
-	}, [simulation, questions])
+	}, [simulation, questions, variables])
 }
 
 // useSimulationIdFromUrl takes a simulation URL and returns an ID from it.

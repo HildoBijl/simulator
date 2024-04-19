@@ -12,7 +12,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { FormPart, TrackedTextField, MediaUploader } from '../../../../components'
 import { updateSimulation, deleteQuestion } from '../../../../simulations'
 
-import { emptyQuestion, accordionStyle } from './util'
+import { emptyQuestion, accordionStyle } from '../util'
 import { Options } from './Options'
 
 export function Question({ simulation, question, index, expanded, flipExpand }) {

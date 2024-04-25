@@ -5,13 +5,13 @@ import { updateDocument } from '../../firebase'
 
 import { FormPart } from './containers'
 
-export function TrackedTextField({ path, documentId, field, label, value: givenValue, arrayValue = [], arrayIndex, arrayField, multiline, ...otherProps }) {
+export function TrackedTextField({ path, documentId, field, label, value: givenValue, arrayValue = [], arrayIndex, arrayField, multiline, process, ...otherProps }) {
 	// Track the given state to also update on external changes.
 	const [value, setValue] = useTrackedState(givenValue)
 
 	// Save any changes locally and then in the database.
 	const handleChange = (event) => {
-		const newValue = event.target.value
+		const newValue = process ? process(event.target.value) : event.target.value
 		setValue(newValue)
 		if (arrayIndex !== undefined) { // Do we change a part of an array?
 			if (arrayField) { // The array contains objects and we need to change an element in the array.

@@ -38,11 +38,18 @@ export function Variables({ simulation }) {
 	}, [setOrder, variables])
 	useEffect(() => updateOrder(), [updateOrder, variables])
 
-	// Set up a handler to create a new variable and open it on entry.
-	const addVariable = async () => {
+	// Set up a handler to create a new variable and open it on entry. Ensure, on a clone, that it has no ID set.
+	const addVariable = async (initialValue = {}) => {
 		const ref = getVariableRef(simulation.id)
 		setExpanded(expanded => ({ ...expanded, [ref.id]: true }))
-		return await setDoc(ref, {})
+		return await setDoc(ref, initialValue)
+	}
+
+	// duplicateVariable takes a variable and creates a copy of it, storing it in the database.
+	const duplicateVariable = async (variableId) => {
+		const newVariable = {...variables[variableId]}
+		delete newVariable.id
+		return await addVariable(newVariable)
 	}
 
 	// If there are no variables, show an introduction.
@@ -51,7 +58,7 @@ export function Variables({ simulation }) {
 
 	// Render the questions through an Accordion.
 	return <FormPart>
-		{order.map((variableId, index) => <Variable key={variableId} {...{ simulation, variable: simulation.variables[variableId], index, expanded: !!expanded[variableId], flipExpand: () => flipExpand(variableId) }} />)}
+		{order.map((variableId, index) => <Variable key={variableId} {...{ simulation, variable: variables[variableId], index, expanded: !!expanded[variableId], flipExpand: () => flipExpand(variableId), duplicate: () => duplicateVariable(variableId) }} />)}
 		<Accordion sx={accordionStyle} onClick={addVariable} expanded={false}>
 			<AccordionSummary>
 				<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>

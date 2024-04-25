@@ -8,7 +8,7 @@ import { FormPart } from './containers'
 
 export function TrackedTextField({ path, documentId, field, label, value: givenValue, arrayValue = [], arrayIndex, arrayField, multiline, process, processSaveValue, ...otherProps }) {
 	// Track the given state to also update on external changes.
-	const [value, setValue] = useTrackedState(givenValue)
+	const [value, setValue] = useTrackedState(givenValue.toString())
 
 	// Save any changes locally and then in the database.
 	const handleChange = (event) => {

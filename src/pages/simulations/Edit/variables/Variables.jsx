@@ -47,9 +47,10 @@ export function Variables({ simulation }) {
 
 	// duplicateVariable takes a variable and creates a copy of it, storing it in the database.
 	const duplicateVariable = async (variableId) => {
-		const newVariable = {...variables[variableId]}
+		flipExpand(variableId) // First close the current variable.
+		const newVariable = { ...variables[variableId] }
 		delete newVariable.id
-		return await addVariable(newVariable)
+		return await addVariable(newVariable) // Then add the new one.
 	}
 
 	// If there are no variables, show an introduction.
@@ -59,7 +60,7 @@ export function Variables({ simulation }) {
 	// Render the questions through an Accordion.
 	return <FormPart>
 		{order.map((variableId, index) => <Variable key={variableId} {...{ simulation, variable: variables[variableId], index, expanded: !!expanded[variableId], flipExpand: () => flipExpand(variableId), duplicate: () => duplicateVariable(variableId) }} />)}
-		<Accordion sx={accordionStyle} onClick={addVariable} expanded={false}>
+		<Accordion sx={accordionStyle} onClick={() => addVariable()} expanded={false}>
 			<AccordionSummary>
 				<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
 			</AccordionSummary>
@@ -78,7 +79,7 @@ function VariablesIntroduction({ addVariable }) {
 }
 
 function AddVariable({ addVariable }) {
-	return <Accordion sx={accordionStyle} onClick={addVariable} expanded={false}>
+	return <Accordion sx={accordionStyle} onClick={() => addVariable()} expanded={false}>
 		<AccordionSummary>
 			<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
 		</AccordionSummary>

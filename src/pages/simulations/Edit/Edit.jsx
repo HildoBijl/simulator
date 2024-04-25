@@ -6,7 +6,7 @@ import { Page, useTab } from '../../../components'
 
 import { Settings } from './Settings'
 import { Questions } from './questions'
-import { Variables } from './Variables'
+import { Variables } from './variables/Variables'
 
 const EditPage = ({ children, tabs }) => <Page title="Simulation bearbeiten" backButton="/create" tabs={tabs}>{children}</Page>
 
@@ -26,7 +26,7 @@ export function Edit() {
 		return <EditPage><p>Simulation laden...</p></EditPage>
 
 	// Show the simulation form itself.
-	return <EditPage tabs={['Einstellungen', 'Fragen', 'Variablen']}>
+	return <EditPage tabs={['Einstellungen', 'Fragen', 'Parameter']}>
 		<EditForSimulation simulation={simulation} />
 	</EditPage>
 }

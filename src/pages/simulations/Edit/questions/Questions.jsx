@@ -11,14 +11,10 @@ import { FormPart } from '../../../../components'
 import { updateSimulation, getQuestionRef } from '../../../../simulations'
 
 import { emptyQuestion, accordionStyle } from '../util'
+
 import { Question } from './Question'
 
 export function Questions({ simulation }) {
-	// Load in the questions.
-	return <QuestionsInternal {...{ simulation }} />
-}
-
-function QuestionsInternal({ simulation }) {
 	// Set up manual expansion controls.
 	const [expanded, setExpanded] = useState({})
 	const flipExpand = (id) => setExpanded(expanded => ({ ...expanded, [id]: !expanded[id] }))

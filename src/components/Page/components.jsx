@@ -23,7 +23,7 @@ export function Page({ children, addAppBar = true, title, backButton, showLogo, 
 					</Tabs>
 				</Container>
 			</Box> : null}
-		<Container maxWidth="xl" sx={{ flexGrow: 1 }} style={style}>
+		<Container maxWidth="xl" sx={{ flexGrow: 1, pb: 3 }} style={style}>
 			<TabContext.Provider value={tab}>
 				{children}
 			</TabContext.Provider>

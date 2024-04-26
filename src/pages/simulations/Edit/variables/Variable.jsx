@@ -62,7 +62,7 @@ export function Variable({ simulation, variable, expanded, flipExpand, duplicate
 			{valueIssues.some(value => value === true) ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>{[
 				'Das Minimum darf nicht größer sein als das Maximum.',
 				'Der Anfangswert darf nicht kleiner als das Minimum sein.',
-				'Der Ausgangswert darf nicht größer als das Maximum sein.',
+				'Der Anfangswert darf nicht größer als das Maximum sein.',
 			][valueIssues.findIndex(value => value === true)]}</p> : null}
 		</AccordionDetails>
 		<AccordionActions key="actions">

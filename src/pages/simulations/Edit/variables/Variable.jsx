@@ -46,7 +46,7 @@ export function Variable({ simulation, variable, expanded, flipExpand, duplicate
 
 			<FormPart>
 				<FormGroup sx={{ px: '0.5rem' }}>
-					<FormControlLabel control={<Switch checked={!variable.hidden || false} onChange={event => updateVariable(simulation.id, variable.id, { hidden: !event.target.checked || deleteField() })} label="Visible" />} label="Ständig sichtbar für die Studierenden" />
+					<FormControlLabel control={<Switch checked={!variable.hidden || false} onChange={event => updateVariable(simulation.id, variable.id, { hidden: !event.target.checked || deleteField() })} label="Visible" />} label="Ständig sichtbar" />
 				</FormGroup>
 			</FormPart>
 

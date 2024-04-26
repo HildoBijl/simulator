@@ -7,9 +7,15 @@ import { Page, InputParagraph, Media } from '../../../components'
 
 import { emptyOption } from '../Edit'
 
-export function Question({ simulation, question, goToQuestion }) {
+import { VariableOverview } from './VariableOverview'
+
+export function Question({ simulation, state, goToQuestion }) {
 	const [selection, setSelection] = useState()
 	const [confirmed, setConfirmed] = useState(false)
+
+	// Determine the question we're at.
+	const question = simulation.questions[state.questionId]
+	// ToDo: on a missing question, disable simulation.
 
 	// Set up a handler to go to the next question. This is either the option follow-up, if it is defined, or otherwise the question follow-up.
 	const options = question.options || []
@@ -34,6 +40,7 @@ export function Question({ simulation, question, goToQuestion }) {
 		{options.length === 0 || confirmed ?
 			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion()}>Weiter</Button> :
 			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} disabled={selection === undefined} onClick={() => confirmChoice()}>Wahl bestätigen</Button>}
+		<VariableOverview {...{ simulation, state }} />
 	</Page>
 }
 

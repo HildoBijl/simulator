@@ -14,6 +14,17 @@ export function usePrevious(value) {
 	return ref.current
 }
 
+// applyMapping is like the array-map-function but then for objects. It takes an object like { a: 1, b: 2 } and calls the given function func(value, key) for each parameter. It stores the result in an object and returns it. For instance, using the doubling function x => 2*x will give as object { a: 2, b: 4 }.
+export function applyMapping(obj, func) {
+	const result = {}
+	Object.keys(obj).map((key, index) => {
+		const value = func(obj[key], key, index)
+		if (value !== undefined)
+			result[key] = value
+	})
+	return result
+}
+
 // useTrackedState works just like useState, but then when the given value changes due to external reasons it is taken over. There's one exception: if a recent change to the state was made (in less than a second, or as specified in the second parameter) then this update is not done, assuming it's just a delayed response from an external source.
 export function useTrackedState(value, threshold = 1000) {
 	const [state, setState] = useState(value)
@@ -40,7 +51,7 @@ const alphabet = 'abcdefghijklmnopqrstuvwxyz'
 // numberToLetter turns a number into a letter string, similar to the columns in Excel. So "0 = a, 1 = b, ..., 25 = z, 26 = aa, ... " and so on.
 export function numberToLetter(num) {
 	const multiplier = alphabet.length
-	
+
 	// Prepare the number.
 	let factor = multiplier
 	let digits = 1

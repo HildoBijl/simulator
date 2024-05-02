@@ -52,7 +52,7 @@ function Option({ option, index, selected, select, deselect, disabled, feedback 
 
 	// Set up handlers for interaction functionalities.
 	const handlers = {
-		onClick: () => selected ? deselect() : select(),
+		onClick: () => selected ? deselect && deselect() : select && select(),
 		onMouseEnter: () => setIsHovered(true),
 		onMouseLeave: () => setIsHovered(false),
 	}
@@ -81,11 +81,11 @@ function Option({ option, index, selected, select, deselect, disabled, feedback 
 		padding: '0 1rem',
 	}
 	const feedbackStyle = {
-		background: theme.palette.primary.main,
+		background: theme.palette.secondary.main,
 		borderRadius: '1.5rem',
-		color: theme.palette.primary.contrastText,
+		color: theme.palette.secondary.contrastText,
 		fontSize: '0.85rem',
-		margin: '0.1rem 0 0.5rem',
+		margin: '0rem 0 0.5rem 7rem',
 		padding: '0 1rem',
 	}
 

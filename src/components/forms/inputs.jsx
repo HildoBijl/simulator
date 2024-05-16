@@ -4,8 +4,6 @@ import { deleteField } from 'firebase/firestore'
 import { useTrackedState } from '../../util'
 import { updateDocument } from '../../firebase'
 
-import { FormPart } from './containers'
-
 export function TrackedTextField({ path, documentId, field, label, value: givenValue, arrayValue = [], arrayIndex, arrayField, multiline, process, processSaveValue, code, ...otherProps }) {
 	// Track the given state to also update on external changes.
 	const [value, setValue] = useTrackedState(givenValue?.toString())

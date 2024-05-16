@@ -1,13 +1,13 @@
 import { useTheme, alpha } from '@mui/material/styles'
 
-import { bound, getTickSize, range, applyMapping } from '../../../util'
+import { bound, roundToDigits, getTickSize, range, applyMapping } from '../../../util'
 
 export function VariableOverview({ simulation, state, showHidden = false }) {
 	// Determine the variables to show and their values.
 	const variables = applyMapping(simulation.variables, variable => {
 		if (!showHidden && variable.hidden)
 			return
-		return { ...variable, value: state.variableValues[variable.id] }
+		return { ...variable, value: state.variables[variable.id] }
 	})
 
 	// On no variables, do not show anything.
@@ -72,7 +72,7 @@ function Variable({ title, value, min, max }) {
 				display: 'flex', alignItems: 'center', justifyContent: 'center', // Content positioning.
 				fontSize: '2rem', fontWeight: '500', // Content styling.
 			}}>
-				{value.toString().replace('.', ',')}
+				{roundToDigits(value, 3, true).toString().replace('.', ',')}
 			</div>
 		</div>
 		<div style={{

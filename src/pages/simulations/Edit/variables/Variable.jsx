@@ -10,11 +10,11 @@ import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { deleteField } from 'firebase/firestore'
 
+import { fixNumber, strToNumber } from '../../../../util'
 import { FormPart, TrackedTextField } from '../../../../components'
 import { updateVariable, deleteVariable } from '../../../../simulations'
 
 import { emptyVariableName, emptyVariableTitle, accordionStyle } from '../../settings'
-import { fixNumber, strToNumber } from '../../util'
 
 export function Variable({ simulation, variable, expanded, flipExpand, duplicate }) {
 	const theme = useTheme()

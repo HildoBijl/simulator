@@ -1,14 +1,5 @@
 import { parseScript } from 'esprima'
 
-// fixNumber takes a number entered into an input field and automatically fixes common potential errors.
-export const fixNumber = str => str.replace(/[^0-9.-]/, '') // Remove unwanted sybols.
-	.replace(/(\..*)\./, (_, a) => a) // Remove a second period.
-	.replace(/(.*)-(.*)-(.*)/, (_, a, b, c) => a + b + c) // Remove two minus signs.
-	.replace(/(.*)-(.*)/, (_, a, b) => '-' + a + b) // Move a single minus sign forward.
-
-// strToNumber converts a string of a number to an actual number.
-export const strToNumber = str => str === '' ? undefined : str === '-' ? 0 : Number(str)
-
 // getVariableInitialValue gets the initial value of a variable. If it's defined, that is returned. If not, it is derived from the minimum and maximum.
 export function getVariableInitialValue(variable = {}) {
 	const { initialValue, min, max } = variable
@@ -25,11 +16,21 @@ export function getVariableInitialValue(variable = {}) {
 	}
 }
 
-// getInitialSimulationVariables receives a simulation and sets up the initial value of variables.
-export function getInitialSimulationVariables(simulation) {
+// getInitialVariables receives a simulation and sets up the initial value of variables.
+export function getInitialVariables(simulation) {
 	const result = {}
 	Object.values(simulation.variables).forEach(variable => {
-		result[variable.name] = getVariableInitialValue(variable)
+		result[variable.id] = getVariableInitialValue(variable)
+	})
+	return result
+}
+
+// switchVariableNames takes an object with variables and switches the keys. For instance, it may be of the form { [id1]: 3, [id2]: 5 } and switches it to { x: 3, y: 5 } or vice versa. By default it goes from IDs to names, but this can be reversed by adding true as third parameter. If a simulation variable is missing, it'll be fixed automatically.
+export function switchVariableNames(variables, simulation, toIds = false) {
+	const result = {}
+	Object.values(simulation.variables).forEach(variable => {
+		const value = variables[variable[toIds ? 'name' : 'id']]
+		result[variable[toIds ? 'id' : 'name']] = (value === undefined ? getVariableInitialValue(variable) : value)
 	})
 	return result
 }
@@ -55,8 +56,10 @@ export function getExtractVariablesScript(variableNames) {
 	return `return {${variableNames.join(', ')}}\n`
 }
 
-// runUpdateScript takes a set of variables and an update script and runs the update script, returning the updated variables.
+// runUpdateScript takes a set of variables and an update script and runs the update script, returning the updated variables. Note: the variables must be name-based, so of the form { x: 3, y: 5 }.
 export function runUpdateScript(variables, script) {
+	if (!script)
+		return variables
 	return runScript(`
 		${getVariableDefinitionScript(variables)}
 		${script}\n
@@ -75,7 +78,7 @@ export function getScriptError(script, simulation) {
 		parseScript(script)
 
 		// Check for run-time errors, using the initial variables.
-		const initialVariables = getInitialSimulationVariables(simulation)
+		const initialVariables = switchVariableNames(getInitialVariables(simulation), simulation)
 		runUpdateScript(initialVariables, script)
 
 		// No error found, all in order.

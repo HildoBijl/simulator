@@ -9,22 +9,12 @@ import { emptyOption } from '../settings'
 
 import { VariableOverview } from './VariableOverview'
 
-export function Question({ simulation, state, goToQuestion }) {
-	const [selection, setSelection] = useState()
-	const [confirmed, setConfirmed] = useState(false)
+export function Question({ simulation, state, selectOption, confirmSelection, goToNextQuestion }) {
+	const { questionId, selection, confirmed } = state
 
 	// Determine the question we're at.
-	const question = simulation.questions[state.questionId]
-	// ToDo: on a missing question, disable simulation.
-
-	// Set up a handler to go to the next question. This is either the option follow-up, if it is defined, or otherwise the question follow-up.
+	const question = simulation.questions[questionId]
 	const options = question.options || []
-	const confirmChoice = () => setConfirmed(true)
-	const goToNextQuestion = () => {
-		if (selection !== undefined && options[selection] && options[selection].followUpQuestion)
-			return goToQuestion(options[selection].followUpQuestion)
-		return goToQuestion(question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end')
-	}
 
 	// Render the question with description, media, options and buttons.
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'}>
@@ -34,12 +24,12 @@ export function Question({ simulation, state, goToQuestion }) {
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
 				{question.options.map((option, index) => confirmed ?
 					<Option key={index} {...{ simulation, question, option, index, disabled: index !== selection, feedback: index === selection && (options[selection].feedback || question.feedback) }} /> :
-					<Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => setSelection(index), deselect: () => setSelection(undefined) }} />)}
+					<Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => selectOption(index), deselect: () => selectOption(undefined) }} />)}
 			</div>
 		</>}
 		{options.length === 0 || confirmed ?
 			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion()}>Weiter</Button> :
-			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} disabled={selection === undefined} onClick={() => confirmChoice()}>Wahl bestätigen</Button>}
+			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} disabled={selection === undefined} onClick={() => confirmSelection()}>Wahl bestätigen</Button>}
 		<VariableOverview {...{ simulation, state }} />
 	</Page>
 }

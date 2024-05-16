@@ -12,7 +12,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { FormPart, TrackedTextField, MediaUploader } from '../../../../components'
 import { updateSimulation, deleteQuestion } from '../../../../simulations'
 
-import { emptyQuestion, accordionStyle } from '../util'
+import { emptyQuestion, accordionStyle } from '../../settings'
+
 import { Options } from './Options'
 
 export function Question({ simulation, question, index, expanded, flipExpand }) {
@@ -21,8 +22,12 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 			<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.title || emptyQuestion}
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
-			<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
-			<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />
+			<FormPart>
+				<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
+			</FormPart>
+			<FormPart>
+				<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />
+			</FormPart>
 			<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
 			<Options {...{ simulation, question, index }} />
 			<OrderDropdown {...{ simulation, question, index }} />

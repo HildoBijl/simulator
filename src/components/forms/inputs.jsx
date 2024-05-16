@@ -6,7 +6,7 @@ import { updateDocument } from '../../firebase'
 
 import { FormPart } from './containers'
 
-export function TrackedTextField({ path, documentId, field, label, value: givenValue, arrayValue = [], arrayIndex, arrayField, multiline, process, processSaveValue, ...otherProps }) {
+export function TrackedTextField({ path, documentId, field, label, value: givenValue, arrayValue = [], arrayIndex, arrayField, multiline, process, processSaveValue, code, ...otherProps }) {
 	// Track the given state to also update on external changes.
 	const [value, setValue] = useTrackedState(givenValue?.toString())
 
@@ -29,7 +29,5 @@ export function TrackedTextField({ path, documentId, field, label, value: givenV
 	}
 
 	// Render the form.
-	return <FormPart>
-		<TextField variant="outlined" fullWidth multiline={multiline} label={label} value={value || ''} onChange={handleChange} {...otherProps} />
-	</FormPart>
+	return <TextField variant="outlined" fullWidth multiline={multiline} label={label} value={value || ''} onChange={handleChange} sx={{ '& > div': { fontFamily: code ? "Consolas, 'Courier New', monospace" : undefined } }}{...otherProps} />
 }

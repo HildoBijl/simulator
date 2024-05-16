@@ -12,8 +12,12 @@ import { FormPart, TrackedTextField, MediaUploader } from '../../../components'
 export function Settings({ simulation }) {
 	return <>
 		<ChangeUrl simulation={simulation} />
-		<TrackedTextField label="Titel" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
-		<TrackedTextField label="Beschreibung" value={simulation.description} path="simulations" documentId={simulation.id} field="description" multiline={true} />
+		<FormPart>
+			<TrackedTextField label="Titel" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
+		</FormPart>
+		<FormPart>
+			<TrackedTextField label="Beschreibung" value={simulation.description} path="simulations" documentId={simulation.id} field="description" multiline={true} />
+		</FormPart>
 		<MediaUploader label="Abbildung" value={simulation.media} path="simulations" documentId={simulation.id} fileName="StartImage" />
 		<RemoveSimulation simulation={simulation} />
 	</>

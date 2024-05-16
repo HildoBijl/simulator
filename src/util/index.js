@@ -1,6 +1,5 @@
 export * from './numbers'
 export * from './objects'
 export * from './strings'
-export * from './proxies'
 export * from './dom'
 export * from './react'

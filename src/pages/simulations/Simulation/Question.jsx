@@ -5,7 +5,7 @@ import Button from '@mui/material/Button'
 import { numberToLetter } from '../../../util'
 import { Page, InputParagraph, Media } from '../../../components'
 
-import { emptyOption } from '../Edit'
+import { emptyOption } from '../settings'
 
 import { VariableOverview } from './VariableOverview'
 

@@ -16,7 +16,7 @@ import { numberToLetter } from '../../../../util'
 import { FormPart, TrackedTextField } from '../../../../components'
 import { updateQuestion } from '../../../../simulations'
 
-import { emptyQuestion, emptyOption } from '../util'
+import { emptyQuestion, emptyOption } from '../../settings'
 
 export function Options({ simulation, question, index: questionIndex }) {
 	const theme = useTheme()
@@ -61,7 +61,9 @@ function Defaults({ simulation, question, questionIndex, expanded, flipExpand })
 			Standardeinstellungen für Antwortmöglichkeiten
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, mt: -2 }}>
-			<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
+			<FormPart>
+				<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
+			</FormPart>
 			<FollowUpDropdown {...{ simulation, question, questionIndex }} />
 		</AccordionDetails>
 	</Accordion>
@@ -89,8 +91,12 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 			<span style={{ marginRight: '0.75rem' }}>{numberToLetter(optionIndex).toUpperCase()}.</span>{title}
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
-			<TrackedTextField inputRef={descriptionRef} label="Beschreibung" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" multiline={true} />
-			<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
+			<FormPart>
+				<TrackedTextField inputRef={descriptionRef} label="Beschreibung" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" multiline={true} />
+			</FormPart>
+			<FormPart>
+				<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
+			</FormPart>
 			<FollowUpDropdown {...{ simulation, question, questionIndex, optionIndex }} />
 		</AccordionDetails>
 		<AccordionActions key="actions">

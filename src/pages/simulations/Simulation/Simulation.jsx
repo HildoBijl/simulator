@@ -7,7 +7,8 @@ import { useSimulation, useSimulationIdFromUrl } from '../../../simulations'
 
 import { Error } from '../../Error'
 
-import { getVariableInitialValue } from './util'
+import { getVariableInitialValue } from '../util'
+
 import { StartPage } from './StartPage'
 import { EndPage } from './EndPage'
 import { Question } from './Question'

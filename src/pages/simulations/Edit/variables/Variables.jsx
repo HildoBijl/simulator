@@ -1,16 +1,25 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useTheme } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import { setDoc } from 'firebase/firestore'
 
-import { FormPart } from '../../../../components'
+import { FormPart, TrackedTextField } from '../../../../components'
 import { getVariableRef } from '../../../../simulations'
 
-import { accordionStyle } from '../util'
+import { accordionStyle } from '../../settings'
+import { getScriptError } from '../../util'
 
 import { Variable } from './Variable'
 
 export function Variables({ simulation }) {
+	return <>
+		<VariablesList {...{ simulation }} />
+		<UpdateScript {...{ simulation }} />
+	</>
+}
+
+export function VariablesList({ simulation }) {
 	// Set up manual expansion controls.
 	const [expanded, setExpanded] = useState({})
 	const flipExpand = (id) => setExpanded(expanded => ({ ...expanded, [id]: !expanded[id] }))
@@ -57,7 +66,7 @@ export function Variables({ simulation }) {
 	if (Object.keys(simulation.variables).length === 0)
 		return <VariablesIntroduction addVariable={addVariable} />
 
-	// Render the questions through an Accordion.
+	// Render the variables through an Accordion.
 	return <FormPart>
 		{order.map((variableId, index) => <Variable key={variableId} {...{ simulation, variable: variables[variableId], index, expanded: !!expanded[variableId], flipExpand: () => flipExpand(variableId), duplicate: () => duplicateVariable(variableId) }} />)}
 		<Accordion sx={accordionStyle} onClick={() => addVariable()} expanded={false}>
@@ -84,4 +93,17 @@ function AddVariable({ addVariable }) {
 			<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
 		</AccordionSummary>
 	</Accordion>
+}
+
+function UpdateScript({ simulation }) {
+	// Check the script for errors.
+	const script = simulation.updateScript
+	const scriptError = useMemo(() => getScriptError(script, simulation), [simulation, script])
+
+	// Render the field, with a potential error message.
+	const theme = useTheme()
+	return <FormPart>
+		<TrackedTextField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Frage</>} value={script} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} code={true} />
+		{scriptError ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Fehler im Skript{scriptError.lineNumber !== undefined && scriptError.column !== undefined ? <> in Zeile {scriptError.lineNumber}, Zeichen {scriptError.column}</> : null}: <em>{scriptError.description || scriptError.message}</em></p> : null}
+	</FormPart>
 }

@@ -1,10 +1,9 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import { useTheme } from '@mui/material/styles'
+import { useState, useCallback, useEffect } from 'react'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import { setDoc } from 'firebase/firestore'
 
-import { FormPart, TrackedTextField } from '../../../../components'
+import { FormPart, TrackedCodeField } from '../../../../components'
 import { getVariableRef } from '../../../../simulations'
 
 import { accordionStyle } from '../../settings'
@@ -96,14 +95,8 @@ function AddVariable({ addVariable }) {
 }
 
 function UpdateScript({ simulation }) {
-	// Check the script for errors.
-	const script = simulation.updateScript
-	const scriptError = useMemo(() => getScriptError(script, simulation), [simulation, script])
-
-	// Render the field, with a potential error message.
-	const theme = useTheme()
+	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart>
-		<TrackedTextField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Frage</>} value={script} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} code={true} />
-		{scriptError ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Fehler im Skript{scriptError.lineNumber !== undefined && scriptError.column !== undefined ? <> in Zeile {scriptError.lineNumber}, Zeichen {scriptError.column}</> : null}: <em>{scriptError.description || scriptError.message}</em></p> : null}
+		<TrackedCodeField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Frage</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }

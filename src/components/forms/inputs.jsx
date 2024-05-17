@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+import { useTheme } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
 import { deleteField } from 'firebase/firestore'
 
@@ -28,4 +30,17 @@ export function TrackedTextField({ path, documentId, field, label, value: givenV
 
 	// Render the form.
 	return <TextField variant="outlined" fullWidth multiline={multiline} label={label} value={value || ''} onChange={handleChange} sx={{ '& > div': { fontFamily: code ? "Consolas, 'Courier New', monospace" : undefined } }}{...otherProps} />
+}
+
+export function TrackedCodeField({ getError, ...options }) {
+	// Check the given code for errors.
+	const { value } = options
+	const error = useMemo(() => getError(value), [value, getError])
+
+	// Render the field, with a potential error message.
+	const theme = useTheme()
+	return <>
+		<TrackedTextField {...options} code={true} />
+		{error ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Fehler im Skript{error.lineNumber !== undefined && error.column !== undefined ? <> in Zeile {error.lineNumber}, Zeichen {error.column}</> : null}: <em>{error.description || error.message}</em></p> : null}
+	</>
 }

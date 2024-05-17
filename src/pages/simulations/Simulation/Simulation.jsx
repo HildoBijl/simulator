@@ -96,20 +96,20 @@ function useSimulationHandlers(simulation, setState) {
 	const confirmSelection = useCallback(() => {
 		setState(state => {
 			// Check if a confirmation is possible.
-			const { selection, confirmed, variables } = state
+			const { questionId, selection, confirmed, variables } = state
 			if (confirmed)
 				throw new Error(`Invalid selection confirmation: the selection for the current question has already been confirmed.`)
 			if (selection === undefined)
 				throw new Error(`Invalid selection confirmation: cannot confirm a selection if no option has been selected yet.`)
 
 			// Extract required data.
-			// const question = simulation.questions[questionId]
-			// const options = question.options || []
-			// const option = options[selection]
+			const question = simulation.questions[questionId]
+			const options = question.options || []
+			const option = options[selection]
 
 			// Run all relevant update scripts on the variables.
 			let variablesAsNames = switchVariableNames(variables, simulation)
-			// ToDo: run question-dependent update script.
+			variablesAsNames = runUpdateScript(variablesAsNames, option.updateScript || question.updateScript)
 			variablesAsNames = runUpdateScript(variablesAsNames, simulation.updateScript)
 
 			// Save the new state with all updated data.

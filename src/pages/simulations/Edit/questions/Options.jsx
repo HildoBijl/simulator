@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
@@ -13,10 +13,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 
 import { numberToLetter } from '../../../../util'
-import { FormPart, TrackedTextField } from '../../../../components'
+import { FormPart, TrackedTextField, TrackedCodeField } from '../../../../components'
 import { updateQuestion } from '../../../../simulations'
 
 import { emptyQuestion, emptyOption } from '../../settings'
+import { getScriptError } from '../../util'
 
 export function Options({ simulation, question, index: questionIndex }) {
 	const theme = useTheme()
@@ -56,6 +57,7 @@ export function Options({ simulation, question, index: questionIndex }) {
 }
 
 function Defaults({ simulation, question, questionIndex, expanded, flipExpand }) {
+	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 			Standardeinstellungen für Antwortmöglichkeiten
@@ -65,6 +67,9 @@ function Defaults({ simulation, question, questionIndex, expanded, flipExpand })
 				<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
 			</FormPart>
 			<FollowUpDropdown {...{ simulation, question, questionIndex }} />
+			{simulation.variables ? <FormPart>
+				<TrackedCodeField label="Standard Update-Skript" value={question.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="updateScript" multiline={true} getError={getError} />
+			</FormPart> : null}
 		</AccordionDetails>
 	</Accordion>
 }
@@ -74,6 +79,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 	const option = question.options[optionIndex]
 	const description = option.description || ''
 	const title = description.split('\n')[0] || emptyOption
+	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 
 	// Add an effect to auto-focus the description field upon expanding.
 	const descriptionRef = useRef()
@@ -98,6 +104,9 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 				<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
 			</FormPart>
 			<FollowUpDropdown {...{ simulation, question, questionIndex, optionIndex }} />
+			{simulation.variables ? <FormPart>
+				<TrackedCodeField label="Update-Skript" value={option.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
+			</FormPart> : null}
 		</AccordionDetails>
 		<AccordionActions key="actions">
 			<Button onClick={() => updateQuestion(simulation.id, question.id, { options: arrayRemove(option) })}>Löschen</Button>

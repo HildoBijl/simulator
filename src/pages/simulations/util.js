@@ -1,5 +1,11 @@
 import { parseScript } from 'esprima'
 
+// The defaultFunctions are the functions that are included whenever custom script is run.
+export const defaultFunctions = `
+function rand(min, max) { return min + (max-min)*Math.random() }
+function randInt(min, max) { return Math.round(rand(min-0.5, max+0.5)) }
+`
+
 // getVariableInitialValue gets the initial value of a variable. If it's defined, that is returned. If not, it is derived from the minimum and maximum.
 export function getVariableInitialValue(variable = {}) {
 	const { initialValue, min, max } = variable
@@ -62,6 +68,7 @@ export function runUpdateScript(variables, script) {
 		return variables
 	return runScript(`
 		${getVariableDefinitionScript(variables)}
+		${defaultFunctions}
 		${script}\n
 		${getExtractVariablesScript(Object.keys(variables))}`
 	)
@@ -72,6 +79,8 @@ export function getScriptError(script, simulation) {
 	// Check the input.
 	if (simulation === undefined)
 		throw new Error(`Invalid getScriptError parameters: a simulation also has to be passed for the function to be able to evaluate an update script.`)
+	if (script === undefined)
+		return // No script is OK.
 
 	try {
 		// Check for compile errors.

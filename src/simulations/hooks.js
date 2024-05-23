@@ -7,6 +7,7 @@ import { db, useUserData } from '../firebase'
 import { getSimulationByUrl } from './functions'
 import { useSimulationQuestions } from './questions'
 import { useSimulationVariables } from './variables'
+import { useSimulationEvents } from './events'
 
 // useSimulationIds gets all the simulation IDs for a specific user.
 export function useSimulationIds() {
@@ -38,6 +39,7 @@ export function useSimulation(id, once = false) {
 	const simulation = useSimulationObject(id, once)
 	const questions = useSimulationQuestions(id, once)
 	const variables = useSimulationVariables(id, once)
+	const events = useSimulationEvents(id, once)
 
 	// Assemble the data, depending on the loading status.
 	return useMemo(() => {
@@ -49,9 +51,10 @@ export function useSimulation(id, once = false) {
 				questions,
 				questionList: (simulation.questionOrder || []).map(questionId => questions[questionId]),
 				variables,
+				events,
 			}
 		return null // Sign of an error.
-	}, [simulation, questions, variables])
+	}, [simulation, questions, variables, events])
 }
 
 // useSimulationIdFromUrl takes a simulation URL and returns an ID from it.

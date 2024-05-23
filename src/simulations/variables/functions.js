@@ -14,8 +14,3 @@ export async function updateVariable(simulationId, variableId, data) {
 export async function deleteVariable(simulation, variable) {
 	return await deleteDocument(`simulations/${simulation.id}/variables`, variable.id)
 }
-
-// duplicateVariable will copy a certain variable.
-export async function duplicateVariable(simulation, variable) {
-
-}

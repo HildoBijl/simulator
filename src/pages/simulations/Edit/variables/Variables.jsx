@@ -27,8 +27,8 @@ export function VariablesList({ simulation }) {
 	const { variables } = simulation
 	const [order, setOrder] = useState([])
 	const updateOrder = useCallback(() => {
-		setOrder(Object.keys(variables).sort((v1Key, v2Key) => {
-			const v1 = variables[v1Key], v2 = variables[v2Key]
+		setOrder(Object.keys(variables).sort((key1, key2) => {
+			const v1 = variables[key1], v2 = variables[key2]
 			if (!v2.name)
 				return -1 // Keep v2 later.
 			if (!v1.name)

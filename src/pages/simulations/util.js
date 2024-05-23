@@ -74,6 +74,19 @@ export function runUpdateScript(variables, script) {
 	)
 }
 
+// boundVariables takes a set of variable values (defined through their names, like { x: -5, y: 120 }) and a set of variables definitions, and bounds the given variable values to their defined bounds, if present.
+export function boundVariables(variableValues, variables) {
+	const result = {}
+	Object.values(variables).forEach(variable => {
+		if (variableValues[variable.name] === undefined)
+			return
+		result[variable.name] = variableValues[variable.name]
+		result[variable.name] = (variable.min === undefined ? result[variable.name] : Math.max(result[variable.name], variable.min))
+		result[variable.name] = (variable.max === undefined ? result[variable.name] : Math.min(result[variable.name], variable.max))
+	})
+	return result
+}
+
 // getScriptError takes a script and, for a given simulation, evaluates its functioning. On an error it returns it. When everything is OK, undefined is returned.
 export function getScriptError(script, simulation) {
 	// Check the input.

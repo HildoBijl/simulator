@@ -7,7 +7,7 @@ import { useSimulation, useSimulationIdFromUrl } from '../../../simulations'
 
 import { Error } from '../../Error'
 
-import { getInitialVariables, switchVariableNames, runUpdateScript } from '../util'
+import { getInitialVariables, switchVariableNames, runUpdateScript, boundVariables } from '../util'
 
 import { StartPage } from './StartPage'
 import { EndPage } from './EndPage'
@@ -110,7 +110,9 @@ function useSimulationHandlers(simulation, setState) {
 			// Run all relevant update scripts on the variables.
 			let variablesAsNames = switchVariableNames(variables, simulation)
 			variablesAsNames = runUpdateScript(variablesAsNames, option.updateScript || question.updateScript)
+			variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
 			variablesAsNames = runUpdateScript(variablesAsNames, simulation.updateScript)
+			variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
 
 			// Save the new state with all updated data.
 			return {

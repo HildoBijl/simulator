@@ -53,6 +53,7 @@ function Option({ option, index, selected, select, deselect, disabled, feedback 
 		borderRadius: '1.5rem',
 		color: disabled ? darken(theme.palette.primary.contrastText, 0.5) : theme.palette.primary.contrastText,
 		cursor: (select ? 'pointer' : 'default'),
+		WebkitTapHighlightColor: 'rgba(0, 0, 0, 0)', // Don't show a blue rectangle on selecting.
 	}
 	const letterStyle = {
 		...commonStyle,

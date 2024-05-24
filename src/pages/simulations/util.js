@@ -74,6 +74,17 @@ export function runUpdateScript(variables, script) {
 	)
 }
 
+// runCondition takes a set of variables and a condition and executes the condition, returning the result (true or false). Note: the variables must be name-based, so of the form { x: 3, y: 5 }.
+export function runCondition(variables, condition) {
+	if (!condition)
+		return false // No condition given? Then it always remains false.
+	return runScript(`
+		${getVariableDefinitionScript(variables)}
+		${defaultFunctions}
+		return ${condition}\n
+	`)
+}
+
 // boundVariables takes a set of variable values (defined through their names, like { x: -5, y: 120 }) and a set of variables definitions, and bounds the given variable values to their defined bounds, if present.
 export function boundVariables(variableValues, variables) {
 	const result = {}
@@ -102,6 +113,33 @@ export function getScriptError(script, simulation) {
 		// Check for run-time errors, using the initial variables.
 		const initialVariables = switchVariableNames(getInitialVariables(simulation), simulation)
 		runUpdateScript(initialVariables, script)
+
+		// No error found, all in order.
+		return undefined
+	} catch (error) {
+		return error // On a thrown error, return said error.
+	}
+}
+
+// getConditionError takes a condition statement and, for a given simulation, evaluates its functioning. On an error it returns it. When everything is OK, undefined is returned.
+export function getConditionError(condition, simulation) {
+	// Check the input.
+	if (simulation === undefined)
+		throw new Error(`Invalid getScriptError parameters: a simulation also has to be passed for the function to be able to evaluate an update script.`)
+	if (condition === undefined)
+		return // No script is OK.
+
+	try {
+		// Check for compile errors.
+		parseScript(condition)
+
+		// Check for run-time errors, using the initial variables.
+		const initialVariables = switchVariableNames(getInitialVariables(simulation), simulation)
+		const result = runCondition(initialVariables, condition)
+
+		// Ensure that we received a boolean.
+		if (typeof result !== 'boolean')
+			throw new Error(`Die Bedingung gibt weder true noch false zurück.`)
 
 		// No error found, all in order.
 		return undefined

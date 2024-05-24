@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { usePrevious } from '../../../util'
+import { usePrevious, selectRandomly } from '../../../util'
 import { Page } from '../../../components'
 import { useSimulation, useSimulationIdFromUrl } from '../../../simulations'
 
 import { Error } from '../../Error'
 
-import { getInitialVariables, switchVariableNames, runUpdateScript, boundVariables } from '../util'
+import { defaultAfterwards } from '../settings'
+import { getInitialVariables, switchVariableNames, boundVariables, runUpdateScript, runCondition } from '../util'
 
 import { StartPage } from './StartPage'
 import { EndPage } from './EndPage'
@@ -127,20 +128,48 @@ function useSimulationHandlers(simulation, setState) {
 	const goToNextQuestion = useCallback(() => {
 		setState(state => {
 			// If the question has options, but no option has been selected and confirmed, we're not ready yet to move on.
-			const { questionId, selection, confirmed } = state
+			const { questionId, selection, confirmed, variables } = state
 			const question = simulation.questions[questionId]
 			const options = question.options || []
 			if (options.length > 0 && (selection === undefined || !confirmed))
 				throw new Error(`Invalid nextQuestion request: no option has been selected/confirmed for the given state yet. Cannot go to the next question.`)
 
 			// Determine the next question: either the follow-up for the chosen option, the follow-up for the given question, the next question in the order, or (if not existing) the end.
-			const nextQuestionId = (options[selection] && options[selection].followUpQuestion) || question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end'
+			let nextQuestionId = (options[selection] && options[selection].followUpQuestion) || question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end'
+			let jumpQuestionId = state.jumpQuestionId // Where to jump to when an event is done.
+
+			// Check for events: find all events that did not fire before, but do fire now. On multiple, select one randomly.
+			let experiencedEvents = state.experiencedEvents || []
+			const variablesAsNames = switchVariableNames(variables, simulation)
+			const triggeredEvents = Object.values(simulation.events).filter(event => !experiencedEvents.includes(event.id) && runCondition(variablesAsNames, event.condition))
+			if (triggeredEvents.length > 0) {
+				const triggeredEvent = selectRandomly(triggeredEvents)
+				experiencedEvents = [...experiencedEvents, triggeredEvent.id]
+				const afterwards = triggeredEvent.afterwards || defaultAfterwards
+				if (afterwards === 'originalFollowUp') {
+					jumpQuestionId = jumpQuestionId || nextQuestionId // Store the original follow-up as jump-back, unless one already existed, then keep that.
+				} else if (afterwards === 'eventFollowUp') {
+					jumpQuestionId = undefined // Don't store (and even delete) any original jump-back.
+				} else {
+					throw new Error(`Invalid event-afterwards setting: have not implemented the setting "${afterwards}" yet.`)
+				}
+				nextQuestionId = triggeredEvent.question
+			} else {
+				// If there was a jump-back question defined, jump back to it.
+				if (jumpQuestionId) {
+					nextQuestionId = jumpQuestionId
+					jumpQuestionId = undefined
+				}
+			}
+
 			return {
 				...state,
 				questionId: nextQuestionId,
 				questionCounter: state.questionCounter + 1,
 				selection: undefined,
 				confirmed: false,
+				jumpQuestionId,
+				experiencedEvents,
 			}
 		})
 	}, [simulation, setState])

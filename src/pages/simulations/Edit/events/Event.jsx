@@ -81,8 +81,8 @@ function AfterwardsSetting({ simulation, event }) {
 	return <FormPart>
 		<FormControl fullWidth>
 			<RadioGroup value={value} onChange={(event) => saveAfterwardsSettings(event.target.value)}>
-				<FormControlLabel value="originalFollowUp" control={<Radio />} label="Danach zurück zur ursprünglichen Sequenz springen." />
-				<FormControlLabel value="eventFollowUp" control={<Radio />} label="Danach zur Frage springen, die in der Ereignisfrage angegeben ist." />
+				<FormControlLabel value="originalFollowUp" control={<Radio />} label="Danach zurück zur ursprünglichen Sequenz springen. (Die Folgefrage des Ereignisszenarios wird ignoriert.)" />
+				<FormControlLabel value="eventFollowUp" control={<Radio />} label="Danach zur Frage springen, die in der Ereignisfrage angegeben ist. (Die ursprüngliche Folgefrage wird ignoriert.)" />
 			</RadioGroup>
 		</FormControl>
 	</FormPart>

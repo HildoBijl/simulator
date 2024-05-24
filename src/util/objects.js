@@ -8,3 +8,9 @@ export function applyMapping(obj, func) {
 	})
 	return result
 }
+
+// selectRandomly picks a random element out of an array.
+export function selectRandomly(array) {
+	const index = Math.floor(Math.random() * array.length)
+	return array[index]
+}

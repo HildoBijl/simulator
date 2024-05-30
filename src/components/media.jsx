@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 
 import { useStorageUrl } from '../firebase'
 
-export function Media({ media, height = 480 }) {
+export function Media({ media, height = 320 }) {
 	// On no media, do not display anything.
 	if (!media)
 		return null

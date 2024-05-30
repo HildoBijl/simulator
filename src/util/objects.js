@@ -14,3 +14,14 @@ export function selectRandomly(array) {
 	const index = Math.floor(Math.random() * array.length)
 	return array[index]
 }
+
+// arrayFind is like Array.find or Array.findIndex but then instead of giving the element that returns true, it returns an object { index, element, value } where value is the first truthy value that was returned. If none are found, it returns undefined.
+export function arrayFind(array, func) {
+	for (let index = 0; index < array.length; index++) {
+		const element = array[index]
+		const value = func(element, index, array)
+		if (value)
+			return { index, element, value }
+	}
+	return undefined
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { usePrevious, selectRandomly } from '../../../util'
@@ -9,7 +9,9 @@ import { Error } from '../../Error'
 
 import { defaultAfterwards } from '../settings'
 import { getInitialVariables, switchVariableNames, boundVariables, runUpdateScript, runCondition } from '../util'
+import { getSimulationError } from '../validation'
 
+import { ErrorPage } from './ErrorPage'
 import { StartPage } from './StartPage'
 import { EndPage } from './EndPage'
 import { Question } from './Question'
@@ -36,10 +38,13 @@ function SimulationWithId({ id }) {
 	}, [previousUrl, url])
 
 	// On an error or on loading, show the right notification.
+	const simulationError = useMemo(() => getSimulationError(simulation), [simulation])
 	if (simulation === null)
 		return <Error />
 	if (simulation === undefined)
 		return <Page title="Simulation laden..." />
+	if (simulationError)
+		return <ErrorPage simulation={simulation} error={simulationError} />
 
 	// We have a valid simulation! Render it! Add a key to assure a reload on a change of simulation.
 	return <SimulationWithData key={simulation.id} simulation={simulation} />

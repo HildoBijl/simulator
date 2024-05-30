@@ -15,6 +15,7 @@ import { FormPart, TrackedTextField } from '../../../../components'
 import { updateVariable, deleteVariable } from '../../../../simulations'
 
 import { emptyVariableName, emptyVariableTitle, accordionStyle } from '../../settings'
+import { getVariableError, getVariableErrorMessage } from '../../validation'
 
 export function Variable({ simulation, variable, expanded, flipExpand, duplicate }) {
 	const theme = useTheme()
@@ -23,16 +24,8 @@ export function Variable({ simulation, variable, expanded, flipExpand, duplicate
 	if (!variable)
 		return null
 
-	// Check for duplicates.
-	const hasDuplicateName = !!Object.values(simulation.variables).find(otherVariable => otherVariable.id !== variable.id && otherVariable.name === variable.name)
-
-	// Check the values.
-	const { initialValue, min, max } = variable
-	const valueIssues = [ // Shows problems.
-		min !== undefined && max !== undefined && min > max,
-		initialValue !== undefined && min !== undefined && initialValue < min,
-		initialValue !== undefined && max !== undefined && initialValue > max,
-	]
+	// Check for potential errors.
+	const variableError = getVariableError(variable, simulation.variables)
 
 	// Render the Variable.
 	return <Accordion sx={accordionStyle} expanded={expanded} onChange={() => flipExpand()}>
@@ -45,7 +38,7 @@ export function Variable({ simulation, variable, expanded, flipExpand, duplicate
 			</FormPart>
 			<FormPart>
 				<TrackedTextField label="Name (intern, zur Programmierung)" value={variable.name} path={`simulations/${simulation.id}/variables`} documentId={variable.id} field="name" process={name => name.replace(/[^a-zA-Z0-9_-]/, '')} />
-				{hasDuplicateName ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Der Name dieses Parameters ist gleich einem anderen Parameter. Dies wird zu Fehlern führen.</p> : null}
+				{variableError?.subtype === 'duplicateName' ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>{getVariableErrorMessage(variableError)}</p> : null}
 			</FormPart>
 
 			<FormPart>
@@ -66,11 +59,7 @@ export function Variable({ simulation, variable, expanded, flipExpand, duplicate
 						<TrackedTextField label="Maximum" value={variable.max} path={`simulations/${simulation.id}/variables`} documentId={variable.id} field="max" process={fixNumber} processSaveValue={strToNumber} />
 					</div>
 				</div>
-				{valueIssues.some(value => value === true) ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>{[
-					'Das Minimum darf nicht größer sein als das Maximum.',
-					'Der Anfangswert darf nicht kleiner als das Minimum sein.',
-					'Der Anfangswert darf nicht größer als das Maximum sein.',
-				][valueIssues.findIndex(value => value === true)]}</p> : null}
+				{['minAboveMax', 'initialBelowMin', 'initialAboveMax'].includes(variableError?.subtype) ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>{getVariableErrorMessage(variableError)}</p> : null}
 			</FormPart>
 		</AccordionDetails>
 		<AccordionActions key="actions">

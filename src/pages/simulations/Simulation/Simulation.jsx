@@ -53,14 +53,14 @@ function SimulationWithData({ simulation }) {
 
 	// Define handlers.
 	const handlers = useSimulationHandlers(simulation, setState)
-	const { start, reset, selectOption, confirmSelection, goToNextQuestion } = handlers
+	const { start, reset, chooseOption, goToNextQuestion } = handlers
 
 	// When there's no question yet, we're on the start page.
 	if (!questionId)
 		return <StartPage {...{ simulation, state, start }} />
 	if (questionId === 'end')
 		return <EndPage {...{ simulation, state, reset }} />
-	return <Question key={questionCounter} {...{ simulation, state, selectOption, confirmSelection, goToNextQuestion }} />
+	return <Question key={questionCounter} {...{ simulation, state, chooseOption, goToNextQuestion }} />
 }
 
 // useSimulationHandlers takes a simulation and its state
@@ -79,34 +79,22 @@ function useSimulationHandlers(simulation, setState) {
 		}))
 	}, [simulation, setState])
 
-	// selectOption will select (but not confirm) an option for the current question.
-	const selectOption = useCallback((index) => {
+	// chooseOption will pick an option for the current question.
+	const chooseOption = useCallback((index) => {
 		setState(state => {
-			const question = simulation.questions[state.questionId]
-			const options = question.options || []
-			if (index !== undefined && (index < 0 || index >= options.length))
-				throw new Error(`Invalid option choice: tried to select option ${index} of a question, but the question only has ${options.length} options available. (Indices are zero-starting.)`)
-			return {
-				...state,
-				selection: index,
-			}
-		})
-	}, [simulation, setState])
-
-	// confirmSelection will make a question choice definite. This will also update variables and such.
-	const confirmSelection = useCallback(() => {
-		setState(state => {
-			// Check if a confirmation is possible.
-			const { questionId, selection, confirmed, variables } = state
-			if (confirmed)
-				throw new Error(`Invalid selection confirmation: the selection for the current question has already been confirmed.`)
-			if (selection === undefined)
-				throw new Error(`Invalid selection confirmation: cannot confirm a selection if no option has been selected yet.`)
+			// Check if an option input is possible.
+			const { questionId, questionDone, variables } = state
+			if (questionDone)
+				throw new Error(`Invalid option choice: the question already has been finished.`)
 
 			// Extract required data.
 			const question = simulation.questions[questionId]
 			const options = question.options || []
-			const option = options[selection]
+
+			// Check if the given option is valid.
+			if (index !== undefined && (index < 0 || index >= options.length))
+				throw new Error(`Invalid option choice: tried to choose option ${index} of a question, but the question only has ${options.length} options available. (Indices are zero-starting.)`)
+			const option = options[index]
 
 			// Run all relevant update scripts on the variables.
 			let variablesAsNames = switchVariableNames(variables, simulation)
@@ -118,7 +106,8 @@ function useSimulationHandlers(simulation, setState) {
 			// Save the new state with all updated data.
 			return {
 				...state,
-				confirmed: true,
+				questionDone: true,
+				choice: index,
 				variables: switchVariableNames(variablesAsNames, simulation, true),
 			}
 		})
@@ -128,14 +117,14 @@ function useSimulationHandlers(simulation, setState) {
 	const goToNextQuestion = useCallback(() => {
 		setState(state => {
 			// If the question has options, but no option has been selected and confirmed, we're not ready yet to move on.
-			const { questionId, selection, confirmed, variables } = state
+			const { questionId, questionDone, choice, variables } = state
 			const question = simulation.questions[questionId]
 			const options = question.options || []
-			if (options.length > 0 && (selection === undefined || !confirmed))
+			if (options.length > 0 && (choice === undefined || !questionDone))
 				throw new Error(`Invalid nextQuestion request: no option has been selected/confirmed for the given state yet. Cannot go to the next question.`)
 
 			// Determine the next question: either the follow-up for the chosen option, the follow-up for the given question, the next question in the order, or (if not existing) the end.
-			let nextQuestionId = (options[selection] && options[selection].followUpQuestion) || question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end'
+			let nextQuestionId = (options[choice] && options[choice].followUpQuestion) || question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end'
 			let jumpQuestionId = state.jumpQuestionId // Where to jump to when an event is done.
 
 			// Check for events: find all events that did not fire before, but do fire now. On multiple, select one randomly.
@@ -162,18 +151,20 @@ function useSimulationHandlers(simulation, setState) {
 				}
 			}
 
-			return {
+			// Set up the new state with the next question.
+			const newState = {
 				...state,
 				questionId: nextQuestionId,
 				questionCounter: state.questionCounter + 1,
-				selection: undefined,
-				confirmed: false,
 				jumpQuestionId,
 				experiencedEvents,
 			}
+			delete newState.choice
+			delete newState.questionDone
+			return newState
 		})
 	}, [simulation, setState])
 
 	// All handlers are ready!
-	return { reset, start, selectOption, confirmSelection, goToNextQuestion }
+	return { reset, start, chooseOption, goToNextQuestion }
 }

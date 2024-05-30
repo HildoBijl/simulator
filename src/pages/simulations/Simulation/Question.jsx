@@ -9,8 +9,8 @@ import { emptyOption } from '../settings'
 
 import { VariableOverview } from './VariableOverview'
 
-export function Question({ simulation, state, selectOption, confirmSelection, goToNextQuestion }) {
-	const { questionId, selection, confirmed } = state
+export function Question({ simulation, state, chooseOption, goToNextQuestion }) {
+	const { questionId, questionDone, choice } = state
 
 	// Determine the question we're at.
 	const question = simulation.questions[questionId]
@@ -22,14 +22,12 @@ export function Question({ simulation, state, selectOption, confirmSelection, go
 		<Media media={question.media} />
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
-				{question.options.map((option, index) => confirmed ?
-					<Option key={index} {...{ simulation, question, option, index, disabled: index !== selection, feedback: index === selection && (options[selection].feedback || question.feedback) }} /> :
-					<Option key={index} {...{ simulation, question, option, index, selected: index === selection, select: () => selectOption(index), deselect: () => selectOption(undefined) }} />)}
+				{question.options.map((option, index) => questionDone ?
+					<Option key={index} {...{ simulation, question, option, index, disabled: index !== choice, feedback: index === choice && (options[choice].feedback || question.feedback) }} /> :
+					<Option key={index} {...{ simulation, question, option, index, selected: false, select: () => chooseOption(index) }} />)}
 			</div>
 		</>}
-		{options.length === 0 || confirmed ?
-			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion()}>Weiter</Button> :
-			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} disabled={selection === undefined} onClick={() => confirmSelection()}>Wahl bestätigen</Button>}
+		{options.length === 0 || questionDone ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion()}>Weiter</Button> : null}
 		<VariableOverview {...{ simulation, state }} />
 	</Page>
 }

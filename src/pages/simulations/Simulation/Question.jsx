@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme, darken } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
@@ -15,6 +15,18 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion }) 
 	// Determine the question we're at.
 	const question = simulation.questions[questionId]
 	const options = question.options || []
+
+	// If an option has been chosen and there's no feedback, automatically continue to the next question.
+	useEffect(() => {
+		const options = question.options || []
+		if (!questionDone)
+			return // Question isn't done yet. Can't auto-continue.
+		if (!question.options)
+			return // No options. Never auto-continue, since it's an info-screen.
+		if (options[choice].feedback || question.feedback)
+			return // There's feedback to show. Don't auto-continue.
+		goToNextQuestion() // No reason found not to: let's auto-continue!
+	}, [question, questionDone, choice, goToNextQuestion])
 
 	// Render the question with description, media, options and buttons.
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'}>

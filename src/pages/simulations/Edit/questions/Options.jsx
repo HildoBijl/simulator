@@ -67,7 +67,7 @@ function Defaults({ simulation, question, questionIndex, expanded, flipExpand })
 				<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
 			</FormPart>
 			<FollowUpDropdown {...{ simulation, question, questionIndex }} />
-			{simulation.variables ? <FormPart>
+			{Object.keys(simulation.variables).length > 0 ? <FormPart>
 				<TrackedCodeField label="Standard Update-Skript" value={question.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="updateScript" multiline={true} getError={getError} />
 			</FormPart> : null}
 		</AccordionDetails>
@@ -104,7 +104,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 				<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
 			</FormPart>
 			<FollowUpDropdown {...{ simulation, question, questionIndex, optionIndex }} />
-			{simulation.variables ? <FormPart>
+			{Object.keys(simulation.variables).length > 0 ? <FormPart>
 				<TrackedCodeField label="Update-Skript" value={option.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
 			</FormPart> : null}
 		</AccordionDetails>

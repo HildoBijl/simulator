@@ -96,20 +96,25 @@ function useSimulationHandlers(simulation, setState) {
 				throw new Error(`Invalid option choice: tried to choose option ${index} of a question, but the question only has ${options.length} options available. (Indices are zero-starting.)`)
 			const option = options[index]
 
-			// Run all relevant update scripts on the variables.
-			let variablesAsNames = switchVariableNames(variables, simulation)
-			variablesAsNames = runUpdateScript(variablesAsNames, option.updateScript || question.updateScript)
-			variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
-			variablesAsNames = runUpdateScript(variablesAsNames, simulation.updateScript)
-			variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
-
-			// Save the new state with all updated data.
-			return {
+			// Set up the new state.
+			const newState = {
 				...state,
 				questionDone: true,
 				choice: index,
-				variables: switchVariableNames(variablesAsNames, simulation, true),
 			}
+
+			// On variables, run all relevant update scripts.
+			if (Object.keys(simulation.variables).length > 0) {
+				let variablesAsNames = switchVariableNames(variables, simulation)
+				variablesAsNames = runUpdateScript(variablesAsNames, option.updateScript || question.updateScript)
+				variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
+				variablesAsNames = runUpdateScript(variablesAsNames, simulation.updateScript)
+				variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
+				newState.variables = switchVariableNames(variablesAsNames, simulation, true)
+			}
+
+			// All done!
+			return newState
 		})
 	}, [simulation, setState])
 

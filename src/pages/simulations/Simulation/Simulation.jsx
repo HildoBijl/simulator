@@ -63,7 +63,7 @@ function SimulationWithData({ simulation }) {
 	return <Question key={questionCounter} {...{ simulation, state, chooseOption, goToNextQuestion }} />
 }
 
-// useSimulationHandlers takes a simulation and its state
+// useSimulationHandlers takes a simulation and its state and gives various functions used to control that state.
 function useSimulationHandlers(simulation, setState) {
 	// reset will put the simulation back into its initial state with nothing defined.
 	const reset = useCallback(() => {
@@ -103,8 +103,8 @@ function useSimulationHandlers(simulation, setState) {
 				choice: index,
 			}
 
-			// On variables, run all relevant update scripts.
-			if (Object.keys(simulation.variables).length > 0) {
+			// On variables, run all relevant update scripts, assuming they exist.
+			if (Object.keys(simulation.variables).length > 0 && (option.updateScript || question.updateScript || simulation.updateScript)) {
 				let variablesAsNames = switchVariableNames(variables, simulation)
 				variablesAsNames = runUpdateScript(variablesAsNames, option.updateScript || question.updateScript)
 				variablesAsNames = boundVariables(variablesAsNames, simulation.variables)

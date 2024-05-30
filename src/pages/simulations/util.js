@@ -31,7 +31,7 @@ export function getInitialVariables(simulation) {
 	return result
 }
 
-// switchVariableNames takes an object with variables and switches the keys. For instance, it may be of the form { [id1]: 3, [id2]: 5 } and switches it to { x: 3, y: 5 } or vice versa. By default it goes from IDs to names, but this can be reversed by adding true as third parameter. If a simulation variable is missing, it'll be fixed automatically.
+// switchVariableNames takes an object with variables and switches the keys. For instance, it may be of the form { [id1]: 3, [id2]: 5 } and switches it to { x: 3, y: 5 } or vice versa. By default it goes from IDs to names, but this can be reversed by adding true as third parameter. If a simulation variable is missing, it'll be added automatically through its initial value.
 export function switchVariableNames(variables, simulation, toIds = false) {
 	const result = {}
 	Object.values(simulation.variables).forEach(variable => {
@@ -85,17 +85,25 @@ export function runCondition(variables, condition) {
 	`)
 }
 
-// boundVariables takes a set of variable values (defined through their names, like { x: -5, y: 120 }) and a set of variables definitions, and bounds the given variable values to their defined bounds, if present.
-export function boundVariables(variableValues, variables) {
+// boundVariables takes a set of variable values (defined through their names, like { x: -5, y: 120 }, unless useId is set to true) and a set of variables definitions, and bounds the given variable values to their defined bounds, if present.
+export function boundVariables(variableValues, variables, useId = false) {
 	const result = {}
+	const key = useId ? 'id' : 'name'
 	Object.values(variables).forEach(variable => {
-		if (variableValues[variable.name] === undefined)
-			return
-		result[variable.name] = variableValues[variable.name]
-		result[variable.name] = (variable.min === undefined ? result[variable.name] : Math.max(result[variable.name], variable.min))
-		result[variable.name] = (variable.max === undefined ? result[variable.name] : Math.min(result[variable.name], variable.max))
+		const newValue = boundVariable(variableValues[variable[key]], variable)
+		if (newValue !== undefined)
+			result[variable[key]] = newValue
 	})
 	return result
+}
+
+// boundVariable takes a variable value and a variable setting and applies the given bounds.
+export function boundVariable(value, variable) {
+	if (value === undefined)
+		return
+	value = (variable.min === undefined ? value : Math.max(value, variable.min))
+	value = (variable.max === undefined ? value : Math.min(value, variable.max))
+	return value
 }
 
 // getScriptError takes a script and, for a given simulation, evaluates its functioning. On an error it returns it. When everything is OK, undefined is returned.

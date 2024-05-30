@@ -2,13 +2,11 @@ import { useTheme, alpha } from '@mui/material/styles'
 
 import { bound, roundToDigits, getTickSize, range, applyMapping } from '../../../util'
 
+import { getVariableInitialValue } from '../util'
+
 export function VariableOverview({ simulation, state, showHidden = false }) {
 	// Determine the variables to show and their values.
-	const variables = applyMapping(simulation.variables, variable => {
-		if (!showHidden && variable.hidden)
-			return
-		return { ...variable, value: state.variables[variable.id] }
-	})
+	const variables = applyMapping(simulation.variables, variable => (variable.hidden && !showHidden) ? undefined : variable)
 
 	// On no variables, do not show anything.
 	if (Object.keys(variables).length === 0)
@@ -18,12 +16,17 @@ export function VariableOverview({ simulation, state, showHidden = false }) {
 	return <div style={{ display: 'flex', flexFlow: 'row wrap' }}>
 		{Object.values(variables)
 			.sort((a, b) => a.title < b.title ? -1 : 1)
-			.map(variable => <Variable key={variable.id} {...variable} />)}
+			.map(variable => <Variable key={variable.id} variable={variable} value={state.variables[variable.id]} />)}
 	</div>
 }
 
-function Variable({ title, value, min, max }) {
+function Variable({ variable, value }) {
+	const { title, min, max } = variable
 	const theme = useTheme()
+
+	// On no value, use the initial value. A real value will be defined as soon as an update happens.
+	if (value === undefined)
+		value = getVariableInitialValue(variable)
 
 	// Set up a few settings.
 	const size = 7 // rem

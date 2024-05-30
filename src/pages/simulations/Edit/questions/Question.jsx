@@ -19,11 +19,14 @@ import { Options } from './Options'
 export function Question({ simulation, question, index, expanded, flipExpand }) {
 	return <Accordion sx={accordionStyle} expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
-			<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.title || emptyQuestion}
+			<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.internalTitle || question.title || emptyQuestion}
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 			<FormPart>
 				<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
+			</FormPart>
+			<FormPart>
+				<TrackedTextField label="Interner Titel (für Benutzer nicht sichtbar)" value={question.internalTitle} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="internalTitle" />
 			</FormPart>
 			<FormPart>
 				<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />

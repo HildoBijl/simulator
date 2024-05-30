@@ -3,7 +3,7 @@ import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import { setDoc } from 'firebase/firestore'
 
-import { FormPart, TrackedCodeField } from '../../../../components'
+import { Code, FormPart, TrackedCodeField } from '../../../../components'
 import { getVariableRef } from '../../../../simulations'
 
 import { accordionStyle } from '../../settings'
@@ -79,7 +79,8 @@ export function VariablesList({ simulation }) {
 function VariablesIntroduction({ addVariable }) {
 	return <>
 		<p>Eine Parameter ist eine Zahl, die angepasst wird, während der Benutzer das Spiel spielt. Sie kann eine beliebige Größe sein, wie Geld,  Zufriedenheit oder Lebenspunkte.</p>
-		<p>Um Parameter zu verwenden, müssen sie zunächst hier definiert werden. Dann kann für jede Frage oder Antwortmoglichkeit angegeben werden, wie sie angepasst werden sollen.</p>
+		<p>Um Parameter zu verwenden, müssen sie zunächst hier definiert werden. Dann kann für jede Frage oder Antwortmoglichkeit angegeben werden, wie sie angepasst werden sollen: das Update-Skript.</p>
+		<p>Ein Beispiel für ein Update-Skript für eine Variable <Code>x</Code> könnte lauten &quot;<Code>x = 10</Code>&quot; oder &quot;<Code>x = x - 2</Code>&quot; oder &quot;<Code>x = x + randInt(2, 4)</Code>&quot; oder &quot;<Code>x = x - rand(0.25, 1.75)</Code>&quot;. Die verwendete Sprache ist Javascript, so dass Sie die genauen Formatierungskriterien nach Belieben nachschlagen können.</p>
 		<FormPart>
 			<AddVariable addVariable={addVariable} />
 		</FormPart>

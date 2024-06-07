@@ -2,14 +2,15 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { usePrevious, selectRandomly } from '../../../util'
+import { useUserId } from '../../../firebase'
 import { Page } from '../../../components'
 import { useSimulation, useSimulationIdFromUrl } from '../../../simulations'
 
 import { Error } from '../../Error'
 
 import { defaultAfterwards } from '../settings'
-import { getInitialVariables, switchVariableNames, boundVariables, runUpdateScript, runCondition } from '../util'
-import { getSimulationError } from '../validation'
+import { hasVariables, getInitialVariables, switchVariableNames, boundVariables, runUpdateScript, runCondition, getScriptError } from '../util'
+import { getSimulationError, getGeneralSimulationError } from '../validation'
 
 import { ErrorPage } from './ErrorPage'
 import { StartPage } from './StartPage'
@@ -37,14 +38,12 @@ function SimulationWithId({ id }) {
 			window.history.pushState({}, undefined, `/s/${url}`)
 	}, [previousUrl, url])
 
-	// On an error or on loading, show the right notification.
-	const simulationError = useMemo(() => getSimulationError(simulation), [simulation])
-	if (simulation === null)
+
+	// On a loading or erroneus simulation, show the right notification.
+	if (simulation === null) // Failed to load.
 		return <Error />
-	if (simulation === undefined)
+	if (simulation === undefined) // Loading.
 		return <Page title="Simulation laden..." />
-	if (simulationError)
-		return <ErrorPage simulation={simulation} error={simulationError} />
 
 	// We have a valid simulation! Render it! Add a key to assure a reload on a change of simulation.
 	return <SimulationWithData key={simulation.id} simulation={simulation} />
@@ -54,22 +53,35 @@ const initialSimulationState = { questionCounter: 0 }
 function SimulationWithData({ simulation }) {
 	// Define the simulation state.
 	const [state, setState] = useState(initialSimulationState)
+	const [error, setError] = useState(false) // Tracks if an error was encountered during simulation run-time.
 	const { questionId, questionCounter } = state
+	console.log(state)
 
 	// Define handlers.
-	const handlers = useSimulationHandlers(simulation, setState)
+	const handlers = useSimulationHandlers(simulation, setState, setError)
 	const { start, reset, chooseOption, goToNextQuestion } = handlers
+
+	// Check for an error in the simulation. Only display it if something actually failed. (Or directly for the owner.)
+	const simulationError = useMemo(() => getSimulationError(simulation), [simulation])
+	useEffect(() => {
+		if (error && !simulationError)
+			setError(false)
+	}, [error, simulationError])
+	const userId = useUserId()
+	const isOwner = simulation.owners.includes(userId)
+	if (simulationError && (error || isOwner)) // Faulty simulation.
+		return <ErrorPage simulation={simulation} error={simulationError} />
 
 	// When there's no question yet, we're on the start page.
 	if (!questionId)
-		return <StartPage {...{ simulation, state, start }} />
+		return <StartPage {...{ simulation, state, start, setError }} />
 	if (questionId === 'end')
 		return <EndPage {...{ simulation, state, reset }} />
-	return <Question key={questionCounter} {...{ simulation, state, chooseOption, goToNextQuestion }} />
+	return <Question key={questionCounter} {...{ simulation, state, chooseOption, goToNextQuestion, setError }} />
 }
 
 // useSimulationHandlers takes a simulation and its state and gives various functions used to control that state.
-function useSimulationHandlers(simulation, setState) {
+function useSimulationHandlers(simulation, setState, setError) {
 	// reset will put the simulation back into its initial state with nothing defined.
 	const reset = useCallback(() => {
 		setState(initialSimulationState)
@@ -77,15 +89,25 @@ function useSimulationHandlers(simulation, setState) {
 
 	// start will initialize the simulation, setting stuff like questions and variables to their (possibly partly randomized) initial values.
 	const start = useCallback(() => {
+		// Check for potential general errors.
+		if (getGeneralSimulationError(simulation))
+			return setError(true)
+
+		// Initialize the state.
 		setState(state => ({
 			...state,
 			questionId: simulation.startingQuestion || simulation.questions[0],
 			variables: getInitialVariables(simulation),
 		}))
-	}, [simulation, setState])
+	}, [simulation, setState, setError])
 
 	// chooseOption will pick an option for the current question.
 	const chooseOption = useCallback((index) => {
+		// Check for potential general errors.
+		if (getGeneralSimulationError(simulation))
+			return setError(true)
+
+		// Update the state.
 		setState(state => {
 			// Check if an option input is possible.
 			const { questionId, questionDone, variables } = state
@@ -109,7 +131,14 @@ function useSimulationHandlers(simulation, setState) {
 			}
 
 			// On variables, run all relevant update scripts, assuming they exist.
-			if (Object.keys(simulation.variables).length > 0 && (option.updateScript || question.updateScript || simulation.updateScript)) {
+			if (hasVariables(simulation) && (option.updateScript || question.updateScript || simulation.updateScript)) {
+				// Check said update scripts first.
+				if (getScriptError(option.updateScript || question.updateScript, simulation) || getScriptError(simulation.updateScript, simulation)) {
+					setError(true)
+					return state
+				}
+
+				// Run the update scripts on the variables.
 				let variablesAsNames = switchVariableNames(variables, simulation)
 				variablesAsNames = runUpdateScript(variablesAsNames, option.updateScript || question.updateScript)
 				variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
@@ -121,7 +150,7 @@ function useSimulationHandlers(simulation, setState) {
 			// All done!
 			return newState
 		})
-	}, [simulation, setState])
+	}, [simulation, setState, setError])
 
 	// goToNextQuestion will go to the next question depending on the (confirmed) selected question option.
 	const goToNextQuestion = useCallback(() => {

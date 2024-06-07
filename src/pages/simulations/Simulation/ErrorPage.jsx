@@ -1,13 +1,15 @@
 import Alert from '@mui/material/Alert'
 
+import { numberToLetter } from '../../../util'
 import { useUserId } from '../../../firebase'
 import { Page } from '../../../components'
 
-import { emptyVariableName, emptyVariableTitle } from '../settings'
+import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle } from '../settings'
 import { getVariableErrorMessage } from '../validation'
 
 const components = { // Map the error types to components that can display them.
 	variable: VariableError,
+	updateScript: UpdateScriptError,
 }
 
 export function ErrorPage({ simulation, error }) {
@@ -32,12 +34,39 @@ export function ErrorPage({ simulation, error }) {
 function StandardMessage() {
 	return <Alert severity="warning" sx={{ my: 2 }}>
 		<h5 style={{ margin: '0.25rem 0' }}>Inkonsistenz in der Simulation</h5>
-		<p>Derzeit gibt es eine Inkonsistenz in den Simulationseinstellungen. Dies bedeutet in der Regel, dass der Ersteller einige Änderungen vornimmt und die Dinge derzeit nicht zusammenpassen. Bitte warten Sie ein wenig, bis die Simulation wieder funktioniert. (Sie brauchen nicht zu aktualisieren: Sie erscheint, wenn sie fertig ist).</p>
+		<p>Derzeit gibt es eine Inkonsistenz in den Simulationseinstellungen. Dies bedeutet in der Regel, dass der Ersteller einige Änderungen vornimmt und die Dinge derzeit nicht zusammenpassen. Bitte warten Sie ein wenig, bis die Simulation wieder funktioniert. (Sie brauchen nicht zu aktualisieren: Sie erscheint, wenn sie fertig ist.)</p>
 	</Alert>
 }
 
 function VariableError({ error }) {
 	const { variable } = error
 	const message = getVariableErrorMessage(error)
-	return <p>Es gibt einen Fehler in der Definition des Parameters {variable.name || emptyVariableName}: {variable.title || emptyVariableTitle}. {message}</p>
+	return <p>Es gibt einen Fehler in der Definition des Parameters <em>{variable.name || emptyVariableName}: {variable.title || emptyVariableTitle}</em>. {message}</p>
+}
+
+function UpdateScriptError({ error }) {
+	// Determine in which update script the error took place.
+	let source
+	console.log(error)
+	const { question, questionIndex, option, optionIndex } = error
+	console.log(questionIndex)
+	switch (error.subtype) {
+		case 'general':
+			source = <>Es gibt einen Fehler im allgemeinen Update-Skript, das nach jeder Frage ausgeführt wird.</>
+			break
+		case 'question':
+			source = <>Es gibt einen Fehler im standard Update-Skript von Frage <em>{questionIndex + 1}. {question.title || emptyQuestion}</em>.</>
+			break
+		case 'option':
+			source = <>Es gibt einen Fehler im Update-Skript von Frage <em>{questionIndex + 1}. {question.title || emptyQuestion}</em>, Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {option.description.split('\n')[0] || emptyOption}</em>.</>
+			break
+		default:
+			throw new Error(`Invalid update-script error subtype. Received an error for an update script with subtype "${error.subtype}" but could not process this properly.`)
+	}
+
+	// Set up the error message.
+	return <>
+		<p>{source}</p>
+		<p>{JSON.stringify(error)}</p>
+	</>
 }

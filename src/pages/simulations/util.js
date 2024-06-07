@@ -6,6 +6,11 @@ function rand(min, max) { return min + (max-min)*Math.random() }
 function randInt(min, max) { return Math.round(rand(min-0.5, max+0.5)) }
 `
 
+// hasVariables checks if a simulation has variables.
+export function hasVariables(simulation) {
+	return simulation?.variables && Object.keys(simulation.variables).length > 0
+}
+
 // getVariableInitialValue gets the initial value of a variable. If it's defined, that is returned. If not, it is derived from the minimum and maximum.
 export function getVariableInitialValue(variable = {}) {
 	const { initialValue, min, max } = variable

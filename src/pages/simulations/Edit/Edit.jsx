@@ -4,6 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useSimulation } from '../../../simulations'
 import { Page, useTab } from '../../../components'
 
+import { hasVariables } from '../util'
+
 import { Settings } from './Settings'
 import { Questions } from './questions'
 import { Variables } from './variables'
@@ -28,7 +30,7 @@ export function Edit() {
 
 	// Show the simulation form itself.
 	const tabs = ['Einstellungen', 'Fragen', 'Parameter']
-	if (Object.keys(simulation.variables).length > 0)
+	if (hasVariables(simulation))
 		tabs.push('Ereignisse')
 	return <EditPage tabs={tabs}>
 		<EditForSimulation simulation={simulation} />

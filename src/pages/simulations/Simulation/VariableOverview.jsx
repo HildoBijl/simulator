@@ -9,7 +9,7 @@ export function VariableOverview({ simulation, state, showHidden = false }) {
 	const variables = applyMapping(simulation.variables, variable => (variable.hidden && !showHidden) ? undefined : variable)
 
 	// On no variables, do not show anything.
-	if (Object.keys(variables).length === 0)
+	if (!Object.keys(variables).length === 0)
 		return null
 
 	// Show the variables.

@@ -10,7 +10,7 @@ import { Error } from '../../Error'
 
 import { defaultAfterwards } from '../settings'
 import { hasVariables, getInitialVariables, switchVariableNames, boundVariables, runUpdateScript, runCondition, getScriptError } from '../util'
-import { getSimulationError, getGeneralSimulationError } from '../validation'
+import { getSimulationError, getGeneralSimulationError, getSimulationEventError } from '../validation'
 
 import { ErrorPage } from './ErrorPage'
 import { StartPage } from './StartPage'
@@ -55,7 +55,6 @@ function SimulationWithData({ simulation }) {
 	const [state, setState] = useState(initialSimulationState)
 	const [error, setError] = useState(false) // Tracks if an error was encountered during simulation run-time.
 	const { questionId, questionCounter } = state
-	console.log(state)
 
 	// Define handlers.
 	const handlers = useSimulationHandlers(simulation, setState, setError)
@@ -166,7 +165,13 @@ function useSimulationHandlers(simulation, setState, setError) {
 			let nextQuestionId = (options[choice] && options[choice].followUpQuestion) || question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end'
 			let jumpQuestionId = state.jumpQuestionId // Where to jump to when an event is done.
 
-			// Check for events: find all events that did not fire before, but do fire now. On multiple, select one randomly.
+			// We'll check events soon. Verify them first.
+			if (getSimulationEventError(simulation)) {
+				setError(true)
+				return state
+			}
+
+			// Check for events: find all events that did not fire/trigger before, but do fire now. On multiple, select one randomly.
 			let experiencedEvents = state.experiencedEvents || []
 			const variablesAsNames = switchVariableNames(variables, simulation)
 			const triggeredEvents = Object.values(simulation.events).filter(event => !experiencedEvents.includes(event.id) && runCondition(variablesAsNames, event.condition))
@@ -181,7 +186,7 @@ function useSimulationHandlers(simulation, setState, setError) {
 				} else {
 					throw new Error(`Invalid event-afterwards setting: have not implemented the setting "${afterwards}" yet.`)
 				}
-				nextQuestionId = triggeredEvent.question
+				nextQuestionId = triggeredEvent.question || simulation.questionOrder[0]
 			} else {
 				// If there was a jump-back question defined, jump back to it.
 				if (jumpQuestionId) {
@@ -202,7 +207,7 @@ function useSimulationHandlers(simulation, setState, setError) {
 			delete newState.questionDone
 			return newState
 		})
-	}, [simulation, setState])
+	}, [simulation, setState, setError])
 
 	// All handlers are ready!
 	return { reset, start, chooseOption, goToNextQuestion }

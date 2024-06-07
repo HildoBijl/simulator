@@ -1,6 +1,6 @@
 import { arrayFind } from '../../util'
 
-import { hasVariables, getScriptError } from './util'
+import { hasVariables, getScriptError, getConditionError } from './util'
 
 // isSimulationValid checks if the given simulation has any problems. It returns a boolean.
 export function isSimulationValid(simulation) {
@@ -50,7 +50,9 @@ export function getSimulationError(simulation) {
 		return updateScriptError
 
 	// Check the conditions for events.
-	// ToDo
+	const eventError = getSimulationEventError(simulation)
+	if (eventError)
+		return eventError
 }
 
 export function getFaultyVariable(simulation) {
@@ -87,6 +89,7 @@ export function getVariableErrorMessage(error) {
 	}[subtype]
 }
 
+// getSimulationUpdateScriptError checks for a given simulation whether all update scripts are OK. If so, undefined is given. If not, an error is returned.
 export function getSimulationUpdateScriptError(simulation) {
 	// Check the general update script.
 	const generalError = getScriptError(simulation.updateScript, simulation)
@@ -114,4 +117,15 @@ export function getSimulationUpdateScriptError(simulation) {
 	})
 	if (questionErrorObj)
 		return questionErrorObj.value
+}
+
+// getSimulationEventError checks for a given simulation whether the events are OK. If so, undefined is returned. If not, an error is given.
+export function getSimulationEventError(simulation) {
+	const eventErrorObj = arrayFind(Object.values(simulation.events), (event, eventIndex) => {
+		const conditionError = getConditionError(event.condition, simulation)
+		if (conditionError)
+			return { type: 'event', subtype: 'condition', error: conditionError, event, eventIndex }
+	})
+	if (eventErrorObj)
+		return eventErrorObj.value
 }

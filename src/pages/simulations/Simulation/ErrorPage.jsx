@@ -4,12 +4,13 @@ import { numberToLetter } from '../../../util'
 import { useUserId } from '../../../firebase'
 import { Page } from '../../../components'
 
-import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle } from '../settings'
+import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle } from '../settings'
 import { getVariableErrorMessage } from '../validation'
 
 const components = { // Map the error types to components that can display them.
 	variable: VariableError,
 	updateScript: UpdateScriptError,
+	event: EventError,
 }
 
 export function ErrorPage({ simulation, error }) {
@@ -47,9 +48,7 @@ function VariableError({ error }) {
 function UpdateScriptError({ error }) {
 	// Determine in which update script the error took place.
 	let source
-	console.log(error)
-	const { question, questionIndex, option, optionIndex } = error
-	console.log(questionIndex)
+	const { question, questionIndex, option, optionIndex, error: errorObj } = error
 	switch (error.subtype) {
 		case 'general':
 			source = <>Es gibt einen Fehler im allgemeinen Update-Skript, das nach jeder Frage ausgeführt wird.</>
@@ -67,6 +66,14 @@ function UpdateScriptError({ error }) {
 	// Set up the error message.
 	return <>
 		<p>{source}</p>
-		<p>{JSON.stringify(error)}</p>
+		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
+	</>
+}
+
+function EventError({ error }) {
+	const { event, error: errorObj } = error
+	return <>
+		<p>Es gibt einen Fehler in der Bedingung des Ereignisses <em>{event.title || emptyEventTitle}</em>.</p>
+		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
 	</>
 }

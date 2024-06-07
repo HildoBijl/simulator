@@ -11,6 +11,11 @@ export function hasVariables(simulation) {
 	return simulation?.variables && Object.keys(simulation.variables).length > 0
 }
 
+// getState takes a simulation history object and extracts the state from it.
+export function getState(history) {
+	return history[history.length - 1] || {}
+}
+
 // getVariableInitialValue gets the initial value of a variable. If it's defined, that is returned. If not, it is derived from the minimum and maximum.
 export function getVariableInitialValue(variable = {}) {
 	const { initialValue, min, max } = variable

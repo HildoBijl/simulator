@@ -35,7 +35,6 @@ export function useLocalStorageState(initialValue, lsKey) {
 	// Set up a state that tracks the local storage.
 	const lsValue = localStorage.getItem(lsKey)
 	const [state, setState] = useState((lsValue === undefined || lsValue === null) ? initialValue : JSON.parse(lsValue))
-	console.log('Retrieved', state)
 
 	// Expand the setState to also store state updates.
 	const expandedSetState = useCallback((newState) => {
@@ -43,12 +42,10 @@ export function useLocalStorageState(initialValue, lsKey) {
 			const givenSetState = newState
 			setState(state => {
 				const newState = givenSetState(state)
-				console.log('Saved', newState)
 				localStorage.setItem(lsKey, JSON.stringify(newState))
 				return newState
 			})
 		} else {
-			console.log('Value saved', newState)
 			localStorage.setItem(lsKey, JSON.stringify(newState))
 			setState(newState)
 		}
@@ -57,7 +54,6 @@ export function useLocalStorageState(initialValue, lsKey) {
 	// Add a clear function to get rid of the local storage and go back to the initial value.
 	const clearState = useCallback(() => {
 		localStorage.removeItem(lsKey)
-		console.log('Reset to initial', initialValue)
 		setState(initialValue)
 	}, [initialValue, lsKey])
 

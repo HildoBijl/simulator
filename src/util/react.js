@@ -29,3 +29,38 @@ export function useTrackedState(value, threshold = 1000) {
 	// Return the required parameters.
 	return [state, setNewState]
 }
+
+// useLocalStorageState is like useState, but it then tracks the property in localStorage too. Upon saving, it stores to localStorage. Upon initializing, it tries to get the value back from localStorage.
+export function useLocalStorageState(initialValue, lsKey) {
+	// Set up a state that tracks the local storage.
+	const lsValue = localStorage.getItem(lsKey)
+	const [state, setState] = useState((lsValue === undefined || lsValue === null) ? initialValue : JSON.parse(lsValue))
+	console.log('Retrieved', state)
+
+	// Expand the setState to also store state updates.
+	const expandedSetState = useCallback((newState) => {
+		if (typeof newState === 'function') {
+			const givenSetState = newState
+			setState(state => {
+				const newState = givenSetState(state)
+				console.log('Saved', newState)
+				localStorage.setItem(lsKey, JSON.stringify(newState))
+				return newState
+			})
+		} else {
+			console.log('Value saved', newState)
+			localStorage.setItem(lsKey, JSON.stringify(newState))
+			setState(newState)
+		}
+	}, [lsKey, setState])
+
+	// Add a clear function to get rid of the local storage and go back to the initial value.
+	const clearState = useCallback(() => {
+		localStorage.removeItem(lsKey)
+		console.log('Reset to initial', initialValue)
+		setState(initialValue)
+	}, [initialValue, lsKey])
+
+	// Return the tuple.
+	return [state, expandedSetState, clearState]
+}

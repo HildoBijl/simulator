@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { usePrevious, selectRandomly } from '../../../util'
+import { usePrevious, selectRandomly, useLocalStorageState } from '../../../util'
 import { useUserId } from '../../../firebase'
 import { Page } from '../../../components'
 import { useSimulation, useSimulationIdFromUrl } from '../../../simulations'
@@ -51,13 +51,13 @@ function SimulationWithId({ id }) {
 
 function SimulationWithData({ simulation }) {
 	// Define the simulation state.
-	const [history, setHistory] = useState([])
+	const [history, setHistory, clearHistory] = useLocalStorageState([], simulation.id)
 	const [error, setError] = useState(false) // Tracks if an error was encountered during simulation run-time.
 	const state = getState(history)
 	const { questionId } = state
 
 	// Define handlers.
-	const handlers = useSimulationHandlers(simulation, setHistory, setError)
+	const handlers = useSimulationHandlers(simulation, setHistory, clearHistory, setError)
 	const { start, reset, chooseOption, goToNextQuestion } = handlers
 
 	// Check for an error in the simulation. Only display it if something actually failed. (Or directly for the owner.)
@@ -80,11 +80,11 @@ function SimulationWithData({ simulation }) {
 }
 
 // useSimulationHandlers takes a simulation and its state and gives various functions used to control that state.
-function useSimulationHandlers(simulation, setHistory, setError) {
+function useSimulationHandlers(simulation, setHistory, clearHistory, setError) {
 	// reset will put the simulation back into its initial state with nothing defined.
 	const reset = useCallback(() => {
-		setHistory([])
-	}, [setHistory])
+		clearHistory()
+	}, [clearHistory])
 
 	// start will initialize the simulation, setting stuff like questions and variables to their (possibly partly randomized) initial values.
 	const start = useCallback(() => {

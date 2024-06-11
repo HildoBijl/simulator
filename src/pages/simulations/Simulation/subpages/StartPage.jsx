@@ -1,6 +1,6 @@
 import Button from '@mui/material/Button'
 
-import { Page, InputParagraph, Media } from '../../../components'
+import { Page, InputParagraph, Media } from '../../../../components'
 
 export function StartPage({ simulation, start }) {
 	return <Page title={simulation.title || '[Simulationstitel fehlt]'}>

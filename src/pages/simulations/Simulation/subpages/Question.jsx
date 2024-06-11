@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react'
 import { useTheme, darken } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
-import { numberToLetter } from '../../../util'
-import { Page, InputParagraph, Media } from '../../../components'
+import { numberToLetter } from '../../../../util'
+import { Page, InputParagraph, Media } from '../../../../components'
 
-import { emptyOption } from '../settings'
+import { emptyOption } from '../../settings'
 
-import { VariableOverview } from './VariableOverview'
+import { VariableOverview } from '../components/VariableOverview'
 
 export function Question({ simulation, state, chooseOption, goToNextQuestion }) {
 	const { questionId, choice } = state

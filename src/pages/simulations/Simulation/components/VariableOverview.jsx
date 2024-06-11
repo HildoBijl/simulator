@@ -1,8 +1,8 @@
 import { useTheme, alpha } from '@mui/material/styles'
 
-import { bound, roundToDigits, getTickSize, range, applyMapping } from '../../../util'
+import { bound, roundToDigits, getTickSize, range, applyMapping } from '../../../../util'
 
-import { getVariableInitialValue } from '../util'
+import { getVariableInitialValue } from '../../util'
 
 export function VariableOverview({ simulation, state, showHidden = false }) {
 	// Determine the variables to show and their values.

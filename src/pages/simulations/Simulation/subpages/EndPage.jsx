@@ -1,7 +1,7 @@
 import Button from '@mui/material/Button'
 
-import { Page } from '../../../components'
-import { VariableOverview } from './VariableOverview'
+import { Page } from '../../../../components'
+import { VariableOverview } from '../components/VariableOverview'
 
 export function EndPage({ simulation, state, reset }) {
 	return <Page title="Ende der Simulation">

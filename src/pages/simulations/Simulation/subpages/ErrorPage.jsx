@@ -1,11 +1,11 @@
 import Alert from '@mui/material/Alert'
 
-import { numberToLetter } from '../../../util'
-import { useUserId } from '../../../firebase'
-import { Page } from '../../../components'
+import { numberToLetter } from '../../../../util'
+import { useUserId } from '../../../../firebase'
+import { Page } from '../../../../components'
 
-import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle } from '../settings'
-import { getVariableErrorMessage } from '../validation'
+import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle } from '../../settings'
+import { getVariableErrorMessage } from '../../validation'
 
 const components = { // Map the error types to components that can display them.
 	variable: VariableError,

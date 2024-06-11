@@ -4,12 +4,14 @@ import Button from '@mui/material/Button'
 
 import { numberToLetter } from 'util'
 import { Page, InputParagraph, Media } from 'components'
+import { useIsOwner } from 'simulations'
 
 import { emptyOption } from '../../settings'
 
 import { VariableOverview } from '../components/VariableOverview'
 
-export function Question({ simulation, state, chooseOption, goToNextQuestion }) {
+export function Question({ simulation, state, chooseOption, goToNextQuestion, reset }) {
+	const isOwner = useIsOwner(simulation)
 	const { questionId, choice } = state
 
 	// Determine the question we're at.
@@ -25,8 +27,8 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion }) 
 			return // No options. Never auto-continue, since it's an info-screen.
 		if (options[choice].feedback || question.feedback)
 			return // There's feedback to show. Don't auto-continue.
-		goToNextQuestion() // No reason found not to: let's auto-continue!
-	}, [question, choice, goToNextQuestion])
+		goToNextQuestion(isOwner) // No reason found not to: let's auto-continue!
+	}, [question, choice, goToNextQuestion, isOwner])
 
 	// Render the question with description, media, options and buttons.
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'}>
@@ -36,11 +38,12 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion }) 
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
 				{question.options.map((option, index) => choice !== undefined ?
 					<Option key={index} {...{ simulation, question, option, index, disabled: index !== choice, feedback: index === choice && (options[choice].feedback || question.feedback) }} /> :
-					<Option key={index} {...{ simulation, question, option, index, selected: false, select: () => chooseOption(index) }} />)}
+					<Option key={index} {...{ simulation, question, option, index, selected: false, select: () => chooseOption(index, isOwner) }} />)}
 			</div>
 		</>}
-		{options.length === 0 || choice !== undefined ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion()}>Weiter</Button> : null}
+		{options.length === 0 || choice !== undefined ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion(isOwner)}>Weiter</Button> : null}
 		<VariableOverview {...{ simulation, state }} />
+		<ResetButton {...{ simulation, reset }} />
 	</Page>
 }
 
@@ -100,4 +103,11 @@ function Option({ option, index, selected, select, deselect, disabled, feedback 
 		</div>
 		{feedback ? <div style={feedbackStyle}><InputParagraph>{feedback}</InputParagraph></div> : null}
 	</>
+}
+
+function ResetButton({ simulation, reset }) {
+	const isOwner = useIsOwner(simulation)
+	if (!isOwner)
+		return null // Only show the reset button for owners.
+	return <Button variant="contained" sx={{ margin: '1rem 0 0 0' }} onClick={() => reset(isOwner)}>Simulation neu starten</Button>
 }

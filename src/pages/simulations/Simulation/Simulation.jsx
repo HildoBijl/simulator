@@ -2,9 +2,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { usePrevious, useLocalStorageState } from 'util'
-import { useUserId } from 'fb'
 import { Page } from 'components'
-import { useSimulation, useSimulationIdFromUrl } from 'simulations'
+import { useSimulation, useSimulationIdFromUrl, useIsOwner } from 'simulations'
 
 import { ErrorPage as GeneralErrorPage } from '../../ErrorPage'
 
@@ -66,15 +65,14 @@ function SimulationWithData({ simulation }) {
 		if (error && !simulationError)
 			setError(false)
 	}, [error, simulationError])
-	const userId = useUserId()
-	const isOwner = simulation.owners.includes(userId)
+	const isOwner = useIsOwner(simulation)
 	if (simulationError && (error || isOwner)) // Faulty simulation.
 		return <ErrorPage simulation={simulation} error={simulationError} />
 
 	// Determine whether we're at the start (no question defined), at the end, or at a regular question. Render accordingly.
 	if (!questionId)
-		return <StartPage {...{ simulation, state, start, setError }} />
+		return <StartPage {...{ simulation, start }} />
 	if (questionId === 'end')
-		return <EndPage {...{ simulation, state, reset }} />
-	return <Question key={history.length - 1} {...{ simulation, state, chooseOption, goToNextQuestion, setError }} />
+		return <EndPage {...{ simulation, history, reset }} />
+	return <Question key={history.length - 1} {...{ simulation, state, chooseOption, goToNextQuestion, reset }} />
 }

@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { doc } from 'firebase/firestore'
 import { useDocumentData, useDocumentDataOnce } from 'react-firebase-hooks/firestore'
 
-import { db, useUserData } from 'fb'
+import { db, useUserData, useUserId } from 'fb'
 
 import { getSimulationByUrl } from './functions'
 import { useSimulationQuestions } from './questions'
@@ -74,4 +74,10 @@ export function useSimulationIdFromUrl(url) {
 	}, [url])
 
 	return id
+}
+
+// useIsOwner takes a simulation and checks if the given user is an owner.
+export function useIsOwner(simulation) {
+	const userId = useUserId()
+	return simulation?.owners && simulation.owners.includes(userId)
 }

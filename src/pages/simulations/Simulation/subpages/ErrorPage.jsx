@@ -1,8 +1,8 @@
 import Alert from '@mui/material/Alert'
 
 import { numberToLetter } from 'util'
-import { useUserId } from 'fb'
 import { Page } from 'components'
+import { useIsOwner } from 'simulations'
 
 import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle } from '../../settings'
 import { getVariableErrorMessage } from '../../validation'
@@ -15,8 +15,7 @@ const components = { // Map the error types to components that can display them.
 
 export function ErrorPage({ simulation, error }) {
 	// Determine if the current user owns the simulation. This means more info can be shown.
-	const userId = useUserId()
-	const isOwner = simulation.owners.includes(userId)
+	const isOwner = useIsOwner(simulation)
 
 	// Find the right component to display.
 	const Component = components[error.type]

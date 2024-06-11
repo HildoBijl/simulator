@@ -15,7 +15,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 	}, [clearHistory])
 
 	// start will initialize the simulation, setting stuff like questions and variables to their (possibly partly randomized) initial values.
-	const start = useCallback(() => {
+	const start = useCallback((devMode = false) => {
 		// Check for potential general errors.
 		if (getGeneralSimulationError(simulation))
 			return setError(true)
@@ -33,7 +33,8 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		})
 
 		// Update the statistics.
-		incrementSimulationField(simulation.id, 'numPlayed')
+		if (!devMode)
+			incrementSimulationField(simulation.id, 'numPlayed')
 	}, [simulation, setHistory, setError])
 
 	// chooseOption will pick an option for the current question.
@@ -88,7 +89,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 	}, [simulation, setHistory, setError])
 
 	// goToNextQuestion will go to the next question depending on the (confirmed) selected question option.
-	const goToNextQuestion = useCallback(() => {
+	const goToNextQuestion = useCallback((devMode = false) => {
 		setHistory(history => {
 			// If the question has options, but no option has been selected and confirmed, we're not ready yet to move on.
 			const state = getState(history)
@@ -144,9 +145,11 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				}
 			}
 
-			// Check if the simulation is at an end.
-			if (newState.questionId === 'end')
-				incrementSimulationField(simulation.id, 'numFinished')
+			// If the simulation ends, update the statistics.
+			if (newState.questionId === 'end') {
+				if (!devMode)
+					incrementSimulationField(simulation.id, 'numFinished')
+			}
 
 			// The update is all done. Add the new state to the history.
 			return [...history, newState]

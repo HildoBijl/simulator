@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { usePrevious, useLocalStorageState } from '../../../util'
-import { useUserId } from '../../../firebase'
-import { Page } from '../../../components'
-import { useSimulation, useSimulationIdFromUrl } from '../../../simulations'
+import { usePrevious, useLocalStorageState } from 'util'
+import { useUserId } from 'fb'
+import { Page } from 'components'
+import { useSimulation, useSimulationIdFromUrl } from 'simulations'
 
-import { Error } from '../../Error'
+import { ErrorPage as GeneralErrorPage } from '../../ErrorPage'
 
 import { getState } from '../util'
 import { getSimulationError } from '../validation'
@@ -21,7 +21,7 @@ export function Simulation() {
 	const { simulationUrl } = useParams()
 	const id = useSimulationIdFromUrl(simulationUrl)
 	if (id === null)
-		return <Error />
+		return <GeneralErrorPage />
 	if (id === undefined)
 		return <Page title="Simulation laden..." />
 	return <SimulationWithId id={id} />
@@ -41,7 +41,7 @@ function SimulationWithId({ id }) {
 
 	// On loading or on a loading error, show the right notification.
 	if (simulation === null) // Failed to load.
-		return <Error /> // General error page.
+		return <GeneralErrorPage /> // General error page.
 	if (simulation === undefined) // Loading.
 		return <Page title="Simulation laden..." /> // Empty page with just a title.
 

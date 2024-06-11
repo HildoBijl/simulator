@@ -14,8 +14,8 @@ import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { deleteField } from 'firebase/firestore'
 
-import { FormPart, TrackedTextField, TrackedCodeField } from '../../../../components'
-import { updateEvent, deleteEvent } from '../../../../simulations'
+import { FormPart, TrackedTextField, TrackedCodeField } from 'components'
+import { updateEvent, deleteEvent } from 'simulations'
 
 import { emptyQuestion, emptyEventTitle, defaultAfterwards, accordionStyle } from '../../settings'
 import { getConditionError } from '../../util'

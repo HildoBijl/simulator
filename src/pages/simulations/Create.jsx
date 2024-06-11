@@ -4,10 +4,10 @@ import clsx from 'clsx'
 import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
-import { getBaseUrl } from '../../util'
-import { useAuthData, useUserId, signInWithGoogleRedirect } from '../../firebase'
-import { useSimulationIds, createNewSimulation, useSimulation } from '../../simulations'
-import { Page } from '../../components'
+import { getBaseUrl } from 'util'
+import { useAuthData, useUserId, signInWithGoogleRedirect } from 'fb'
+import { useSimulationIds, createNewSimulation, useSimulation } from 'simulations'
+import { Page } from 'components'
 
 const CreatePage = ({ children }) => <Page title="Simulationsübersicht" showLogo={true}>{children}</Page>
 

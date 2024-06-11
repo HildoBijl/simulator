@@ -9,8 +9,8 @@ import MenuItem from '@mui/material/MenuItem'
 import { deleteField } from 'firebase/firestore'
 import { ref, uploadBytesResumable } from 'firebase/storage'
 
-import { useTrackedState } from '../../util'
-import { storage, updateDocument, deleteMediaFile } from '../../firebase'
+import { useTrackedState } from 'util'
+import { storage, updateDocument, deleteMediaFile } from 'fb'
 
 import { InternalImage, ExternalImage, YouTubeVideo } from '../media'
 

@@ -9,8 +9,8 @@ import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import { FormPart, TrackedTextField, MediaUploader } from '../../../../components'
-import { updateSimulation, deleteQuestion } from '../../../../simulations'
+import { FormPart, TrackedTextField, MediaUploader } from 'components'
+import { updateSimulation, deleteQuestion } from 'simulations'
 
 import { emptyQuestion, accordionStyle } from '../../settings'
 

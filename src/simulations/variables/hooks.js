@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { collection } from 'firebase/firestore'
 import { useCollectionOnce, useCollection } from 'react-firebase-hooks/firestore'
 
-import { db, getDocuments } from '../../firebase'
+import { db, getDocuments } from 'fb'
 
 // useSimulationVariables returns an object with all simulation variables. It loads them from the database and includes their IDs in the objects.
 export function useSimulationVariables(simulationId, once = false) {

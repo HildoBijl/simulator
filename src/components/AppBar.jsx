@@ -10,9 +10,8 @@ import Person from '@mui/icons-material/Person'
 
 import { useNavigate } from 'react-router-dom'
 
-import { useUser } from '../firebase'
-
-import logo from '../assets/logoWhite.svg'
+import { useUser } from 'fb'
+import logo from 'assets/logoWhite.svg'
 
 export function AppBar({ title, backButton, showLogo }) {
 	const navigate = useNavigate()

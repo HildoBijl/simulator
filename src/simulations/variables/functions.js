@@ -1,4 +1,4 @@
-import { getDocumentRef, updateDocument, deleteDocument } from '../../firebase'
+import { getDocumentRef, updateDocument, deleteDocument } from 'fb'
 
 // getVariableRef will create a reference to a potential new variable.
 export function getVariableRef(simulationId) {

@@ -7,8 +7,8 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
 
-import { FormPart } from '../../../../components'
-import { updateSimulation, getQuestionRef } from '../../../../simulations'
+import { FormPart } from 'components'
+import { updateSimulation, getQuestionRef } from 'simulations'
 
 import { emptyQuestion, accordionStyle } from '../../settings'
 

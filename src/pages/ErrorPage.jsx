@@ -1,7 +1,7 @@
 import { useRouteError, Link } from 'react-router-dom'
 import Container from '@mui/material/Container'
 
-export function Error() {
+export function ErrorPage() {
   const error = useRouteError()
   console.error(error)
 

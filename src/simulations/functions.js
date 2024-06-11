@@ -1,6 +1,6 @@
 import { collection, doc, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
 
-import { db, getUserData, addDocument, getDocument, updateDocument, deleteDocument, deleteMediaFile } from '../firebase'
+import { db, getUserData, addDocument, getDocument, updateDocument, deleteDocument, deleteMediaFile } from 'fb'
 
 // getUserSimulationIds takes a userId and returns all simultion IDs for that user.
 export async function getUserSimulationIds(userId) {

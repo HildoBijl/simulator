@@ -3,8 +3,8 @@ import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import { setDoc } from 'firebase/firestore'
 
-import { Code, FormPart, TrackedCodeField } from '../../../../components'
-import { getVariableRef } from '../../../../simulations'
+import { Code, FormPart, TrackedCodeField } from 'components'
+import { getVariableRef } from 'simulations'
 
 import { accordionStyle } from '../../settings'
 import { getScriptError } from '../../util'

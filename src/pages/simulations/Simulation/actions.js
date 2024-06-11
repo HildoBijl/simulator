@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { selectRandomly } from '../../../util'
+import { selectRandomly } from 'util'
 
 import { defaultAfterwards } from '../settings'
 import { getState, hasVariables, getInitialVariables, switchVariableNames, boundVariables, runUpdateScript, runCondition, getScriptError } from '../util'

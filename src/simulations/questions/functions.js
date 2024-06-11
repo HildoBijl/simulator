@@ -1,6 +1,6 @@
 import { arrayRemove, deleteField } from 'firebase/firestore'
 
-import { getDocumentRef, updateDocument, deleteDocument, deleteMediaFile } from '../../firebase'
+import { getDocumentRef, updateDocument, deleteDocument, deleteMediaFile } from 'fb'
 
 import { updateSimulation } from '../functions'
 

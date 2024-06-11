@@ -1,12 +1,12 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import { Home, Test, Error, Create, Edit, Account, Simulation } from './pages'
+import { Home, Test, ErrorPage, Create, Edit, Account, Simulation } from './pages'
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <Home />,
-    errorElement: <Error />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/test',

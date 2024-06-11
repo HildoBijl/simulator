@@ -1,4 +1,4 @@
-import { arrayFind } from '../../util'
+import { arrayFind } from 'util'
 
 import { hasVariables, getScriptError, getConditionError } from './util'
 

@@ -4,10 +4,10 @@ import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 
-import { getBaseUrl, useTrackedState } from '../../../util'
-import { useUserId } from '../../../firebase'
-import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation } from '../../../simulations'
-import { FormPart, TrackedTextField, MediaUploader } from '../../../components'
+import { getBaseUrl, useTrackedState } from 'util'
+import { useUserId } from 'fb'
+import { FormPart, TrackedTextField, MediaUploader } from 'components'
+import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation } from 'simulations'
 
 export function Settings({ simulation }) {
 	return <>

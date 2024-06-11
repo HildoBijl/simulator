@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { doc } from 'firebase/firestore'
 import { useDocumentData, useDocumentDataOnce } from 'react-firebase-hooks/firestore'
 
-import { db, useUserData } from '../firebase'
+import { db, useUserData } from 'fb'
 
 import { getSimulationByUrl } from './functions'
 import { useSimulationQuestions } from './questions'

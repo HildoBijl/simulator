@@ -4,9 +4,9 @@ import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 
-import { useUser, useSignedInCheck, signOut, removeUserData } from '../firebase'
-import { removeUserFromAllSimulations } from '../simulations'
-import { Page } from '../components'
+import { useUser, useSignedInCheck, signOut, removeUserData } from 'fb'
+import { removeUserFromAllSimulations } from 'simulations'
+import { Page } from 'components'
 
 const AccountPage = ({ children }) => <Page title="Konto" backButton="/create">{children}</Page>
 

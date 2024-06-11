@@ -1,5 +1,5 @@
 export * from './Home'
 export * from './Test'
-export * from './Error'
+export * from './ErrorPage'
 export * from './Account'
 export * from './simulations'

@@ -1,4 +1,4 @@
-import { Page } from '../components'
+import { Page } from 'components'
 
 export function Test() {
   return (

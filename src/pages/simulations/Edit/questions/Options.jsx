@@ -12,9 +12,9 @@ import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 
-import { numberToLetter } from '../../../../util'
-import { FormPart, TrackedTextField, TrackedCodeField } from '../../../../components'
-import { updateQuestion } from '../../../../simulations'
+import { numberToLetter } from 'util'
+import { FormPart, TrackedTextField, TrackedCodeField } from 'components'
+import { updateQuestion } from 'simulations'
 
 import { emptyQuestion, emptyOption } from '../../settings'
 import { getScriptError } from '../../util'

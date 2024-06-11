@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useTheme, darken } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
-import { numberToLetter } from '../../../../util'
-import { Page, InputParagraph, Media } from '../../../../components'
+import { numberToLetter } from 'util'
+import { Page, InputParagraph, Media } from 'components'
 
 import { emptyOption } from '../../settings'
 

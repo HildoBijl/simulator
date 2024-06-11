@@ -1,6 +1,6 @@
 import { useTheme, alpha } from '@mui/material/styles'
 
-import { bound, roundToDigits, getTickSize, range, applyMapping } from '../../../../util'
+import { bound, roundToDigits, getTickSize, range, applyMapping } from 'util'
 
 import { getVariableInitialValue } from '../../util'
 

@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
-import { useSimulation } from '../../../simulations'
-import { Page, useTab } from '../../../components'
+import { useSimulation } from 'simulations'
+import { Page, useTab } from 'components'
 
 import { hasVariables } from '../util'
 

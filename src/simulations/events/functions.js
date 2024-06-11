@@ -1,4 +1,4 @@
-import { getDocumentRef, updateDocument, deleteDocument } from '../../firebase'
+import { getDocumentRef, updateDocument, deleteDocument } from 'fb'
 
 // getEventRef will create a reference to a potential new event.
 export function getEventRef(simulationId) {

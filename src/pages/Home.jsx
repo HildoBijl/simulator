@@ -5,7 +5,7 @@ import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 
-import logo from '../assets/logoWhite.svg'
+import logo from 'assets/logoWhite.svg'
 
 export function Home() {
   return <>

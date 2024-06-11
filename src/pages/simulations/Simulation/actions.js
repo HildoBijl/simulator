@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 
 import { selectRandomly } from 'util'
+import { incrementSimulationField } from 'simulations'
 
 import { defaultAfterwards } from '../settings'
 import { getState, hasVariables, getInitialVariables, switchVariableNames, boundVariables, runUpdateScript, runCondition, getScriptError } from '../util'
@@ -30,6 +31,9 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				state.variables = getInitialVariables(simulation)
 			return [state.variables || {}, state]
 		})
+
+		// Update the statistics.
+		incrementSimulationField(simulation.id, 'numPlayed')
 	}, [simulation, setHistory, setError])
 
 	// chooseOption will pick an option for the current question.
@@ -139,6 +143,10 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 						newState.questionId = state.jumpQuestionId
 				}
 			}
+
+			// Check if the simulation is at an end.
+			if (newState.questionId === 'end')
+				incrementSimulationField(simulation.id, 'numFinished')
 
 			// The update is all done. Add the new state to the history.
 			return [...history, newState]

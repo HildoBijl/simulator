@@ -1,4 +1,4 @@
-import { collection, doc, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
+import { collection, doc, query, where, getDocs, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore'
 
 import { db, getUserData, addDocument, getDocument, updateDocument, deleteDocument, deleteMediaFile } from 'fb'
 
@@ -81,4 +81,9 @@ export async function unlinkUserFromSimulation(userId, simulationId) {
 // updateSimulation will update certain values for a simulation with a given ID.
 export async function updateSimulation(simulationId, data) {
 	return updateDocument('simulations', simulationId, data)
+}
+
+// incrementField increases the given field for a simulation.
+export async function incrementSimulationField(simulationId, field) {
+	return updateSimulation(simulationId, { [field]: increment(1) })
 }

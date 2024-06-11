@@ -14,7 +14,7 @@ First there are various supporting files that provide useful functionalities, bo
 
 To render simulations, we make a clear divide into developing simulations (creator side) and running simulations (user side).
 
-- The [Edit](./Edit/) folder allows for creating/editing simulations. This is for the creators.
+- The [Create](./Create.jsx) page (main simulation overview list) and the [Edit](./Edit/) folder (adjusting one simulation) allows for creating/editing simulations. This is for the creators.
 - The [Simulation](./Simulation/) folder contains all scripts for running simulations, including the simulation logic. This is for the users.
 
 Check out the respective folders for further information.

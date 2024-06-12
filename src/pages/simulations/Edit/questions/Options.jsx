@@ -60,7 +60,7 @@ function Defaults({ simulation, question, questionIndex, expanded, flipExpand })
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
-			Standardeinstellungen für Antwortmöglichkeiten
+			Standardeinstellungen für alle Antwortmöglichkeiten (sofern nicht weiter eingestellt)
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, mt: -2 }}>
 			<FormPart>

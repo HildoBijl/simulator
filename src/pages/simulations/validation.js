@@ -133,6 +133,6 @@ export function getSimulationEventError(simulation) {
 // getStateError checks, for a given simulation, whether the state is still OK. Stuff like missing variables can be fixed on-the-go, but a questionId that is not known is a fatal error.
 export function getStateError(simulation, state) {
 	// Check that the question ID from the state exists. (If there is no questionId, then the simulation hasn't started yet; that's fine too.)
-	if (state.questionId && !simulation.questions[state.questionId])
+	if (state.questionId && state.questionId !== 'end' && !simulation.questions[state.questionId])
 		return { source: 'state', type: 'question', subtype: 'missing' }
 }

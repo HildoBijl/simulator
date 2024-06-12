@@ -1,4 +1,5 @@
 import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
 
 import { numberToLetter } from 'util'
 import { Page } from 'components'
@@ -8,12 +9,16 @@ import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle, empt
 import { getVariableErrorMessage } from '../../validation'
 
 const components = { // Map the error types to components that can display them.
+	// Simulation errors.
 	variable: VariableError,
 	updateScript: UpdateScriptError,
 	event: EventError,
+
+	// State errors.
+	question: QuestionError,
 }
 
-export function ErrorPage({ simulation, error }) {
+export function ErrorPage({ simulation, error, reset }) {
 	// Determine if the current user owns the simulation. This means more info can be shown.
 	const isOwner = useIsOwner(simulation)
 
@@ -23,7 +28,7 @@ export function ErrorPage({ simulation, error }) {
 		throw new Error(`Invalid simulation validation error: received an error of type "${error.type}" but this type has no known component yet to display the error properly.`)
 
 	return <Page title={simulation.title || '[Simulationstitel fehlt]'}>
-		<StandardMessage />
+		{error.source === 'simulation' ? <StandardSimulationErrorMessage {...{ reset }} /> : <StandardStateErrorMessage {...{ reset }} />}
 		{isOwner ? <Alert severity="error" sx={{ my: 2 }}>
 			<h5 style={{ margin: '0.25rem 0' }}>Informationen für Simulationsentwickler</h5>
 			<Component simulation={simulation} error={error} />
@@ -31,10 +36,19 @@ export function ErrorPage({ simulation, error }) {
 	</Page>
 }
 
-function StandardMessage() {
+function StandardSimulationErrorMessage() {
 	return <Alert severity="warning" sx={{ my: 2 }}>
 		<h5 style={{ margin: '0.25rem 0' }}>Inkonsistenz in der Simulation</h5>
 		<p>Derzeit gibt es eine Inkonsistenz in den Simulationseinstellungen. Dies bedeutet in der Regel, dass der Ersteller einige Änderungen vornimmt und die Dinge derzeit nicht zusammenpassen. Bitte warten Sie ein wenig, bis die Simulation wieder funktioniert. (Sie brauchen nicht zu aktualisieren: Sie erscheint, wenn sie fertig ist.)</p>
+	</Alert>
+}
+
+function StandardStateErrorMessage({ reset }) {
+	const isOwner = useIsOwner()
+	return <Alert severity="warning" sx={{ my: 2 }}>
+		<h5 style={{ margin: '0.25rem 0' }}>Veralteter Simulationsstand</h5>
+		<p>Wir haben versucht, Ihre Simulationsdaten zu laden und dort fortzufahren, wo Sie waren, aber das war nicht möglich. Es scheint, dass sich die Simulation seit Ihrem letzten Besuch erheblich verändert hat. Sie werden die Simulation neu starten müssen.</p>
+		<Button variant="contained" onClick={() => reset(isOwner)}>Simulation neu starten</Button>
 	</Alert>
 }
 
@@ -75,4 +89,8 @@ function EventError({ error }) {
 		<p>Es gibt einen Fehler in der Bedingung des Ereignisses <em>{event.title || emptyEventTitle}</em>.</p>
 		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
 	</>
+}
+
+function QuestionError() {
+	return <p>Die Frage, bei der Sie waren, scheint aus der Simulation entfernt worden zu sein. Sie können bei einer unbekannten Frage nicht fortfahren.</p>
 }

@@ -8,7 +8,7 @@ import { useSimulation, useSimulationIdFromUrl, useIsOwner } from 'simulations'
 import { ErrorPage as GeneralErrorPage } from '../../ErrorPage'
 
 import { getState } from '../util'
-import { getSimulationError } from '../validation'
+import { getSimulationError, getStateError } from '../validation'
 
 import { useSimulationActions } from './actions'
 import { ErrorPage } from './subpages/ErrorPage'
@@ -55,19 +55,26 @@ function SimulationWithData({ simulation }) {
 	const state = getState(history)
 	const { questionId } = state
 
-	// Define actions.
-	const actions = useSimulationActions(simulation, setHistory, clearHistory, setError)
-	const { start, reset, chooseOption, goToNextQuestion } = actions
-
-	// Check for an error in the simulation. Only display it if something actually failed. (Or directly for the owner.)
+	// Check for an error in the simulation. (For instance a faulty update script.)
 	const simulationError = useMemo(() => getSimulationError(simulation), [simulation])
 	useEffect(() => { // When the simulation is OK again, go back to normal.
 		if (error && !simulationError)
 			setError(false)
 	}, [error, simulationError])
+
+	// Check for an error in the state. (For instance an outdated question ID.)
+	const stateError = useMemo(() => getStateError(simulation, state), [simulation, state])
+
+	// Define actions.
+	const actions = useSimulationActions(simulation, setHistory, clearHistory, setError)
+	const { start, reset, chooseOption, goToNextQuestion } = actions
+
+	// On an error, show the error page.
 	const isOwner = useIsOwner(simulation)
-	if (simulationError && (error || isOwner)) // Faulty simulation.
-		return <ErrorPage simulation={simulation} error={simulationError} />
+	if (simulationError && (error || isOwner)) // Only show a simulation error once we encountered it, and the error flag is set to true.
+		return <ErrorPage {...{ simulation, error: simulationError, reset }} />
+	if (stateError) // Always show a state error.
+		return <ErrorPage {...{ simulation, error: stateError, reset }} />
 
 	// Determine whether we're at the start (no question defined), at the end, or at a regular question. Render accordingly.
 	if (!questionId)

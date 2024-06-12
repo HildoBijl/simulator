@@ -94,7 +94,7 @@ export function getSimulationUpdateScriptError(simulation) {
 	// Check the general update script.
 	const generalError = getScriptError(simulation.updateScript, simulation)
 	if (generalError)
-		return { type: 'updateScript', subtype: 'general', error: generalError }
+		return { source: 'simulation', type: 'updateScript', subtype: 'general', error: generalError }
 
 	// Check the question update scripts, both the main scripts and the ones per option.
 	const questionErrorObj = arrayFind(Object.values(simulation.questions), question => {
@@ -102,14 +102,14 @@ export function getSimulationUpdateScriptError(simulation) {
 		const questionIndex = simulation.questionList.indexOf(question)
 		const questionError = getScriptError(question.updateScript, simulation)
 		if (questionError)
-			return { type: 'updateScript', subtype: 'question', error: questionError, question, questionIndex }
+			return { source: 'simulation', type: 'updateScript', subtype: 'question', error: questionError, question, questionIndex }
 
 		// Check the options update scripts.
 		if (question.options) {
 			const optionErrorObj = arrayFind(question.options, (option, optionIndex) => {
 				const optionError = getScriptError(option.updateScript, simulation)
 				if (optionError)
-					return { type: 'updateScript', subtype: 'option', error: optionError, question, questionIndex, option, optionIndex }
+					return { source: 'simulation', type: 'updateScript', subtype: 'option', error: optionError, question, questionIndex, option, optionIndex }
 			})
 			if (optionErrorObj)
 				return optionErrorObj.value
@@ -124,8 +124,15 @@ export function getSimulationEventError(simulation) {
 	const eventErrorObj = arrayFind(Object.values(simulation.events), (event, eventIndex) => {
 		const conditionError = getConditionError(event.condition, simulation)
 		if (conditionError)
-			return { type: 'event', subtype: 'condition', error: conditionError, event, eventIndex }
+			return { source: 'simulation', type: 'event', subtype: 'condition', error: conditionError, event, eventIndex }
 	})
 	if (eventErrorObj)
 		return eventErrorObj.value
+}
+
+// getStateError checks, for a given simulation, whether the state is still OK. Stuff like missing variables can be fixed on-the-go, but a questionId that is not known is a fatal error.
+export function getStateError(simulation, state) {
+	// Check that the question ID from the state exists. (If there is no questionId, then the simulation hasn't started yet; that's fine too.)
+	if (state.questionId && !simulation.questions[state.questionId])
+		return { source: 'state', type: 'question', subtype: 'missing' }
 }

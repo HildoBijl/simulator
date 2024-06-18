@@ -16,7 +16,7 @@ export function Settings({ simulation }) {
 			<TrackedTextField label="Titel" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
 		</FormPart>
 		<FormPart>
-			<MCE label="Beschreibung" value={simulation.description} path="simulations" documentId={simulation.id} field="description" />
+			<MCE label="Beschreibung" height="300" value={simulation.description} path="simulations" documentId={simulation.id} field="description" />
 		</FormPart>
 		<MediaUploader label="Abbildung" value={simulation.media} path="simulations" documentId={simulation.id} fileName="StartImage" />
 		<RemoveSimulation simulation={simulation} />

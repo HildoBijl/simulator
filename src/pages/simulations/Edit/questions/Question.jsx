@@ -9,7 +9,7 @@ import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import { FormPart, TrackedTextField, MediaUploader } from 'components'
+import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
 import { updateSimulation, deleteQuestion } from 'simulations'
 
 import { emptyQuestion, accordionStyle } from '../../settings'
@@ -29,7 +29,7 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 				<TrackedTextField label="Interner Titel (für Benutzer nicht sichtbar)" value={question.internalTitle} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="internalTitle" />
 			</FormPart>
 			<FormPart>
-				<TrackedTextField label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" multiline={true} />
+				<MCE label="Beschreibung" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" />
 			</FormPart>
 			<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
 			<Options {...{ simulation, question, index }} />

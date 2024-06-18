@@ -6,7 +6,7 @@ import TextField from '@mui/material/TextField'
 
 import { getBaseUrl, useTrackedState } from 'util'
 import { useUserId } from 'fb'
-import { FormPart, TrackedTextField, MediaUploader } from 'components'
+import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
 import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation } from 'simulations'
 
 export function Settings({ simulation }) {
@@ -16,7 +16,7 @@ export function Settings({ simulation }) {
 			<TrackedTextField label="Titel" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
 		</FormPart>
 		<FormPart>
-			<TrackedTextField label="Beschreibung" value={simulation.description} path="simulations" documentId={simulation.id} field="description" multiline={true} />
+			<MCE label="Beschreibung" value={simulation.description} path="simulations" documentId={simulation.id} field="description" />
 		</FormPart>
 		<MediaUploader label="Abbildung" value={simulation.media} path="simulations" documentId={simulation.id} fileName="StartImage" />
 		<RemoveSimulation simulation={simulation} />

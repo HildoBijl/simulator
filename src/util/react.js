@@ -60,3 +60,10 @@ export function useLocalStorageState(initialValue, lsKey) {
 	// Return the tuple.
 	return [state, expandedSetState, clearState]
 }
+
+// useClearTags is a memo that clears tags, but only recalculates on a change in input. It turns a string '<p>This is the <strong>title</strong>.</p>' into 'This is the title'.
+export function useClearTags(str) {
+	const div = document.createElement('div')
+	div.innerHTML = str
+	return div.textContent || div.innerText || ''
+}

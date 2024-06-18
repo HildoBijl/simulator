@@ -3,7 +3,7 @@ import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import { setDoc } from 'firebase/firestore'
 
-import { FormPart } from 'components'
+import { FormPart, Label } from 'components'
 import { getEventRef } from 'simulations'
 
 import { accordionStyle } from '../../settings'
@@ -44,6 +44,7 @@ export function Events({ simulation }) {
 
 	// Render the events through an Accordion.
 	return <FormPart>
+		<Label>Ereignisse</Label>
 		{order.map((eventId, index) => <Event key={eventId} {...{ simulation, event: events[eventId], index, expanded: !!expanded[eventId], flipExpand: () => flipExpand(eventId), duplicate: () => duplicateEvent(eventId) }} />)}
 		<Accordion sx={accordionStyle} onClick={() => addEvent()} expanded={false}>
 			<AccordionSummary>

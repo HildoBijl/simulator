@@ -3,7 +3,7 @@ import { useTheme, darken } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
 import { numberToLetter } from 'util'
-import { Page, InputParagraph, Media } from 'components'
+import { Page, InputParagraph, Media, MCEContents } from 'components'
 import { useIsOwner } from 'simulations'
 
 import { emptyOption } from '../../settings'
@@ -32,7 +32,7 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion, re
 
 	// Render the question with description, media, options and buttons.
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'}>
-		<InputParagraph>{question.description}</InputParagraph>
+		<MCEContents>{question.description}</MCEContents>
 		<Media media={question.media} />
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
@@ -98,7 +98,7 @@ function Option({ option, index, selected, select, deselect, disabled, feedback 
 		<div style={{ alignItems: 'flex-start', display: 'flex', flexFlow: 'row nowrap', margin: '0.25rem 0' }}>
 			<div style={letterStyle} {...handlers}>{letter.toUpperCase()}</div>
 			<div style={descriptionStyle} {...handlers}>
-				<InputParagraph>{description}</InputParagraph>
+				<MCEContents>{description}</MCEContents>
 			</div>
 		</div>
 		{feedback ? <div style={feedbackStyle}><InputParagraph>{feedback}</InputParagraph></div> : null}

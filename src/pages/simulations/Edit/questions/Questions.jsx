@@ -7,7 +7,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
 
-import { FormPart } from 'components'
+import { FormPart, Label } from 'components'
 import { updateSimulation, getQuestionRef } from 'simulations'
 
 import { emptyQuestion, accordionStyle } from '../../settings'
@@ -33,6 +33,7 @@ export function Questions({ simulation }) {
 			<StartingQuestion {...{ simulation }} />
 		</FormPart>
 		<FormPart>
+			<Label>Fragen</Label>
 			{simulation.questionList.map((question, index) => <Question key={question.id} {...{ simulation, question, index, expanded: !!expanded[question.id], flipExpand: () => flipExpand(question.id) }} />)}
 			<Accordion sx={accordionStyle} onClick={addQuestion} expanded={false}>
 				<AccordionSummary>

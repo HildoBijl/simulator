@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useTheme } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -12,16 +11,14 @@ import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 
-import { numberToLetter } from 'util'
-import { FormPart, TrackedTextField, TrackedCodeField } from 'components'
+import { numberToLetter, useClearTags } from 'util'
+import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'components'
 import { updateQuestion } from 'simulations'
 
 import { emptyQuestion, emptyOption } from '../../settings'
 import { getScriptError } from '../../util'
 
 export function Options({ simulation, question, index: questionIndex }) {
-	const theme = useTheme()
-
 	// Set up manual expansion controls.
 	const options = question.options || []
 	const [defaultsExpanded, setDefaultsExpanded] = useState(false)
@@ -43,7 +40,7 @@ export function Options({ simulation, question, index: questionIndex }) {
 
 	// Render the options through an Accordion.
 	return <>
-		<h5 style={{ color: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: 400, margin: '-0.5rem 0 0 0.4rem' }}>Antwortmöglichkeiten</h5>
+		<Label>Antwortmöglichtkeiten</Label>
 		<div>
 			<Defaults {...{ simulation, question, questionIndex, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />
 			{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, questionIndex, optionIndex, expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
@@ -78,7 +75,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 	// Determine some derived/default properties.
 	const option = question.options[optionIndex]
 	const description = option.description || ''
-	const title = description.split('\n')[0] || emptyOption
+	let title = useClearTags(description.split('\n')[0] || emptyOption) // Get first line.
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 
 	// Add an effect to auto-focus the description field upon expanding.
@@ -86,8 +83,10 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 	useEffect(() => {
 		const field = descriptionRef.current
 		if (expanded && field) {
-			field.focus()
-			field.setSelectionRange(field.value.length, field.value.length)
+			field.focus() // Put the cursor in the field.
+			field.selection.select(field.getBody(), true) // Select the entire contents.
+			field.selection.collapse(false) // Unselect entire contents. The effect is that the cursor will be at the end.
+			field.getWin().scrollTo(0, field.getWin().outerHeight) // Scroll the full height, which is more than needed to reach the bottom and ensure the cursor is displayed.
 		}
 	}, [expanded])
 
@@ -98,7 +97,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 			<FormPart>
-				<TrackedTextField inputRef={descriptionRef} label="Beschreibung" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" multiline={true} />
+				<MCE ref={descriptionRef} label="Beschreibung" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" />
 			</FormPart>
 			<FormPart>
 				<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />

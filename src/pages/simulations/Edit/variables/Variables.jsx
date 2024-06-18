@@ -3,7 +3,7 @@ import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import { setDoc } from 'firebase/firestore'
 
-import { Code, FormPart, TrackedCodeField } from 'components'
+import { Label, Code, FormPart, TrackedCodeField } from 'components'
 import { getVariableRef } from 'simulations'
 
 import { accordionStyle } from '../../settings'
@@ -67,6 +67,7 @@ export function VariablesList({ simulation }) {
 
 	// Render the variables through an Accordion.
 	return <FormPart>
+		<Label>Parameter</Label>
 		{order.map((variableId, index) => <Variable key={variableId} {...{ simulation, variable: variables[variableId], index, expanded: !!expanded[variableId], flipExpand: () => flipExpand(variableId), duplicate: () => duplicateVariable(variableId) }} />)}
 		<Accordion sx={accordionStyle} onClick={() => addVariable()} expanded={false}>
 			<AccordionSummary>

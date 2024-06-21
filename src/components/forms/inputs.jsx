@@ -29,7 +29,7 @@ export function TrackedTextField({ path, documentId, field, label, value: givenV
 	}
 
 	// Render the form.
-	return <TextField variant="outlined" fullWidth multiline={multiline} label={label} value={value || ''} onChange={handleChange} sx={{ '& > div': { fontFamily: code ? "Consolas, 'Courier New', monospace" : undefined } }}{...otherProps} />
+	return <TextField variant="outlined" fullWidth multiline={multiline} label={label} value={value || ''} onChange={handleChange} sx={{ '& textarea': { fontFamily: code ? "Consolas, 'Courier New', monospace" : undefined } }}{...otherProps} />
 }
 
 export function TrackedCodeField({ getError, ...options }) {

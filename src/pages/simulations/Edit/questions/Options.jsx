@@ -16,7 +16,7 @@ import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'compon
 import { updateQuestion } from 'simulations'
 
 import { emptyQuestion, emptyOption } from '../../settings'
-import { getScriptError } from '../../util'
+import { hasVariables, getScriptError } from '../../util'
 
 export function Options({ simulation, question, index: questionIndex }) {
 	// Set up manual expansion controls.
@@ -54,7 +54,6 @@ export function Options({ simulation, question, index: questionIndex }) {
 }
 
 function Defaults({ simulation, question, questionIndex, expanded, flipExpand }) {
-	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 			Standardeinstellungen für alle Antwortmöglichkeiten (sofern nicht weiter eingestellt)
@@ -64,9 +63,7 @@ function Defaults({ simulation, question, questionIndex, expanded, flipExpand })
 				<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
 			</FormPart>
 			<FollowUpDropdown {...{ simulation, question, questionIndex }} />
-			{Object.keys(simulation.variables).length > 0 ? <FormPart>
-				<TrackedCodeField label="Standard Update-Skript" value={question.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="updateScript" multiline={true} getError={getError} />
-			</FormPart> : null}
+			{hasVariables(simulation) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
 		</AccordionDetails>
 	</Accordion>
 }
@@ -74,9 +71,8 @@ function Defaults({ simulation, question, questionIndex, expanded, flipExpand })
 function Option({ simulation, question, questionIndex, optionIndex, expanded, flipExpand }) {
 	// Determine some derived/default properties.
 	const option = question.options[optionIndex]
-	const description = option.description || ''
+	const description = option.description || emptyOption
 	let title = useClearTags(description.split('\n')[0] || emptyOption) // Get first line.
-	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 
 	// Add an effect to auto-focus the description field upon expanding.
 	const descriptionRef = useRef()
@@ -103,9 +99,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 				<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
 			</FormPart>
 			<FollowUpDropdown {...{ simulation, question, questionIndex, optionIndex }} />
-			{Object.keys(simulation.variables).length > 0 ? <FormPart>
-				<TrackedCodeField label="Update-Skript" value={option.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
-			</FormPart> : null}
+			{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, question, optionIndex }} /> : null}
 		</AccordionDetails>
 		<AccordionActions key="actions">
 			<Button onClick={() => updateQuestion(simulation.id, question.id, { options: arrayRemove(option) })}>Löschen</Button>
@@ -140,5 +134,20 @@ function FollowUpDropdown({ simulation, question, questionIndex, optionIndex }) 
 				<MenuItem key="end" value="end">Ende: Danach wird die Simulation beendet</MenuItem>
 			</Select>
 		</FormControl>
+	</FormPart>
+}
+
+export function QuestionUpdateScript({ simulation, question }) {
+	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
+	return <FormPart>
+		<TrackedCodeField label="Standard Update-Skript" value={question.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="updateScript" multiline={true} getError={getError} />
+	</FormPart>
+}
+
+export function OptionUpdateScript({ simulation, question, optionIndex, label = "Update-Skript" }) {
+	const option = question.options[optionIndex]
+	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
+	return <FormPart>
+		<TrackedCodeField label={label} value={option.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }

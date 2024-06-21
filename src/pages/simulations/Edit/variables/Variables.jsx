@@ -16,7 +16,7 @@ import { Variable } from './Variable'
 export function Variables({ simulation }) {
 	return <>
 		<VariablesList {...{ simulation }} />
-		<UpdateScript {...{ simulation }} />
+		<GeneralUpdateScript {...{ simulation }} />
 		<LinkToScriptsPage {...{ simulation }} />
 	</>
 }
@@ -99,7 +99,7 @@ function AddVariable({ addVariable }) {
 	</Accordion>
 }
 
-function UpdateScript({ simulation }) {
+export function GeneralUpdateScript({ simulation }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart>
 		<TrackedCodeField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Frage</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />

@@ -1,10 +1,15 @@
 import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
+import { numberToLetter, useClearTags } from 'util'
 import { useSimulation } from 'simulations'
 import { Page } from 'components'
 
 import { hasVariables } from '../util'
+import { emptyQuestion, emptyOption } from '../settings'
+
+import { QuestionUpdateScript, OptionUpdateScript } from './questions'
+import { GeneralUpdateScript } from './variables'
 
 const ScriptsPage = ({ children, simulationId }) => <Page title="Simulation Skript Übersicht" backButton={`/create/${simulationId}`}>{children}</Page>
 
@@ -36,5 +41,29 @@ export function Scripts() {
 }
 
 function ScriptsForSimulation({ simulation }) {
-	return <p>{simulation.title}</p>
+	return <>
+		{simulation.updateScript ? <GeneralUpdateScript {...{ simulation }} /> : null}
+		{simulation.questionOrder.map((questionId, index) => <ScriptsForQuestion key={questionId} simulation={simulation} question={simulation.questions[questionId]} index={index} />)}
+	</>
+}
+
+function ScriptsForQuestion({ simulation, question, index }) {
+	// If the question has no update scripts, don't show it.
+	if (!question.updateScript && (!question.options || !question.options.some(option => option.updateScript)))
+		return null
+
+	// Render the update scripts for this question.
+	return <>
+		<h4>Frage {index + 1}. {question.internalTitle || question.title || emptyQuestion}</h4>
+		{question.updateScript ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
+		{question.options.map((option, optionIndex) => option.updateScript ? <OptionUpdateScriptWithLabel key={optionIndex} {...{ simulation, question, optionIndex }} /> : null)}
+	</>
+}
+
+function OptionUpdateScriptWithLabel({ simulation, question, optionIndex }) {
+	const option = question.options[optionIndex]
+	const description = option.description || emptyOption
+	const title = useClearTags(description.split('\n')[0] || emptyOption)
+	const label = `${numberToLetter(optionIndex).toUpperCase()}. ${title}`
+	return <OptionUpdateScript {...{ simulation, question, optionIndex, label }} />
 }

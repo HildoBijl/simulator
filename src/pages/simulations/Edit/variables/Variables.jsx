@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import { setDoc } from 'firebase/firestore'
 
 import { Label, Code, FormPart, TrackedCodeField } from 'components'
@@ -15,6 +17,7 @@ export function Variables({ simulation }) {
 	return <>
 		<VariablesList {...{ simulation }} />
 		<UpdateScript {...{ simulation }} />
+		<LinkToScriptsPage {...{ simulation }} />
 	</>
 }
 
@@ -100,5 +103,12 @@ function UpdateScript({ simulation }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart>
 		<TrackedCodeField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Frage</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />
+	</FormPart>
+}
+
+function LinkToScriptsPage({ simulation }) {
+	const navigate = useNavigate()
+	return <FormPart>
+		<Button variant="contained" onClick={() => navigate(`/create/${simulation.id}/scripts`)}>Alle Simulationsskripte anzeigen</Button>
 	</FormPart>
 }

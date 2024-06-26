@@ -1,11 +1,11 @@
 # What is this Simulator?
 
-This Simulator is a web app that allows people (for instance teachers) to create small multiple-choice simulations for others (for instance their students). In these simulations, there are no right and wrong questions, but it's more a matter of "What would you do in this situation?"
+This Simulator is a web app that allows people (for instance teachers) to create small multiple-choice simulations for others (for instance their students). In these simulations, there are no right and wrong questions, but it's more a matter of "What would you do in this situation?" You can [https://simulator-54576.web.app/](try it out yourself)!
 
 
 # Contribute to the Simulator
 
-Want to get involved in developing the Simulator? Then first set up your own development environment, and then potentially make changes.
+Want to get involved in developing the Simulator? Make sure to first set up your own development environment, and then potentially make changes.
 
 ## Setting up the development environment
 
@@ -39,9 +39,9 @@ There are a few directories that are there for support. Probably you won't need 
 
 The content of the website is set up in the following files/folders.
 
-- [router](./router.jsx) contains the routes of the website: which URL points to which component?
 - [assets](./assets/) contains basic files to be included in pages, like images and such.
 - [pages](./pages/) has all the pages of the website defined. Anything that's related to rendering is stored in here.
-- [simulations](./simulations/) has all the logic for reading/writing simulations from/to the database. (But not the actual simulation scripts; those are in the pages folder.)
+- [simulations](./simulations/) has all the logic for reading/writing simulations from/to the database. (But not the actual simulation functionality scripts nor its rendering; those are in the pages folder.)
+- [router](./router.jsx) contains the routes of the website: which URL points to which component?
 
 Browse the various directories and you'll find additional ReadMes that help you further.

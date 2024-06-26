@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import * as esprima from 'esprima'
+import { tokenize } from 'esprima'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
@@ -71,7 +71,8 @@ function VariableSelector({ simulation, variableId, setVariableId }) {
 
 function GeneralScripts({ simulation, variableId }) {
 	// On a filtering, check if the script contains the given variable.
-	if (variableId && !containsVariable(simulation.updateScript, simulation.variables[variableId].name))
+	const variableName = variableId && simulation.variables[variableId].name
+	if (!shouldShowScript(simulation.updateScript, variableName))
 		return
 
 	// All in order. Show the field.
@@ -105,7 +106,7 @@ function OptionUpdateScriptWithLabel({ simulation, question, optionIndex }) {
 
 // containsVariable checks if a given script contains a given variable name like 'hp' somewhere.
 function containsVariable(script, variableName) {
-	return esprima.tokenize(script).some(element => element.type === 'Identifier' && element.value === variableName)
+	return tokenize(script).some(element => element.type === 'Identifier' && element.value === variableName)
 }
 
 // shouldShowScript checks if a script should be shown. It must exist and, if a filtering variable is given, it must contain that variable.

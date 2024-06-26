@@ -1,12 +1,17 @@
-import { useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import * as esprima from 'esprima'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 
 import { numberToLetter, useClearTags } from 'util'
 import { useSimulation } from 'simulations'
-import { Page } from 'components'
+import { Page, FormPart } from 'components'
 
 import { hasVariables } from '../util'
-import { emptyQuestion, emptyOption } from '../settings'
+import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle } from '../settings'
 
 import { QuestionUpdateScript, OptionUpdateScript } from './questions'
 import { GeneralUpdateScript } from './variables'
@@ -41,22 +46,52 @@ export function Scripts() {
 }
 
 function ScriptsForSimulation({ simulation }) {
+	const [variableId, setVariableId] = useState()
 	return <>
-		{simulation.updateScript ? <GeneralUpdateScript {...{ simulation }} /> : null}
-		{simulation.questionOrder.map((questionId, index) => <ScriptsForQuestion key={questionId} simulation={simulation} question={simulation.questions[questionId]} index={index} />)}
+		<VariableSelector {...{ simulation, variableId, setVariableId }} />
+		<GeneralScripts {...{ variableId, simulation }} />
+		{simulation.questionOrder.map((questionId, index) => <ScriptsForQuestion key={questionId} simulation={simulation} question={simulation.questions[questionId]} index={index} variableId={variableId} />)}
 	</>
 }
 
-function ScriptsForQuestion({ simulation, question, index }) {
-	// If the question has no update scripts, don't show it.
-	if (!question.updateScript && (!question.options || !question.options.some(option => option.updateScript)))
+function VariableSelector({ simulation, variableId, setVariableId }) {
+	const noFilteringTag = 'noFiltering'
+	const expandedSetVariableId = useCallback((variableId) => setVariableId(variableId === noFilteringTag ? undefined : variableId), [setVariableId])
+	const label = 'Filtern nach Parameter'
+	return <FormPart>
+		<FormControl fullWidth>
+			<InputLabel>{label}</InputLabel>
+			<Select value={variableId || noFilteringTag} label={label} onChange={(event) => expandedSetVariableId(event.target.value)}>
+				<MenuItem key="default" value={noFilteringTag}>Keine Filterung: alle Skripte anzeigen</MenuItem>
+				{Object.values(simulation.variables).map(variable => <MenuItem key={variable.id} value={variable.id}>{variable.name || emptyVariableName}: {variable.title || emptyVariableTitle}</MenuItem>)}
+			</Select>
+		</FormControl>
+	</FormPart>
+}
+
+function GeneralScripts({ simulation, variableId }) {
+	// On a filtering, check if the script contains the given variable.
+	if (variableId && !containsVariable(simulation.updateScript, simulation.variables[variableId].name))
+		return
+
+	// All in order. Show the field.
+	return <>
+		<h4>Allgemeine Skripte</h4>
+		{simulation.updateScript ? <GeneralUpdateScript {...{ simulation }} /> : null}
+	</>
+}
+
+function ScriptsForQuestion({ simulation, question, index, variableId }) {
+	// If the question has no update scripts, or none that match the filtering condition, show nothing.
+	const variableName = variableId && simulation.variables[variableId].name
+	if (!shouldShowScript(question.updateScript, variableName) && (!question.options || !question.options.some(option => shouldShowScript(option.updateScript, variableName))))
 		return null
 
 	// Render the update scripts for this question.
 	return <>
 		<h4>Frage {index + 1}. {question.internalTitle || question.title || emptyQuestion}</h4>
-		{question.updateScript ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
-		{question.options.map((option, optionIndex) => option.updateScript ? <OptionUpdateScriptWithLabel key={optionIndex} {...{ simulation, question, optionIndex }} /> : null)}
+		{shouldShowScript(question.updateScript, variableName) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
+		{question.options.map((option, optionIndex) => shouldShowScript(option.updateScript, variableName) ? <OptionUpdateScriptWithLabel key={optionIndex} {...{ simulation, question, optionIndex }} /> : null)}
 	</>
 }
 
@@ -66,4 +101,18 @@ function OptionUpdateScriptWithLabel({ simulation, question, optionIndex }) {
 	const title = useClearTags(description.split('\n')[0] || emptyOption)
 	const label = `${numberToLetter(optionIndex).toUpperCase()}. ${title}`
 	return <OptionUpdateScript {...{ simulation, question, optionIndex, label }} />
+}
+
+// containsVariable checks if a given script contains a given variable name like 'hp' somewhere.
+function containsVariable(script, variableName) {
+	return esprima.tokenize(script).some(element => element.type === 'Identifier' && element.value === variableName)
+}
+
+// shouldShowScript checks if a script should be shown. It must exist and, if a filtering variable is given, it must contain that variable.
+function shouldShowScript(script, variableName) {
+	if (!script)
+		return false
+	if (!variableName)
+		return true
+	return containsVariable(script, variableName)
 }

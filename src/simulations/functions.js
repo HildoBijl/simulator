@@ -76,6 +76,7 @@ export async function removeOwnerFromSimulation(userId, simulationId) {
 	const questions = await getQuestions(simulationId)
 	await deleteMediaFile(simulation?.media) // Remove the main media file of the simulation.
 	await Promise.all(Object.values(questions).map(question => deleteMediaFile(question?.media))) // Remove all media files of the questions.
+	await deleteDocument('simulationInvitesPerSimulation', simulationId) // Remove the simulation invites document.
 	await deleteDocument('simulations', simulationId) // Remove the simulation document.
 }
 

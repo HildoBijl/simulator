@@ -7,7 +7,7 @@ import TextField from '@mui/material/TextField'
 import { getBaseUrl, useTrackedState } from 'util'
 import { useUserId } from 'fb'
 import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
-import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, registerSimulationInvite } from 'simulations'
+import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, registerSimulationInvite, useSimulationInvites } from 'simulations'
 
 export function Settings({ simulation }) {
 	return <>
@@ -69,7 +69,8 @@ function Ownership({ simulation }) {
 
 	// The registerInvite handler checks the input, and if it's OK, registers the invite.
 	const registerInvite = (event) => {
-		event.preventDefault() // Prevent page refresh.
+		// Prevent page refresh.
+		event.preventDefault()
 
 		// On a faulty email, remember the error.
 		if (!email.match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
@@ -84,6 +85,9 @@ function Ownership({ simulation }) {
 		setInvitedEmail(email)
 		setEmail('')
 	}
+
+	// Load existing invites. Not because we need them, but just to check it if there's zero, so we can remove the respective document from the database.
+	useSimulationInvites(simulation.id)
 
 	// Render the form part.
 	const theme = useTheme()

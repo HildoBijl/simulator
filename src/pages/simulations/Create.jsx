@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { styled } from '@mui/material/styles'
@@ -163,28 +163,28 @@ function InvitesOverview() {
   let invites = useUserInvites() // New invites.
   const simulationIds = useSimulationIds() // What is already owned.
 
-  // When the user already owns the simulation, remove it from the user's invite list.
-  useEffect(() => {
-    const alreadyOwnedInvites = invites && invites.filter(simulationId => simulationIds.includes(simulationId))
-    if (alreadyOwnedInvites && alreadyOwnedInvites.length > 0) {
-      alreadyOwnedInvites.forEach(simulationId => {
-        deleteSimulationInvite(simulationId, user.email)
-      })
-    }
-  }, [simulationIds, invites, user])
-
-  // Filter invites on already owned simulations. 
+  // On loading, or on missing invites, render nothing.
   if (!invites)
-    return // Loading or error.
-  invites = invites.filter(simulationId => !simulationIds.includes(simulationId))
-  if (invites.length === 0)
-    return
+    return null // Loading or error.
+
+  // When the user already owns a simulation, remove it from the user's invite list.
+  const alreadyOwnedInvites = invites.filter(simulationId => simulationIds.includes(simulationId))
+  if (alreadyOwnedInvites.length > 0) {
+    alreadyOwnedInvites.forEach(simulationId => {
+      deleteSimulationInvite(simulationId, user.email)
+    })
+  }
+
+  // Don't render invites to already owned simulations.
+  const filteredInvites = invites.filter(simulationId => !simulationIds.includes(simulationId))
+  if (filteredInvites.length === 0)
+    return null
 
   // Render the invites.
   return <>
     <h2>Einladungen zum Simulationsbesitz</h2>
     <Grid>
-      {invites.map(simulationId => <SimulationInvite key={simulationId} {...{ simulationId }} />)}
+      {filteredInvites.map(simulationId => <SimulationInvite key={simulationId} {...{ simulationId }} />)}
       {/* Empty row to get a bottom bar. */}
       <div className={clsx('title', 'row')}></div>
       <div className={clsx('url', 'row')}></div>
@@ -199,11 +199,8 @@ function SimulationInvite({ simulationId }) {
   let simulation = useSimulation(simulationId)
 
   // When the simulation has been removed, also remove it from the user's invite list.
-  useEffect(() => {
-    if (simulation === null) {
-      deleteSimulationInvite(simulationId, user.email)
-    }
-  }, [simulationId, simulation, user])
+  if (simulation === null)
+    deleteSimulationInvite(simulationId, user.email)
 
   // Render the simulation.
   if (!simulation)

@@ -1,8 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
-import { doc } from 'firebase/firestore'
-import { useDocumentData, useDocumentDataOnce } from 'react-firebase-hooks/firestore'
 
-import { db, useUserData, useUserId } from 'fb'
+import { useUserData, useUserId, useDocument } from 'fb'
 
 import { getSimulationByUrl } from './functions'
 import { useSimulationQuestions } from './questions'
@@ -19,18 +17,7 @@ export function useSimulationIds() {
 
 // useSimulationObject returns the raw simulation object from the database. It is not merged yet with other parameters, like the questions.
 export function useSimulationObject(id, once = false) {
-	// Load in all required data.
-	const useDocumentDataLoader = once ? useDocumentDataOnce : useDocumentData
-	const [simulation, simulationLoading] = useDocumentDataLoader(doc(db, 'simulations', id))
-
-	// Assemble the data, depending on the loading status.
-	return useMemo(() => {
-		if (simulationLoading)
-			return undefined // Sign of loading.
-		if (simulation)
-			return { id, ...simulation }
-		return null // Sign of an error.
-	}, [id, simulationLoading, simulation])
+	return useDocument('simulations', id, once)
 }
 
 // useSimulation gets a simulation with a specific ID.

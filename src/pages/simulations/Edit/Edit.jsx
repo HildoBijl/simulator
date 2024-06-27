@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
+import { useUserId } from 'fb'
 import { useSimulation } from 'simulations'
 import { Page, useTab } from 'components'
 
@@ -14,15 +15,16 @@ import { Events } from './events'
 const EditPage = ({ children, tabs }) => <Page title="Simulation bearbeiten" backButton="/create" tabs={tabs}>{children}</Page>
 
 export function Edit() {
+	const userId = useUserId()
 	const navigate = useNavigate()
 	const { simulationId } = useParams()
 	const simulation = useSimulation(simulationId)
 
-	// When the simulation is missing, go back to the create page.
+	// When the simulation is missing, or the user has no rights to it, go back to the create page.
 	useEffect(() => {
-		if (simulation === null)
+		if (simulation === null || (simulation && !simulation.owners.includes(userId)))
 			navigate('/create')
-	}, [simulation, navigate])
+	}, [simulation, userId, navigate])
 
 	// On missing data, we're probably still loading the simulation.
 	if (!simulation)

@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
 import { getBaseUrl } from 'util'
-import { useAuthData, useUserId, signInWithGoogleRedirect } from 'fb'
-import { useSimulationIds, createNewSimulation, useSimulation } from 'simulations'
+import { useAuthData, useUserId, signInWithGoogleRedirect, useUser } from 'fb'
+import { useSimulationIds, createNewSimulation, useSimulation, useUserInvites, deleteSimulationInvite, acceptSimulationInvite } from 'simulations'
 import { Page } from 'components'
 
 const CreatePage = ({ children }) => <Page title="Simulationsübersicht" showLogo={true}>{children}</Page>
@@ -46,6 +46,8 @@ const Grid = styled('div')({
     '@media (prefers-color-scheme: light)': {
       borderTop: '1px solid #cccccc',
     },
+  },
+  '& .clickable': {
     cursor: 'pointer',
   },
   '& .hovering': {
@@ -118,6 +120,7 @@ export function CreateAsUser() {
         {simulationIds.map(simulationId => <Simulation key={simulationId} id={simulationId} onClick={() => navigate(`/create/${simulationId}`)} hovering={hoverRow === simulationId} startHover={() => setHoverRow(simulationId)} endHover={() => setHoverRow()} />)}
         <NewSimulation />
       </Grid>
+      <InvitesOverview />
     </CreatePage>
   )
 }
@@ -131,10 +134,10 @@ function Simulation({ id, hovering, startHover, endHover, onClick }) {
   // Show a row for the simulation.
   const title = simulation.title || 'Unbekannter Titel'
   return <>
-    <div className={clsx('title', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{title}</div>
-    <div className={clsx('url', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.url ? <Link to={`${getBaseUrl()}/s/${simulation.url}`}>{simulation.url}</Link> : '-'}</div>
-    <div className={clsx('numPlayed', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numPlayed || 0}</div>
-    <div className={clsx('numFinished', 'row', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numFinished || 0}</div>
+    <div className={clsx('title', 'row', 'clickable', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{title}</div>
+    <div className={clsx('url', 'row', 'clickable', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.url ? <Link to={`${getBaseUrl()}/s/${simulation.url}`}>{simulation.url}</Link> : '-'}</div>
+    <div className={clsx('numPlayed', 'row', 'clickable', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numPlayed || 0}</div>
+    <div className={clsx('numFinished', 'row', 'clickable', { hovering })} onClick={onClick} onMouseOver={startHover} onMouseOut={endHover}>{simulation.numFinished || 0}</div>
   </>
 }
 
@@ -153,4 +156,63 @@ function NewSimulation() {
 
   // Render the button to add a new simulation.
   return <div className={clsx('newGame', { addingGame })} onClick={newGame}><span>+</span></div>
+}
+
+function InvitesOverview() {
+  const user = useUser()
+  let invites = useUserInvites() // New invites.
+  const simulationIds = useSimulationIds() // What is already owned.
+
+  // When the user already owns the simulation, remove it from the user's invite list.
+  useEffect(() => {
+    const alreadyOwnedInvites = invites && invites.filter(simulationId => simulationIds.includes(simulationId))
+    if (alreadyOwnedInvites && alreadyOwnedInvites.length > 0) {
+      alreadyOwnedInvites.forEach(simulationId => {
+        deleteSimulationInvite(simulationId, user.email)
+      })
+    }
+  }, [simulationIds, invites, user])
+
+  // Filter invites on already owned simulations. 
+  if (!invites)
+    return // Loading or error.
+  invites = invites.filter(simulationId => !simulationIds.includes(simulationId))
+  if (invites.length === 0)
+    return
+
+  // Render the invites.
+  return <>
+    <h2>Einladungen zum Simulationsbesitz</h2>
+    <Grid>
+      {invites.map(simulationId => <SimulationInvite key={simulationId} {...{ simulationId }} />)}
+      {/* Empty row to get a bottom bar. */}
+      <div className={clsx('title', 'row')}></div>
+      <div className={clsx('url', 'row')}></div>
+      <div className={clsx('numPlayed', 'row')}></div>
+      <div className={clsx('numFinished', 'row')}></div>
+    </Grid>
+  </>
+}
+
+function SimulationInvite({ simulationId }) {
+  const user = useUser()
+  let simulation = useSimulation(simulationId)
+
+  // When the simulation has been removed, also remove it from the user's invite list.
+  useEffect(() => {
+    if (simulation === null) {
+      deleteSimulationInvite(simulationId, user.email)
+    }
+  }, [simulationId, simulation, user])
+
+  // Render the simulation.
+  if (!simulation)
+    simulation = { title: 'Laden...' }
+  const title = simulation.title || 'Unbekannter Titel'
+  return <>
+    <div className={clsx('title', 'row')}>{title}</div>
+    <div className={clsx('url', 'row')}>{simulation.url ? <Link to={`${getBaseUrl()}/s/${simulation.url}`}>{simulation.url}</Link> : '-'}</div>
+    <div className={clsx('numPlayed', 'row')}><Link onClick={() => acceptSimulationInvite(simulationId, user)}>Akzeptieren</Link></div>
+    <div className={clsx('numFinished', 'row')}><Link onClick={() => deleteSimulationInvite(simulationId, user?.email)}>Löschen</Link></div>
+  </>
 }

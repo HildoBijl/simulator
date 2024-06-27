@@ -1,4 +1,4 @@
-import { collection, doc, query, where, getDocs, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore'
+import { collection, query, where, getDocs, arrayUnion, arrayRemove, increment } from 'firebase/firestore'
 
 import { db, getUserData, addDocument, getDocument, updateDocument, deleteDocument, deleteMediaFile } from 'fb'
 
@@ -10,8 +10,8 @@ export async function getUserSimulationIds(userId) {
 
 // getSimulation takes a simulationId and retrieves the given (raw) simulation object.
 export async function getSimulation(simulationId) {
-	const simulationDoc = getDocument('simulations', simulationId)
-	return simulationDoc.exists() ? simulationDoc.data() : undefined
+	const simulationDoc = await getDocument('simulations', simulationId)
+	return simulationDoc && simulationDoc.exists() ? simulationDoc.data() : undefined
 }
 
 // getSimulationByUrl takes a URL and retrieves the given (raw) simulation object, or undefined when it does not exist.
@@ -44,6 +44,11 @@ export async function addSimulationToUserData(userId, simulationId) {
 	await updateDocument('userData', userId, { simulations: arrayUnion(simulationId) }, true)
 }
 
+// addOwnerToSimulation will add a given userId as owner to the simulation.
+export async function addOwnerToSimulation(userId, simulationId) {
+	await updateSimulation(simulationId, { owners: arrayUnion(userId) })
+}
+
 // removeSimulationFromUserData removes a simulation ID from the simulations that a user owns. It changes the userData, but not the simulation.
 export async function removeSimulationFromUserData(userId, simulationId) {
 	return await updateDocument('userData', userId, { simulations: arrayRemove(simulationId) })
@@ -60,10 +65,11 @@ export async function removeOwnerFromSimulation(userId, simulationId) {
 
 	// Upon multiple owners, remove the owner from the simulation.
 	if (simulation.owners.length > 1)
-		return await updateDoc(doc(db, 'simulations', simulationId), { owners: arrayRemove(userId) })
+		return await updateDocument('simulations', simulationId, { owners: arrayRemove(userId) })
 
 	// When this is the last owner, remove the simulation.
 	await deleteMediaFile(simulation?.media)
+	// ToDo: remove all the media files from the questions too.
 	await deleteDocument(db, 'simulations', simulationId)
 }
 
@@ -75,7 +81,7 @@ export async function removeUserFromAllSimulations(userId) {
 
 // unlinkUserFromSimulation will remove both the user from a simulation and remove the simulation from the userData.
 export async function unlinkUserFromSimulation(userId, simulationId) {
-	await Promise.all([removeOwnerFromSimulation(userId, simulationId), removeSimulationFromUserData(userId, simulationId)])
+	return await Promise.all([removeOwnerFromSimulation(userId, simulationId), removeSimulationFromUserData(userId, simulationId)])
 }
 
 // updateSimulation will update certain values for a simulation with a given ID.

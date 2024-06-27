@@ -20,8 +20,8 @@ export function useSimulationIds() {
 // useSimulationObject returns the raw simulation object from the database. It is not merged yet with other parameters, like the questions.
 export function useSimulationObject(id, once = false) {
 	// Load in all required data.
-	const useCollectionDataLoader = once ? useDocumentDataOnce : useDocumentData
-	const [simulation, simulationLoading] = useCollectionDataLoader(doc(db, 'simulations', id))
+	const useDocumentDataLoader = once ? useDocumentDataOnce : useDocumentData
+	const [simulation, simulationLoading] = useDocumentDataLoader(doc(db, 'simulations', id))
 
 	// Assemble the data, depending on the loading status.
 	return useMemo(() => {

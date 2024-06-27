@@ -1,6 +1,6 @@
 import { collection, query, where, getDocs, arrayUnion, arrayRemove, increment } from 'firebase/firestore'
 
-import { db, getUserData, addDocument, getDocument, updateDocument, deleteDocument, deleteMediaFile } from 'fb'
+import { db, getUserData, addDocument, getDocument, getCollection, updateDocument, deleteDocument, deleteMediaFile } from 'fb'
 
 // getUserSimulationIds takes a userId and returns all simultion IDs for that user.
 export async function getUserSimulationIds(userId) {
@@ -12,6 +12,11 @@ export async function getUserSimulationIds(userId) {
 export async function getSimulation(simulationId) {
 	const simulationDoc = await getDocument('simulations', simulationId)
 	return simulationDoc && simulationDoc.exists() ? simulationDoc.data() : undefined
+}
+
+// getQuestions gets all the questions for a simulation with a given simulationId.
+export async function getQuestions(simulationId) {
+	return await getCollection(`simulations/${simulationId}/questions`)
 }
 
 // getSimulationByUrl takes a URL and retrieves the given (raw) simulation object, or undefined when it does not exist.
@@ -68,9 +73,10 @@ export async function removeOwnerFromSimulation(userId, simulationId) {
 		return await updateDocument('simulations', simulationId, { owners: arrayRemove(userId) })
 
 	// When this is the last owner, remove the simulation.
-	await deleteMediaFile(simulation?.media)
-	// ToDo: remove all the media files from the questions too.
-	await deleteDocument(db, 'simulations', simulationId)
+	const questions = await getQuestions(simulationId)
+	await deleteMediaFile(simulation?.media) // Remove the main media file of the simulation.
+	await Promise.all(Object.values(questions).map(question => deleteMediaFile(question?.media))) // Remove all media files of the questions.
+	await deleteDocument('simulations', simulationId) // Remove the simulation document.
 }
 
 // removeUserFromAllSimulations removes a user as owner from all the simulation he/she is the owner of.

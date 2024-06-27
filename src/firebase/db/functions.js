@@ -1,4 +1,4 @@
-import { collection, doc, addDoc, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { collection, doc, addDoc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from 'firebase/firestore'
 
 import { db } from './initialization'
 
@@ -15,6 +15,12 @@ export async function addDocument(path, data) {
 // getDocument reads a document from the database.
 export async function getDocument(path, id) {
 	return await getDoc(doc(db, path, id))
+}
+
+// getCollection reads an entire collection from the database.
+export async function getCollection(path) {
+	const snapshot = await getDocs(collection(db, path))
+	return getDocuments(snapshot)
 }
 
 // updateDocument runs an update on a document with a given path and given ID.

@@ -1,6 +1,53 @@
 import { useRef, forwardRef } from 'react'
 import { deleteField } from 'firebase/firestore'
 import { useTheme } from '@mui/material/styles'
+
+// Main TinyMCE packages.
+import 'tinymce/tinymce' // Main file.
+import 'tinymce/models/dom/model' // DOM model.
+import 'tinymce/themes/silver' // Theme used.
+import 'tinymce/icons/default' // Toolbar icons.
+import 'tinymce/skins/ui/oxide/skin' // Skins used.
+
+// Plugins used.
+import 'tinymce/plugins/advlist'
+import 'tinymce/plugins/anchor'
+import 'tinymce/plugins/autolink'
+// import 'tinymce/plugins/autoresize'
+// import 'tinymce/plugins/autosave'
+import 'tinymce/plugins/charmap'
+import 'tinymce/plugins/code'
+// import 'tinymce/plugins/codesample'
+// import 'tinymce/plugins/directionality'
+import 'tinymce/plugins/emoticons'
+import 'tinymce/plugins/fullscreen'
+import 'tinymce/plugins/help'
+// import 'tinymce/plugins/help/js/i18n/keynav/en'
+import 'tinymce/plugins/image'
+// import 'tinymce/plugins/importcss'
+import 'tinymce/plugins/insertdatetime'
+import 'tinymce/plugins/link'
+import 'tinymce/plugins/lists'
+import 'tinymce/plugins/media'
+// import 'tinymce/plugins/nonbreaking'
+// import 'tinymce/plugins/pagebreak'
+import 'tinymce/plugins/preview'
+// import 'tinymce/plugins/quickbars'
+// import 'tinymce/plugins/save'
+import 'tinymce/plugins/searchreplace'
+import 'tinymce/plugins/table'
+import 'tinymce/plugins/visualblocks'
+// import 'tinymce/plugins/visualchars'
+import 'tinymce/plugins/wordcount'
+
+// Plug-in resources.
+import 'tinymce/plugins/emoticons/js/emojis'
+
+// Content styles, including inline UI like fake cursors.
+import 'tinymce/skins/content/default/content'
+import 'tinymce/skins/ui/oxide/content'
+
+// The React editor to easily show and process TinyMCE.
 import { Editor } from '@tinymce/tinymce-react'
 
 import { useTrackedState } from 'util'
@@ -38,13 +85,13 @@ export const MCE = forwardRef(function MCE({ label, path, documentId, field, val
 	return <>
 		{label ? <Label>{label}</Label> : null}
 		<Editor
-			apiKey='56c0p923nd9uycn3lw34hev6ynpwns1a0yl5kdknwshkrocq'
+			licenseKey="gpl"
 			onInit={(_event, editor) => actualRef.current = editor}
 			value={value || ''}
 			init={{
 				height: height === undefined ? 250 : height,
 				menubar: false,
-				plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'link', 'image', 'table', 'emoticons', 'code', 'media'],
+				plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'emoticons'],
 				toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link unlink | image media table emoticons | code removeformat | help',
 				content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
 				...(theme.palette.mode === 'dark' ? { skin: 'oxide-dark', content_css: 'dark' } : {}),

@@ -2,7 +2,7 @@ import { useRef, forwardRef } from 'react'
 import { deleteField } from 'firebase/firestore'
 import { useTheme } from '@mui/material/styles'
 
-// Main TinyMCE packages.
+// Main TinyMCE packages. See https://www.tiny.cloud/docs/tinymce/latest/react-pm-bundle/ for documentation.
 import 'tinymce/tinymce' // Main file.
 import 'tinymce/models/dom/model' // DOM model.
 import 'tinymce/themes/silver' // Theme used.

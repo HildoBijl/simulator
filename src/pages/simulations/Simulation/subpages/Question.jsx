@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useTheme, darken } from '@mui/material/styles'
 import Button from '@mui/material/Button'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 
 import { numberToLetter } from 'util'
 import { Page, InputParagraph, Media, MCEContents } from 'components'
 import { useIsOwner } from 'simulations'
 
-import { emptyOption } from '../../settings'
+import { emptyQuestion, emptyOption } from '../../settings'
 
 import { VariableOverview } from '../components/VariableOverview'
 
-export function Question({ simulation, state, chooseOption, goToNextQuestion, reset }) {
+export function Question({ simulation, state, chooseOption, goToNextQuestion, jumpToQuestion, reset }) {
 	const isOwner = useIsOwner(simulation)
 	const { questionId, choice } = state
 
@@ -43,7 +47,7 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion, re
 		</>}
 		{options.length === 0 || choice !== undefined ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion(isOwner)}>Weiter</Button> : null}
 		<VariableOverview {...{ simulation, state }} />
-		<ResetButton {...{ simulation, reset }} />
+		<AdminTool {...{ simulation, state, jumpToQuestion, reset }} />
 	</Page>
 }
 
@@ -105,9 +109,25 @@ function Option({ option, index, selected, select, deselect, disabled, feedback 
 	</>
 }
 
-function ResetButton({ simulation, reset }) {
+function AdminTool({ simulation, state, jumpToQuestion, reset }) {
 	const isOwner = useIsOwner(simulation)
 	if (!isOwner)
-		return null // Only show the reset button for owners.
-	return <Button variant="contained" sx={{ margin: '1rem 0 0 0' }} onClick={() => reset(isOwner)}>Simulation neu starten</Button>
+		return null // Only show the tool for owners.
+	return <>
+		<h4>Ersteller-Tools</h4>
+		<JumpDropDown {...{ simulation, state, jumpToQuestion }} />
+		<Button variant="contained" sx={{ margin: '1rem 0 0 0' }} onClick={() => reset(isOwner)}>Simulation neu starten</Button>
+	</>
+}
+
+function JumpDropDown({ simulation, state, jumpToQuestion }) {
+	const label = 'Zur Frage springen'
+	const value = state.questionId
+	return <FormControl fullWidth>
+		<InputLabel>{label}</InputLabel>
+		<Select value={value} label={label} onChange={(event) => jumpToQuestion(event.target.value)}>
+			{simulation.questionList.map((question, index) => <MenuItem key={question.id} value={question.id}>{index + 1}. {question.title || emptyQuestion}</MenuItem>)}
+			<MenuItem key="end" value="end">Ende: die Simulation beenden</MenuItem>
+		</Select>
+	</FormControl>
 }

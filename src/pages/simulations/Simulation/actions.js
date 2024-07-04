@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { selectRandomly } from 'util'
+import { selectRandomly, removeKeys } from 'util'
 import { incrementSimulationField } from 'simulations'
 
 import { defaultAfterwards } from '../settings'
@@ -156,6 +156,16 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		})
 	}, [simulation, setHistory, setError])
 
+	// jumpToQuestion is a function that allows to jump to any question. It's used for admin control. It hard-overwrites the questionId, either as the next question if a choice has been made, or as the current question if no choice has been made.
+	const jumpToQuestion = useCallback((questionId) => {
+		setHistory(history => {
+			const state = getState(history)
+			if (state.choice === undefined)
+				return [...history.slice(0, -1), { ...state, questionId }]
+			return [...history, removeKeys({ ...state, questionId }, 'choice')]
+		})
+	}, [setHistory])
+
 	// All actions are ready!
-	return { reset, start, chooseOption, goToNextQuestion }
+	return { reset, start, chooseOption, goToNextQuestion, jumpToQuestion }
 }

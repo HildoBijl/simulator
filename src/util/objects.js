@@ -25,3 +25,17 @@ export function arrayFind(array, func) {
 	}
 	return undefined
 }
+
+// removeKeys takes an object and removes certain keys from it. It always returns a clone.
+export function removeKeys(obj, keysToRemove) {
+	// Turn the keysToRemove into an array if it's not already.
+	if (!Array.isArray(keysToRemove))
+		keysToRemove = [keysToRemove]
+
+	// Set up a clone and remove the respective keys.
+	const clone = { ...obj }
+	keysToRemove.forEach(key => {
+		delete clone[key]
+	})
+	return clone
+}

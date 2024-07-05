@@ -16,7 +16,7 @@ export function VariableOverview({ simulation, state, showHidden = false }) {
 	return <div style={{ display: 'flex', flexFlow: 'row wrap' }}>
 		{Object.values(variables)
 			.sort((a, b) => a.title < b.title ? -1 : 1)
-			.map(variable => <Variable key={variable.id} variable={variable} value={state.variables[variable.id]} />)}
+			.map(variable => <Variable key={variable.id} variable={variable} value={(state.variables || [])[variable.id]} />)}
 	</div>
 }
 

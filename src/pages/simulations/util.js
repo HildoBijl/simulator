@@ -42,7 +42,7 @@ export function getInitialVariables(simulation) {
 }
 
 // switchVariableNames takes an object with variables and switches the keys. For instance, it may be of the form { [id1]: 3, [id2]: 5 } and switches it to { x: 3, y: 5 } or vice versa. By default it goes from IDs to names, but this can be reversed by adding true as third parameter. If a simulation variable is missing, it'll be added automatically through its initial value.
-export function switchVariableNames(variables, simulation, toIds = false) {
+export function switchVariableNames(variables = {}, simulation, toIds = false) {
 	const result = {}
 	Object.values(simulation.variables).forEach(variable => {
 		const value = variables[variable[toIds ? 'name' : 'id']]

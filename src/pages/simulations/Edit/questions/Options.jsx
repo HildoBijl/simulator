@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -50,6 +51,7 @@ export function Options({ simulation, question, index: questionIndex }) {
 				</AccordionSummary>
 			</Accordion> : null}
 		</div>
+		{options.length === 0 ? <Alert severity="info" sx={{ mt: 1 }}>Hinweis: Eine Frage ohne Antwortmöglichkeiten ist einfach eine Zwischenseite. Sie können diese verwenden, um einige Informationen anzuzeigen, nach denen der Nutzer fortfahren kann.</Alert> : null}
 	</>
 }
 

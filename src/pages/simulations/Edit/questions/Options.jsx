@@ -93,19 +93,21 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 			<span style={{ marginRight: '0.75rem' }}>{numberToLetter(optionIndex).toUpperCase()}.</span>{title}
 		</AccordionSummary>
-		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
-			<FormPart>
-				<MCE ref={descriptionRef} label="Beschreibung" height="150" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" />
-			</FormPart>
-			<FormPart>
-				<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
-			</FormPart>
-			<FollowUpDropdown {...{ simulation, question, questionIndex, optionIndex }} />
-			{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, question, optionIndex }} /> : null}
-		</AccordionDetails>
-		<AccordionActions key="actions">
-			<Button onClick={() => updateQuestion(simulation.id, question.id, { options: arrayRemove(option) })}>Löschen</Button>
-		</AccordionActions>
+		{expanded ? <>
+			<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
+				<FormPart>
+					<MCE ref={descriptionRef} label="Beschreibung" height="150" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" />
+				</FormPart>
+				<FormPart>
+					<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
+				</FormPart>
+				<FollowUpDropdown {...{ simulation, question, questionIndex, optionIndex }} />
+				{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, question, optionIndex }} /> : null}
+			</AccordionDetails>
+			<AccordionActions key="actions">
+				<Button onClick={() => updateQuestion(simulation.id, question.id, { options: arrayRemove(option) })}>Löschen</Button>
+			</AccordionActions>
+		</> : null}
 	</Accordion>
 }
 

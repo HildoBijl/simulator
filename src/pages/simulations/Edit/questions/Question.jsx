@@ -17,27 +17,30 @@ import { emptyQuestion, accordionStyle } from '../../settings'
 import { Options } from './Options'
 
 export function Question({ simulation, question, index, expanded, flipExpand }) {
+	// Only render contents when expanded, to speed up rendering time.
 	return <Accordion sx={accordionStyle} expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 			<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span> {question.internalTitle || question.title || emptyQuestion}
 		</AccordionSummary>
-		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
-			<FormPart>
-				<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
-			</FormPart>
-			<FormPart>
-				<TrackedTextField label="Interner Titel (für Benutzer nicht sichtbar)" value={question.internalTitle} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="internalTitle" />
-			</FormPart>
-			<FormPart>
-				<MCE label="Beschreibung" height="225" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" />
-			</FormPart>
-			<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
-			<Options {...{ simulation, question, index }} />
-			<OrderDropdown {...{ simulation, question, index }} />
-		</AccordionDetails>
-		<AccordionActions key="actions">
-			<Button onClick={() => deleteQuestion(simulation, question)}>Löschen</Button>
-		</AccordionActions>
+		{expanded ? <>
+			<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
+				<FormPart>
+					<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
+				</FormPart>
+				<FormPart>
+					<TrackedTextField label="Interner Titel (für Benutzer nicht sichtbar)" value={question.internalTitle} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="internalTitle" />
+				</FormPart>
+				<FormPart>
+					<MCE label="Beschreibung" height="225" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" />
+				</FormPart>
+				<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
+				<Options {...{ simulation, question, index }} />
+				<OrderDropdown {...{ simulation, question, index }} />
+			</AccordionDetails>
+			<AccordionActions key="actions">
+				<Button onClick={() => deleteQuestion(simulation, question)}>Löschen</Button>
+			</AccordionActions>
+		</> : null}
 	</Accordion>
 }
 

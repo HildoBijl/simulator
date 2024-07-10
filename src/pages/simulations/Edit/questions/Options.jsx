@@ -80,7 +80,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 	const descriptionRef = useRef()
 	useEffect(() => {
 		const field = descriptionRef.current
-		if (expanded && field) {
+		if (expanded && field && field.selection) {
 			field.focus() // Put the cursor in the field.
 			field.selection.select(field.getBody(), true) // Select the entire contents.
 			field.selection.collapse(false) // Unselect entire contents. The effect is that the cursor will be at the end.

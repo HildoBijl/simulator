@@ -56,7 +56,6 @@ import { updateDocument } from 'fb'
 import { Label } from './containers'
 
 export const MCE = forwardRef(function MCE({ label, path, documentId, field, value: givenValue, arrayValue = [], arrayIndex, arrayField, process, processSaveValue, height }, ref) {
-	const theme = useTheme()
 	const editorRef = useRef(null)
 	const actualRef = (ref || editorRef) // Ensure that there's a ref, even if one is not given.
 

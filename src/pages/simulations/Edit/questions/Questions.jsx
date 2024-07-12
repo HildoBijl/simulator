@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
+import { useTheme } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
+import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
 import { FormPart, Label } from 'components'
 import { updateSimulation, getQuestionRef } from 'simulations'
@@ -15,6 +17,8 @@ import { emptyQuestion, accordionStyle } from '../../settings'
 import { Question } from './Question'
 
 export function Questions({ simulation }) {
+	const theme = useTheme()
+
 	// Set up manual expansion controls.
 	const [expanded, setExpanded] = useState({})
 	const flipExpand = (id) => setExpanded(expanded => ({ ...expanded, [id]: !expanded[id] }))
@@ -27,6 +31,21 @@ export function Questions({ simulation }) {
 		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id), startingQuestion: simulation.startingQuestion || ref.id })
 	}
 
+	// Set up a handler for drags.
+	const onDragEnd = async ({ source, destination, draggableId }) => {
+		// Double-check the input to ensure that the dragged item is the source.
+		const from = source.index, to = destination.index
+		if (from === to)
+			return
+		if (simulation.questionOrder[source.index] !== draggableId)
+			return
+
+		// Determine and set the new order.
+		const oldOrder = simulation.questionOrder
+		const newOrder = from < to ? [...oldOrder.slice(0, from), ...oldOrder.slice(from + 1, to + 1), oldOrder[from], ...oldOrder.slice(to + 1)] : [...oldOrder.slice(0, to), oldOrder[from], ...oldOrder.slice(to, from), ...oldOrder.slice(from + 1)]
+		await updateSimulation(simulation.id, { questionOrder: newOrder })
+	}
+
 	// Render the questions through an Accordion.
 	return <>
 		<FormPart>
@@ -34,12 +53,24 @@ export function Questions({ simulation }) {
 		</FormPart>
 		<FormPart>
 			<Label>Fragen</Label>
-			{simulation.questionList.map((question, index) => <Question key={question.id} {...{ simulation, question, index, expanded: !!expanded[question.id], flipExpand: () => flipExpand(question.id) }} />)}
-			<Accordion sx={accordionStyle} onClick={addQuestion} expanded={false}>
-				<AccordionSummary>
-					<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
-				</AccordionSummary>
-			</Accordion>
+			<DragDropContext onDragEnd={onDragEnd}>
+				<Droppable droppableId="questions">{(provided, snapshot) => (
+					<div
+						ref={provided.innerRef}
+						{...provided.droppableProps}
+						style={{
+							...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}),
+						}}>
+						{simulation.questionList.map((question, index) => <Question key={question.id} {...{ simulation, question, index, expanded: !!expanded[question.id], flipExpand: () => flipExpand(question.id) }} />)}
+						{provided.placeholder}
+						<Accordion sx={accordionStyle} onClick={addQuestion} expanded={false}>
+							<AccordionSummary>
+								<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
+							</AccordionSummary>
+						</Accordion>
+					</div>
+				)}</Droppable>
+			</DragDropContext>
 		</FormPart>
 	</>
 }

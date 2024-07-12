@@ -65,7 +65,7 @@ function List({ list, onDragEnd, dragListStyle = {}, ...props }) {
 }
 
 function Item({ index, item, dragItemStyle, children }) {
-  return <Draggable key={`ID${item.id}`} index={index} draggableId={item.id.toString() + 'id'}>
+  return <Draggable key={item.id} index={index} draggableId={item.id.toString()}>
     {(provided, snapshot) => (
       <div
         ref={provided.innerRef}

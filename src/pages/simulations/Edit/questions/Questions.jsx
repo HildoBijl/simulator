@@ -31,19 +31,20 @@ export function Questions({ simulation }) {
 		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id), startingQuestion: simulation.startingQuestion || ref.id })
 	}
 
-	// Set up a handler for drags.
-	const onDragEnd = async ({ source, destination, draggableId }) => {
-		// Double-check the input to ensure that the dragged item is the source.
-		const from = source.index, to = destination.index
-		if (from === to)
+	// On a drag update, maintain an adjusted question list.
+	const [draggingQuestionList, setDraggingQuestionList] = useState()
+	const onDragUpdate = (dragData) => {
+		if (!isDragDataValid(dragData, simulation))
 			return
-		if (simulation.questionOrder[source.index] !== draggableId)
-			return
+		setDraggingQuestionList(getNewQuestionOrder(dragData, simulation))
+	}
 
-		// Determine and set the new order.
-		const oldOrder = simulation.questionOrder
-		const newOrder = from < to ? [...oldOrder.slice(0, from), ...oldOrder.slice(from + 1, to + 1), oldOrder[from], ...oldOrder.slice(to + 1)] : [...oldOrder.slice(0, to), oldOrder[from], ...oldOrder.slice(to, from), ...oldOrder.slice(from + 1)]
-		await updateSimulation(simulation.id, { questionOrder: newOrder })
+	// Set up a handler for drags.
+	const onDragEnd = async (dragData) => {
+		if (!isDragDataValid(dragData, simulation))
+			return
+		setDraggingQuestionList()
+		return await updateSimulation(simulation.id, { questionOrder: getNewQuestionOrder(dragData, simulation) })
 	}
 
 	// Render the questions through an Accordion.
@@ -53,7 +54,7 @@ export function Questions({ simulation }) {
 		</FormPart>
 		<FormPart>
 			<Label>Fragen</Label>
-			<DragDropContext onDragEnd={onDragEnd}>
+			<DragDropContext onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
 				<Droppable droppableId="questions">{(provided, snapshot) => (
 					<div
 						ref={provided.innerRef}
@@ -61,7 +62,7 @@ export function Questions({ simulation }) {
 						style={{
 							...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}),
 						}}>
-						{simulation.questionList.map((question, index) => <Question key={question.id} {...{ simulation, question, index, expanded: !!expanded[question.id], flipExpand: () => flipExpand(question.id) }} />)}
+						{simulation.questionList.map((question, index) => <Question key={question.id} {...{ simulation, question, index: draggingQuestionList && draggingQuestionList.indexOf(question.id) !== -1 ? draggingQuestionList.indexOf(question.id) : index, expanded: !!expanded[question.id], flipExpand: () => flipExpand(question.id) }} />)}
 						{provided.placeholder}
 						<Accordion sx={accordionStyle} onClick={addQuestion} expanded={false}>
 							<AccordionSummary>
@@ -93,4 +94,25 @@ function StartingQuestion({ simulation }) {
 			</Select>
 		</FormControl>
 	</FormPart>
+}
+
+function isDragDataValid(dragData, simulation) {
+	const { draggableId, source, destination } = dragData
+	if (!destination)
+		return false
+	if (simulation.questionOrder[source.index] !== draggableId)
+		return false
+	return true
+}
+
+function getNewQuestionOrder(dragData, simulation) {
+	const { source, destination } = dragData
+	const from = source.index, to = destination.index
+	if (from === to)
+		return
+
+	// Determine and set the new order.
+	const oldOrder = simulation.questionOrder
+	const newOrder = from < to ? [...oldOrder.slice(0, from), ...oldOrder.slice(from + 1, to + 1), oldOrder[from], ...oldOrder.slice(to + 1)] : [...oldOrder.slice(0, to), oldOrder[from], ...oldOrder.slice(to, from), ...oldOrder.slice(from + 1)]
+	return newOrder
 }

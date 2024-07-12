@@ -7,7 +7,7 @@ import 'tinymce/tinymce' // Main file.
 import 'tinymce/models/dom/model' // DOM model.
 import 'tinymce/themes/silver' // Theme used.
 import 'tinymce/icons/default' // Toolbar icons.
-import 'tinymce/skins/ui/oxide/skin' // Skins used.
+import 'tinymce/skins/ui/oxide/skin' // Skin used.
 
 // Plugins used.
 import 'tinymce/plugins/advlist'
@@ -94,7 +94,6 @@ export const MCE = forwardRef(function MCE({ label, path, documentId, field, val
 				plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'emoticons'],
 				toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link unlink | image media table emoticons | code removeformat | help',
 				content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-				...(theme.palette.mode === 'dark' ? { skin: 'oxide-dark', content_css: 'dark' } : {}),
 			}}
 			onEditorChange={handleChange}
 		/>

@@ -5,7 +5,7 @@ import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
+import { DragIndicator, Help, Info } from '@mui/icons-material'
 import { Draggable } from '@hello-pangea/dnd'
 
 import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
@@ -16,6 +16,7 @@ import { emptyQuestion, accordionStyle } from '../../settings'
 import { Options } from './Options'
 
 export function Question({ simulation, question, index, expanded, flipExpand }) {
+	const Icon = question.options ? Help : Info
 	const theme = useTheme()
 	return <Draggable key={question.id} index={index} draggableId={question.id}>
 		{(provided, snapshot) =>
@@ -32,8 +33,9 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 			>
 				<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 					<span {...provided.dragHandleProps}>
-						<DragIndicatorIcon sx={{ ml: -1, mr: 1, cursor: 'grab' }} />
+						<DragIndicator sx={{ ml: -1, mr: 1, cursor: 'grab' }} />
 					</span>
+					<Icon sx={{ ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
 					<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span>
 					{question.internalTitle || question.title || emptyQuestion}
 				</AccordionSummary>

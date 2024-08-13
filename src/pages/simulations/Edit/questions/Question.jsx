@@ -52,7 +52,7 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 						<Options {...{ simulation, question, index }} />
 					</AccordionDetails>
 					<AccordionActions key="actions">
-						<Button onClick={() => deleteQuestion(simulation, question)}>Löschen</Button>
+						<Button sx={{ mt: 2 }} onClick={() => deleteQuestion(simulation, question)}>Frage löschen</Button>
 					</AccordionActions>
 				</> : null}
 			</Accordion>}

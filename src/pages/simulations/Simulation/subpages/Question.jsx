@@ -34,6 +34,10 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion, ju
 		goToNextQuestion(isOwner) // No reason found not to: let's auto-continue!
 	}, [question, choice, goToNextQuestion, isOwner])
 
+	// Check what kind of button to show.
+	const showRestartButton = options.length === 0 && question.followUpQuestion === 'end'
+	const showNextButton = !showRestartButton && (options.length === 0 || choice !== undefined)
+
 	// Render the question with description, media, options and buttons.
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'}>
 		<MCEContents>{question.description}</MCEContents>
@@ -45,7 +49,8 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion, ju
 					<Option key={index} {...{ simulation, question, option, index, selected: false, select: () => chooseOption(index, isOwner) }} />)}
 			</div>
 		</>}
-		{options.length === 0 || choice !== undefined ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion(isOwner)}>Weiter</Button> : null}
+		{showRestartButton ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => reset(isOwner)}>Neu starten</Button> : null}
+		{showNextButton ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion(isOwner)}>Weiter</Button> : null}
 		<VariableOverview {...{ simulation, state }} />
 		<AdminTool {...{ simulation, state, jumpToQuestion, reset }} />
 	</Page>
@@ -116,7 +121,7 @@ function AdminTool({ simulation, state, jumpToQuestion, reset }) {
 	return <>
 		<h4>Ersteller-Tools</h4>
 		<JumpDropDown {...{ simulation, state, jumpToQuestion }} />
-		<Button variant="contained" sx={{ margin: '1rem 0 0 0' }} onClick={() => reset(isOwner)}>Simulation neu starten</Button>
+		<Button variant="contained" sx={{ margin: '1rem 0 0 0' }} onClick={() => reset(isOwner)}>Neu starten</Button>
 	</>
 }
 
@@ -127,7 +132,7 @@ function JumpDropDown({ simulation, state, jumpToQuestion }) {
 		<InputLabel>{label}</InputLabel>
 		<Select value={value} label={label} onChange={(event) => jumpToQuestion(event.target.value)}>
 			{simulation.questionList.map((question, index) => <MenuItem key={question.id} value={question.id}>{index + 1}. {question.title || emptyQuestion}</MenuItem>)}
-			<MenuItem key="end" value="end">Ende: die Simulation beenden</MenuItem>
+			<MenuItem key="end" value="end">Ende: den Durchlauf beenden</MenuItem>
 		</Select>
 	</FormControl>
 }

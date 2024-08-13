@@ -51,7 +51,7 @@ export function Options({ simulation, question, index: questionIndex }) {
 				</AccordionSummary>
 			</Accordion> : null}
 		</div>
-		{options.length === 0 ? <Alert severity="info" sx={{ mt: 1 }}>Hinweis: Eine Frage ohne Antwortmöglichkeiten ist einfach eine Zwischenseite. Sie können diese verwenden, um einige Informationen anzuzeigen, nach denen der Nutzer fortfahren kann. Sie können damit auch eine maßgeschneiderte Endseite erstellen.</Alert> : null}
+		{options.length === 0 ? <Alert severity="info" sx={{ mt: 1 }}>Hinweis: Eine Frage ohne Antwortmöglichkeiten ist einfach eine Infoseite. Sie können diese verwenden, um einige Informationen anzuzeigen, nach denen der Nutzer fortfahren kann. Oder Sie können damit auch eine maßgeschneiderte Endseite erstellen.</Alert> : null}
 	</>
 }
 

@@ -109,7 +109,7 @@ function getNewQuestionOrder(dragData, simulation) {
 	const { source, destination } = dragData
 	const from = source.index, to = destination.index
 	if (from === to)
-		return
+		return simulation.questionOrder
 
 	// Determine and set the new order.
 	const oldOrder = simulation.questionOrder

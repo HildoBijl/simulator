@@ -16,8 +16,13 @@ import { emptyQuestion, accordionStyle } from '../../settings'
 import { Options } from './Options'
 
 export function Question({ simulation, question, index, expanded, flipExpand }) {
-	const Icon = question.options ? Help : Info
 	const theme = useTheme()
+
+	// Determine the icon for this question.
+	const Icon = question.options ? Help : Info
+	const iconColor = question.options ? theme.palette.primary.main : theme.palette.info.main
+
+	// Render the question.
 	return <Draggable key={question.id} index={index} draggableId={question.id}>
 		{(provided, snapshot) =>
 			<Accordion
@@ -35,7 +40,7 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 					<span {...provided.dragHandleProps}>
 						<DragIndicator sx={{ ml: -1, mr: 1, cursor: 'grab' }} />
 					</span>
-					<Icon sx={{ ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
+					<Icon sx={{ color: iconColor, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
 					<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span>
 					{question.internalTitle || question.title || emptyQuestion}
 				</AccordionSummary>

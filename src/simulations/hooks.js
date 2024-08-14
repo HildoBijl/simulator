@@ -36,7 +36,7 @@ export function useSimulation(id, once = false) {
 			return {
 				...simulation,
 				questions,
-				questionList: (simulation.questionOrder || []).map(questionId => questions[questionId]),
+				questionList: (simulation.questionOrder || []).map(questionId => getQuestionOrFolder(questionId, questions)),
 				variables,
 				events,
 			}
@@ -67,4 +67,24 @@ export function useSimulationIdFromUrl(url) {
 export function useIsOwner(simulation) {
 	const userId = useUserId()
 	return simulation?.owners && simulation.owners.includes(userId)
+}
+
+// getQuestionOrFolder takes an element from a questionOrder array and returns the respective question or folder.
+function getQuestionOrFolder(questionId, questions) {
+	const question = questions[questionId]
+
+	// On a folder, process the contents.
+	if (question.type === 'folder') {
+		return {
+			...question,
+			questionList: (question.contents || []).map(questionId => getQuestionOrFolder(questionId, questions)),
+		}
+	}
+
+	// On a question (default case) return it right away.
+	if (question.type === 'question' || question.type === undefined)
+		return question
+
+	// Check for impossible cases.
+	throw new Error(`Invalid question type: received a question of type "${question.type}" but this type is not known.`)
 }

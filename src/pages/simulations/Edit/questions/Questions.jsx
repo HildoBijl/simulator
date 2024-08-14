@@ -7,6 +7,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import { Help, Info, Folder } from '@mui/icons-material'
 import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
 import { FormPart, Label } from 'components'
@@ -27,8 +28,16 @@ export function Questions({ simulation }) {
 	const addQuestion = async () => {
 		const ref = getQuestionRef(simulation.id)
 		setExpanded(expanded => ({ ...expanded, [ref.id]: true }))
-		await setDoc(ref, {})
+		await setDoc(ref, { type: 'question' })
 		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id), startingQuestion: simulation.startingQuestion || ref.id })
+	}
+
+	// Set up an addFolder handler that opens a new folder upon entry.
+	const addFolder = async () => {
+		const ref = getQuestionRef(simulation.id)
+		setExpanded(expanded => ({ ...expanded, [ref.id]: true }))
+		await setDoc(ref, { type: 'folder' })
+		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id) })
 	}
 
 	// On a drag update, maintain an adjusted question list.
@@ -59,14 +68,25 @@ export function Questions({ simulation }) {
 					<div
 						ref={provided.innerRef}
 						{...provided.droppableProps}
-						style={{
-							...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}),
-						}}>
+						style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
 						{simulation.questionList.map((question, index) => <Question key={question.id} {...{ simulation, question, index: draggingQuestionList && draggingQuestionList.indexOf(question.id) !== -1 ? draggingQuestionList.indexOf(question.id) : index, expanded: !!expanded[question.id], flipExpand: () => flipExpand(question.id) }} />)}
 						{provided.placeholder}
 						<Accordion sx={accordionStyle} onClick={addQuestion} expanded={false}>
 							<AccordionSummary>
-								<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
+								<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', lineHeight: '0.7em', textAlign: 'center', width: '100%' }}>
+									<div style={{ fontSize: '2em', transform: 'translateY(-3px)' }}>+</div>
+									<Info style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.info.main }} />
+									<div style={{ fontSize: '1.2em', transform: 'translateY(-2px)' }}>/</div>
+									<Help style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.primary.main }} />
+								</div>
+							</AccordionSummary>
+						</Accordion>
+						<Accordion sx={accordionStyle} onClick={addFolder} expanded={false}>
+							<AccordionSummary>
+								<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', lineHeight: '0.7em', textAlign: 'center', width: '100%' }}>
+									<div style={{ fontSize: '2em', transform: 'translateY(-3px)' }}>+</div>
+									<Folder style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.secondary.main }} />
+								</div>
 							</AccordionSummary>
 						</Accordion>
 					</div>

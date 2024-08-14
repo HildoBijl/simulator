@@ -7,7 +7,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { Help, Info, Folder } from '@mui/icons-material'
+import { Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon } from '@mui/icons-material'
 import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
 import { FormPart, Label } from 'components'
@@ -15,30 +15,14 @@ import { updateSimulation, getQuestionRef } from 'simulations'
 
 import { emptyQuestion, accordionStyle } from '../../settings'
 
-import { Question } from './Question'
+import { QuestionOrFolder } from './Question'
 
 export function Questions({ simulation }) {
 	const theme = useTheme()
 
 	// Set up manual expansion controls.
-	const [expanded, setExpanded] = useState({})
-	const flipExpand = (id) => setExpanded(expanded => ({ ...expanded, [id]: !expanded[id] }))
-
-	// Set up an addQuestion handler that opens a new question upon entry.
-	const addQuestion = async () => {
-		const ref = getQuestionRef(simulation.id)
-		setExpanded(expanded => ({ ...expanded, [ref.id]: true }))
-		await setDoc(ref, { type: 'question' })
-		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id), startingQuestion: simulation.startingQuestion || ref.id })
-	}
-
-	// Set up an addFolder handler that opens a new folder upon entry.
-	const addFolder = async () => {
-		const ref = getQuestionRef(simulation.id)
-		setExpanded(expanded => ({ ...expanded, [ref.id]: true }))
-		await setDoc(ref, { type: 'folder' })
-		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id) })
-	}
+	const [expandedMap, setExpandedMap] = useState({})
+	const flipExpand = (id) => setExpandedMap(expanded => ({ ...expanded, [id]: !expanded[id] }))
 
 	// On a drag update, maintain an adjusted question list.
 	const [draggingQuestionList, setDraggingQuestionList] = useState()
@@ -69,26 +53,11 @@ export function Questions({ simulation }) {
 						ref={provided.innerRef}
 						{...provided.droppableProps}
 						style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
-						{simulation.questionList.map((question, index) => <Question key={question.id} {...{ simulation, question, index: draggingQuestionList && draggingQuestionList.indexOf(question.id) !== -1 ? draggingQuestionList.indexOf(question.id) : index, expanded: !!expanded[question.id], flipExpand: () => flipExpand(question.id) }} />)}
+						{simulation.questionList.map((question, index) => <QuestionOrFolder key={question.id} {...{ simulation, question, index: draggingQuestionList && draggingQuestionList.indexOf(question.id) !== -1 ? draggingQuestionList.indexOf(question.id) : index, expanded: !!expandedMap[question.id], flipExpand: () => flipExpand(question.id) }} />)}
 						{provided.placeholder}
-						<Accordion sx={accordionStyle} onClick={addQuestion} expanded={false}>
-							<AccordionSummary>
-								<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', lineHeight: '0.7em', textAlign: 'center', width: '100%' }}>
-									<div style={{ fontSize: '2em', transform: 'translateY(-3px)' }}>+</div>
-									<Info style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.info.main }} />
-									<div style={{ fontSize: '1.2em', transform: 'translateY(-2px)' }}>/</div>
-									<Help style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.primary.main }} />
-								</div>
-							</AccordionSummary>
-						</Accordion>
-						<Accordion sx={accordionStyle} onClick={addFolder} expanded={false}>
-							<AccordionSummary>
-								<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', lineHeight: '0.7em', textAlign: 'center', width: '100%' }}>
-									<div style={{ fontSize: '2em', transform: 'translateY(-3px)' }}>+</div>
-									<Folder style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.secondary.main }} />
-								</div>
-							</AccordionSummary>
-						</Accordion>
+
+						<AddQuestionButton {...{ simulation, setExpandedMap }} />
+						<AddFolderButton {...{ simulation, setExpandedMap }} />
 					</div>
 				)}</Droppable>
 			</DragDropContext>
@@ -114,6 +83,55 @@ function StartingQuestion({ simulation }) {
 			</Select>
 		</FormControl>
 	</FormPart>
+}
+
+function AddQuestionButton({ simulation, setExpandedMap }) {
+	const theme = useTheme()
+
+	// Set up an addQuestion handler that opens a new question upon entry.
+	const addQuestion = async () => {
+		const ref = getQuestionRef(simulation.id)
+		setExpandedMap(expanded => ({ ...expanded, [ref.id]: true }))
+		await setDoc(ref, { type: 'question' })
+		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id), startingQuestion: simulation.startingQuestion || ref.id })
+	}
+
+	// Render the button as an accordion item.
+	return <AddButton onClick={addQuestion}>
+		<InfoIcon style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.info.main }} />
+		<div style={{ fontSize: '1.2em', transform: 'translateY(-2px)' }}>/</div>
+		<HelpIcon style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.primary.main }} />
+	</AddButton>
+}
+
+function AddFolderButton({ simulation, setExpandedMap }) {
+	const theme = useTheme()
+
+	// Set up an addFolder handler that opens a new folder upon entry.
+	const addFolder = async () => {
+		const ref = getQuestionRef(simulation.id)
+		setExpandedMap(expanded => ({ ...expanded, [ref.id]: true }))
+		await setDoc(ref, { type: 'folder' })
+		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id) })
+	}
+
+	// Render the button as an accordion item.
+	return <AddButton onClick={addFolder}>
+		<FolderIcon style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.secondary.main }} />
+	</AddButton>
+}
+
+function AddButton({ onClick, children }) {
+	return <Accordion sx={accordionStyle} onClick={onClick} expanded={false}>
+		<AccordionSummary>
+			<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', lineHeight: '0.7em', textAlign: 'center', width: '100%' }}>
+				<div style={{ fontSize: '2em', transform: 'translateY(-3px)' }}>+</div>
+				<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '4em' }}>
+					{children}
+				</div>
+			</div>
+		</AccordionSummary>
+	</Accordion>
 }
 
 function isDragDataValid(dragData, simulation) {

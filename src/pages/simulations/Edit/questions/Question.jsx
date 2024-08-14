@@ -5,21 +5,29 @@ import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { DragIndicator, Help, Info } from '@mui/icons-material'
+import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { Draggable } from '@hello-pangea/dnd'
 
 import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
 import { deleteQuestion } from 'simulations'
 
-import { emptyQuestion, accordionStyle } from '../../settings'
+import { emptyQuestion, emptyFolder, accordionStyle } from '../../settings'
 
 import { Options } from './Options'
+
+export function QuestionOrFolder(data) {
+	const { question } = data
+	if (question.type === 'folder')
+		return <Folder {...data} />
+	if (question.type === 'question' || question.type === undefined)
+		return <Question {...data} />
+}
 
 export function Question({ simulation, question, index, expanded, flipExpand }) {
 	const theme = useTheme()
 
 	// Determine the icon for this question.
-	const Icon = question.options ? Help : Info
+	const Icon = question.options ? HelpIcon : InfoIcon
 	const iconColor = question.options ? theme.palette.primary.main : theme.palette.info.main
 
 	// Render the question.
@@ -38,7 +46,7 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 			>
 				<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 					<span {...provided.dragHandleProps}>
-						<DragIndicator sx={{ ml: -1, mr: 1, cursor: 'grab' }} />
+						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
 					<Icon sx={{ color: iconColor, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
 					<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span>
@@ -62,6 +70,45 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 						<Button sx={{ mt: 2 }} onClick={() => deleteQuestion(simulation, question)}>Frage löschen</Button>
 					</AccordionActions>
 				</> : null}
+			</Accordion>}
+	</Draggable>
+}
+
+function Folder({ simulation, question: folder, index, expanded, flipExpand }) {
+	const theme = useTheme()
+
+	// Define the expandIcon depending on whether the folder is empty or not. Also override the default animation.
+	const isEmpty = !folder.contents || folder.contents.length === 0
+	const expandIcon = isEmpty ?
+		<DeleteIcon sx={{ cursor: 'pointer' }} onClick={() => deleteQuestion(simulation, folder)} /> :
+		<ExpandMoreIcon sx={{ transition: 'transform 150ms', ...(expanded ? { transform: 'rotate(180deg)', transition: 'transform 150ms' } : {}) }} />
+
+	// Render the folder. Make sure it never expands, as this is organized elsewhere.
+	return <Draggable key={folder.id} index={index} draggableId={folder.id}>
+		{(provided, snapshot) =>
+			<Accordion
+				ref={provided.innerRef}
+				{...provided.draggableProps}
+				style={{
+					...provided.draggableProps.style, // Default drag style from the toolbox.
+					...(snapshot.isDragging ? { color: theme.palette.primary.main } : {}), // Further drag style customization.
+				}}
+				sx={accordionStyle}
+				expanded={false}
+				onChange={() => !isEmpty && flipExpand()}
+			>
+				<AccordionSummary sx={isEmpty ? { cursor: 'default', '& div': { cursor: 'default' } } : {}} key="summary" expandIcon={expandIcon}>
+					<span {...(expanded ? {} : provided.dragHandleProps)} style={{ visibility: expanded ? 'hidden' : 'visible' }}>
+						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
+					</span>
+					<FolderIcon sx={{ color: theme.palette.secondary.main, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
+					<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span>
+					<span style={{ cursor: 'text' }} onClick={(event) => {
+						event.stopPropagation() // Don't expand folder.
+						console.log('Changing folder title ... ToDo')
+					}}>{folder.title || emptyFolder}</span>
+					{isEmpty ? <span>&nbsp;(leer)</span> : null}
+				</AccordionSummary>
 			</Accordion>}
 	</Draggable>
 }

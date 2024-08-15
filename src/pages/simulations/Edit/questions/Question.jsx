@@ -5,7 +5,7 @@ import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, Delete as DeleteIcon } from '@mui/icons-material'
+import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, FolderOpen as FolderEmptyIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { Draggable } from '@hello-pangea/dnd'
 
 import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
@@ -91,6 +91,7 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 		<ExpandMoreIcon sx={{ transition: 'transform 150ms', ...(expanded ? { transform: 'rotate(180deg)', transition: 'transform 150ms' } : {}) }} />
 
 	// Render the folder. Make sure it never expands, as this is organized elsewhere.
+	const Icon = isEmpty ? FolderEmptyIcon : FolderIcon
 	return <Draggable key={folder.id} index={dragIndex} draggableId={folder.id}>
 		{(provided, snapshot) =>
 			<Accordion
@@ -100,21 +101,20 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 					...provided.draggableProps.style, // Default drag style from the toolbox.
 					...(snapshot.isDragging ? { color: theme.palette.primary.main } : {}), // Further drag style customization.
 				}}
-				sx={accordionStyle}
+				sx={{ ...accordionStyle, marginLeft: `${(listIndex.length - 2) * 16}px !important` }}
 				expanded={false}
 				onChange={() => !isEmpty && flipExpand()}
 			>
 				<AccordionSummary sx={isEmpty ? { cursor: 'default', '& div': { cursor: 'default' } } : {}} key="summary" expandIcon={expandIcon}>
-					<span {...provided.dragHandleProps} style={{ visibility: expanded ? 'hidden' : 'visible' }}>
+					<span {...provided.dragHandleProps} style={{ visibility: expanded && !isEmpty ? 'hidden' : 'visible' }}>
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
-					<FolderIcon sx={{ color: theme.palette.secondary.main, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
+					<Icon sx={{ color: theme.palette.secondary.main, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
 					<span style={{ marginRight: '0.75rem' }}>{indicesToString(listIndex)}</span>
 					<span style={{ cursor: 'text' }} onClick={(event) => {
 						event.stopPropagation() // Don't expand folder.
 						console.log('Changing folder title ... ToDo')
 					}}>{folder.title || emptyFolder}</span>
-					{isEmpty ? <span>&nbsp;(leer)</span> : null}
 				</AccordionSummary>
 			</Accordion>}
 	</Draggable>

@@ -196,7 +196,7 @@ function isDragDataValid(dragData, draggableList) {
 	return true
 }
 
-// expandFolders takes a list of questions (or question IDs) with potential folders in them. It then expands this list by including all the questions inside the folders too. Optionally, an expandedMap can be given (if not all folders are open) that specifies which folders are open.
+// expandFolders takes a list of questions (or question IDs) with potential folders in them. It then not only includes the folder, but also (assuming the folder is opened) all questions inside the folder. At the end it adds a folder-closer, which is needed for the dragging system.
 function expandFolders(questionList, questions, expandedMap) {
 	return questionList.map(question => {
 		// Ensure we have a question object.
@@ -207,7 +207,7 @@ function expandFolders(questionList, questions, expandedMap) {
 		if (question.type === 'folder') {
 			const value = [{ ...question }, { ...question, closer: true }]
 			if (!expandedMap || expandedMap[question.id])
-				value.splice(1, 0, ...expandFolders(question.contents, questions, expandedMap))
+				value.splice(1, 0, ...expandFolders(question.contents || [], questions, expandedMap))
 			return value
 		}
 

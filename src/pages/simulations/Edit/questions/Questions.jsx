@@ -50,7 +50,6 @@ export function Questions({ simulation }) {
 		const indices = nestedListToIndices(list)
 		return { draggableList: list.flat(Infinity), indices }
 	}, [questions, questionOrder, expandedMap])
-	console.log(indices)
 
 	// Render the questions through an Accordion.
 	return <>

@@ -12,7 +12,7 @@ import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
 import { nestedListToIndices } from 'util'
 import { FormPart, Label } from 'components'
-import { updateSimulation, getQuestionRef } from 'simulations'
+import { updateSimulation, getQuestionRef, moveQuestion } from 'simulations'
 
 import { emptyQuestion, accordionStyle } from '../../settings'
 
@@ -25,24 +25,6 @@ export function Questions({ simulation }) {
 	const [expandedMap, setExpandedMap] = useState({})
 	const flipExpand = (id) => setExpandedMap(expanded => ({ ...expanded, [id]: !expanded[id] }))
 
-	// On a drag update, maintain an adjusted question list.
-	const [draggingQuestionList, setDraggingQuestionList] = useState()
-	const onDragUpdate = (dragData) => {
-		if (!isDragDataValid(dragData, simulation))
-			return
-		setDraggingQuestionList(getNewQuestionOrder(dragData, simulation))
-	}
-
-	// Set up a handler for drags.
-	const onDragEnd = async (dragData) => {
-		if (!isDragDataValid(dragData, simulation))
-			return
-		setDraggingQuestionList()
-		console.log('Processing drag', dragData, getNewQuestionOrder(dragData, simulation))
-		// return await updateSimulation(simulation.id, { questionOrder: getNewQuestionOrder(dragData, simulation) })
-		// ToDo: rebuild the drag processor above.
-	}
-
 	// Set up a list of all draggable items to render them one by one.
 	const { questions, questionOrder } = simulation
 	const { draggableList, indices } = useMemo(() => {
@@ -50,6 +32,68 @@ export function Questions({ simulation }) {
 		const indices = nestedListToIndices(list)
 		return { draggableList: list.flat(Infinity), indices }
 	}, [questions, questionOrder, expandedMap])
+
+	// On a drag update, save the move inside a state.
+	const [move, setMove] = useState() // An array of indices, like [4, 2] when element 4 moves to spot 2.
+	const onDragUpdate = (dragData) => {
+		console.log('Update: From ' + dragData.source.index + ' to ' + dragData.destination.index)
+		if (!isDragDataValid(dragData, draggableList))
+			return
+		setMove([dragData.source.index, dragData.destination.index])
+	}
+
+	// On a drag end, save it to the database.
+	const onDragEnd = async (dragData) => {
+		// Reset any dragging parameters.
+		setMove()
+
+		console.log('End: From ' + dragData.source.index + ' to ' + dragData.destination.index)
+		console.log(dragData, draggableList)
+		console.log(simulation)
+		// On an invalid drag, or on a useless drag, do nothing.
+		if (!isDragDataValid(dragData, draggableList))
+			return
+		const from = dragData.source.index
+		const to = dragData.destination.index
+		if (from === to)
+			return
+
+		// If a folder is moved right after its closer, also do nothing.
+		const questionToMove = draggableList[from]
+		if (questionToMove.type === 'folder' && to - from === 1)
+			return
+
+		// Determine the origins of the question that will be moved.
+		const originFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(questionToMove.id))
+		console.log(from, questionToMove, originFolder)
+
+		// Determine the destination, and the index within the destination folder.
+		let destinationFolder, index
+		if (to === 0) {
+			index = 0
+		} else {
+			const shouldComeAfter = draggableList[to < from ? to - 1 : to]
+			console.log(shouldComeAfter)
+			if (shouldComeAfter && shouldComeAfter.type === 'folder' && !shouldComeAfter.closer) {
+				destinationFolder = shouldComeAfter
+				index = 0
+			} else {
+				destinationFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(shouldComeAfter.id))
+				const destinationArray = destinationFolder ? destinationFolder.contents : simulation.questionOrder
+				index = destinationArray.indexOf(shouldComeAfter.id) + 1
+				const oldIndex = destinationArray.indexOf(questionToMove.id)
+				if (oldIndex !== -1 && oldIndex < index)
+					index-- // If the item was already in this list prior to the index, the desired index should be one lower.
+			}
+		}
+
+		console.log(to, destinationFolder, index)
+		// All data gathered. Move the question.
+		await moveQuestion(simulation, questionToMove, originFolder, destinationFolder, index)
+	}
+
+	// ToDo: apply move in the draggableList.
+	// const updatedDraggableList = useMemo()
 
 	// Render the questions through an Accordion.
 	return <>
@@ -64,7 +108,7 @@ export function Questions({ simulation }) {
 						ref={provided.innerRef}
 						{...provided.droppableProps}
 						style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
-						{draggableList.map((question, index) => <QuestionOrFolder key={`${question.id}${question.closer ? '-closer' : ''}`} {...{ simulation, question, dragIndex: draggingQuestionList && draggingQuestionList.indexOf(question.id) !== -1 ? draggingQuestionList.indexOf(question.id) : index, listIndex: indices[index], expanded: !!expandedMap[question.id], flipExpand: () => flipExpand(question.id) }} />)}
+						{draggableList.map((question, index) => <QuestionOrFolder key={`${question.id}${question.closer ? '-closer' : ''}`} {...{ simulation, question, dragIndex: index, listIndex: indices[index], expanded: !!expandedMap[question.id], flipExpand: () => flipExpand(question.id) }} />)}
 						{provided.placeholder}
 						<AddQuestionButton {...{ simulation, setExpandedMap }} />
 						<AddFolderButton {...{ simulation, setExpandedMap }} />
@@ -144,25 +188,13 @@ function AddButton({ onClick, children }) {
 	</Accordion>
 }
 
-function isDragDataValid(dragData, simulation) {
+function isDragDataValid(dragData, draggableList) {
 	const { draggableId, source, destination } = dragData
 	if (!destination)
 		return false
-	if (simulation.questionOrder[source.index] !== draggableId)
+	if (draggableList && draggableList[source.index].id !== draggableId)
 		return false
 	return true
-}
-
-function getNewQuestionOrder(dragData, simulation) {
-	const { source, destination } = dragData
-	const from = source.index, to = destination.index
-	if (from === to)
-		return simulation.questionOrder
-
-	// Determine and set the new order.
-	const oldOrder = simulation.questionOrder
-	const newOrder = from < to ? [...oldOrder.slice(0, from), ...oldOrder.slice(from + 1, to + 1), oldOrder[from], ...oldOrder.slice(to + 1)] : [...oldOrder.slice(0, to), oldOrder[from], ...oldOrder.slice(to, from), ...oldOrder.slice(from + 1)]
-	return newOrder
 }
 
 // expandFolders takes a list of questions (or question IDs) with potential folders in them. It then expands this list by including all the questions inside the folders too. Optionally, an expandedMap can be given (if not all folders are open) that specifies which folders are open.

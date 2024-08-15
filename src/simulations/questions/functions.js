@@ -1,6 +1,6 @@
 import { arrayRemove, deleteField } from 'firebase/firestore'
 
-import { removeKeys } from 'util'
+import { removeKeys, insertIntoArray, moveArrayElement } from 'util'
 import { getDocumentRef, updateDocument, deleteDocument, deleteMediaFile } from 'fb'
 
 import { updateSimulation } from '../functions'
@@ -48,4 +48,30 @@ export async function deleteQuestion(simulation, questionToRemove) {
 	// Finally delete the question itself.
 	await deleteMediaFile(questionToRemove.media)
 	return await deleteDocument(`simulations/${simulation.id}/questions`, questionToRemove.id)
+}
+
+// moveQuestion will move a question for a given simulation from one folder to another.
+export async function moveQuestion(simulation, questionToMove, originFolder, destinationFolder, index) {
+	const questionOrder = simulation.questionOrder || []
+	const originContents = originFolder?.contents || []
+	const destinationContents = destinationFolder?.contents || []
+
+	// If the origin and the destination folder are the same, adjust only that folder.
+	if (!originFolder && !destinationFolder)
+		return await updateSimulation(simulation.id, { questionOrder: moveArrayElement(questionOrder, questionOrder.indexOf(questionToMove.id), index) })
+	if (originFolder.id === destinationFolder.id)
+		return await updateQuestion(simulation.id, originFolder.id, { contents: moveArrayElement(originContents, originContents.indexOf(questionToMove.id), index) })
+
+	// Set up a promise for the removing.
+	const removingPromise = originFolder ?
+		updateQuestion(simulation.id, originFolder.id, { contents: originFolder.filter(questionId => questionId !== questionToMove.id) }) :
+		updateSimulation(simulation.id, { questionOrder: questionOrder.filter(questionId => questionId !== questionToMove.id) })
+
+	// Set up a promise for the adding.
+	const addingPromise = destinationFolder ?
+		updateQuestion(simulation.id, destinationFolder.id, { contents: insertIntoArray(destinationContents, index, questionToMove.id) }) :
+		updateSimulation(simulation.id, { questionOrder: insertIntoArray(questionOrder, index, questionToMove.id) })
+
+	// Await both promises together.
+	return await Promise.all([removingPromise, addingPromise])
 }

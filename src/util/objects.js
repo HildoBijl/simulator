@@ -40,6 +40,31 @@ export function removeKeys(obj, keysToRemove) {
 	return clone
 }
 
+// insertIntoArray takes an array like [2,3,4,5] and an index like 2, and adds the given items into that spot. So insertIntoArray([2,3,4,5], 2, 6, 7) will give [2,3,6,7,4,5]. It returns a copy; the original is not adjusted.
+export function insertIntoArray(array, index, ...toAdd) {
+	if (!Array.isArray(array))
+		throw new Error(`Invalid array: received something of type ${typeof array}.`)
+	return [...array.slice(0, index), ...toAdd, ...array.slice(index)]
+}
+
+// moveArrayElement takes an array like [2, 3, 4, 5] and moves an element from an index to a new index. So moveArrayElement([2, 3, 4, 5], 2, 0) moves the element from index 2 to index 0 and hence gives [4, 2, 3, 5].
+export function moveArrayElement(array, from, to) {
+	// Check the input.
+	if (!Array.isArray(array))
+		throw new Error(`Invalid array: received something of type ${typeof array}.`)
+	if (from < 0 || from >= array.length)
+		throw new Error(`Invalid from parameter: the array only has length ${array.length}, but received ${from}.`)
+	if (to < 0 || to >= array.length)
+		throw new Error(`Invalid to parameter: the array only has length ${array.length}, but received ${to}.`)
+
+	// Process the move, depending on whether it's a jump forwards or backwards.
+	if (from === to)
+		return [...array]
+	if (from < to)
+		return [...array.slice(0, from), ...array.slice(from + 1, to + 1), array[from], ...array.slice(to + 1)]
+	return [...array.slice(0, to), array[from], ...array.slice(to, from), ...array.slice(from + 1)]
+}
+
 // nestedListToIndices will take a nested list, like [a, [b, [c, d], e, f], g], and turn it into an array with index lists, which is [[0], [1, 0], [1, 1, 0], [1, 1, 1], [1, 2], [1, 3], [2]]. So each final element in the list gets turned into a list of indices through which it could be accessed.
 export function nestedListToIndices(list, indices = []) {
 	const result = []

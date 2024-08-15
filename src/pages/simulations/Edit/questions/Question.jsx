@@ -124,7 +124,7 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 // The FolderCloser is an invisible marker with height 0. If an object is dragged above this separator, it will be dropped inside the folder. If it is dragged below this separator, it will be dropped below the folder.
 function FolderCloser({ question: folder, dragIndex }) {
 	return <Draggable key={`${folder.id}-closer`} index={dragIndex} draggableId={`${folder.id}-closer`}>
-		{(provided) => <div ref={provided.innerRef}	{...provided.draggableProps}	{...provided.dragHandleProps}><div style={{ height: 10, background: 'red' }} />
+		{(provided) => <div ref={provided.innerRef}	{...provided.draggableProps}	{...provided.dragHandleProps}><div style={{ height: 0, background: 'red' }} />
 		</div>}
 	</Draggable>
 }

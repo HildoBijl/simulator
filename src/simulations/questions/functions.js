@@ -59,12 +59,12 @@ export async function moveQuestion(simulation, questionToMove, originFolder, des
 	// If the origin and the destination folder are the same, adjust only that folder.
 	if (!originFolder && !destinationFolder)
 		return await updateSimulation(simulation.id, { questionOrder: moveArrayElement(questionOrder, questionOrder.indexOf(questionToMove.id), index) })
-	if (originFolder.id === destinationFolder.id)
+	if (originFolder?.id === destinationFolder?.id)
 		return await updateQuestion(simulation.id, originFolder.id, { contents: moveArrayElement(originContents, originContents.indexOf(questionToMove.id), index) })
 
 	// Set up a promise for the removing.
 	const removingPromise = originFolder ?
-		updateQuestion(simulation.id, originFolder.id, { contents: originFolder.filter(questionId => questionId !== questionToMove.id) }) :
+		updateQuestion(simulation.id, originFolder.id, { contents: originFolder.contents.filter(questionId => questionId !== questionToMove.id) }) :
 		updateSimulation(simulation.id, { questionOrder: questionOrder.filter(questionId => questionId !== questionToMove.id) })
 
 	// Set up a promise for the adding.

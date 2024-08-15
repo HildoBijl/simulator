@@ -48,8 +48,7 @@ export function Questions({ simulation }) {
 		setMove()
 
 		console.log('End: From ' + dragData.source.index + ' to ' + dragData.destination.index)
-		console.log(dragData, draggableList)
-		console.log(simulation)
+		console.log('All stuff', simulation, dragData, draggableList)
 		// On an invalid drag, or on a useless drag, do nothing.
 		if (!isDragDataValid(dragData, draggableList))
 			return
@@ -65,7 +64,7 @@ export function Questions({ simulation }) {
 
 		// Determine the origins of the question that will be moved.
 		const originFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(questionToMove.id))
-		console.log(from, questionToMove, originFolder)
+		console.log('From data', from, questionToMove, originFolder)
 
 		// Determine the destination, and the index within the destination folder.
 		let destinationFolder, index
@@ -87,7 +86,7 @@ export function Questions({ simulation }) {
 			}
 		}
 
-		console.log(to, destinationFolder, index)
+		console.log('To data', to, destinationFolder, index)
 		// All data gathered. Move the question.
 		await moveQuestion(simulation, questionToMove, originFolder, destinationFolder, index)
 	}

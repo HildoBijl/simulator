@@ -40,8 +40,7 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 					...provided.draggableProps.style, // Default drag style from the toolbox.
 					...(snapshot.isDragging ? { color: theme.palette.primary.main } : {}), // Further drag style customization.
 				}}
-				// sx={{ ...accordionStyle, marginLeft: `${(listIndex.length - 1)*16}px !important` }}
-				sx={{ ...accordionStyle }}
+				sx={{ ...accordionStyle, marginLeft: `${(listIndex.length - 1) * 16}px !important` }}
 				expanded={expanded}
 				onChange={() => flipExpand()}
 			>

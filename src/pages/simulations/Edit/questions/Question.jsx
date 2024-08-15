@@ -31,6 +31,7 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 	const iconColor = question.options ? theme.palette.primary.main : theme.palette.info.main
 
 	// Render the question.
+	console.log(question.id, dragIndex)
 	return <Draggable key={question.id} index={dragIndex} draggableId={question.id}>
 		{(provided, snapshot) =>
 			<Accordion
@@ -92,6 +93,7 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 		<ExpandMoreIcon sx={{ transition: 'transform 150ms', ...(expanded ? { transform: 'rotate(180deg)', transition: 'transform 150ms' } : {}) }} />
 
 	// Render the folder. Make sure it never expands, as this is organized elsewhere.
+	console.log(folder.id, dragIndex)
 	return <Draggable key={folder.id} index={dragIndex} draggableId={folder.id}>
 		{(provided, snapshot) =>
 			<Accordion
@@ -122,8 +124,9 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 }
 
 // The FolderCloser is an invisible marker with height 0. If an object is dragged above this separator, it will be dropped inside the folder. If it is dragged below this separator, it will be dropped below the folder.
-function FolderCloser({ question: folder, index }) {
-	return <Draggable key={folder.id} index={index} draggableId={folder.id}>
+function FolderCloser({ question: folder, dragIndex }) {
+	console.log(folder.id, dragIndex)
+	return <Draggable key={`${folder.id}-closer`} index={dragIndex} draggableId={`${folder.id}-closer`}>
 		{(provided) =>
 			<div style={{ height: 10, background: 'red', width: '100%' }} ref={provided.innerRef} />}
 	</Draggable>

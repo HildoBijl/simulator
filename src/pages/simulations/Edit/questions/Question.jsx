@@ -23,7 +23,7 @@ export function QuestionOrFolder(data) {
 		return <Question {...data} />
 }
 
-export function Question({ simulation, question, index, expanded, flipExpand }) {
+export function Question({ simulation, question, dragIndex, listIndex, expanded, flipExpand }) {
 	const theme = useTheme()
 
 	// Determine the icon for this question.
@@ -31,7 +31,7 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 	const iconColor = question.options ? theme.palette.primary.main : theme.palette.info.main
 
 	// Render the question.
-	return <Draggable key={question.id} index={index} draggableId={question.id}>
+	return <Draggable key={question.id} index={dragIndex} draggableId={question.id}>
 		{(provided, snapshot) =>
 			<Accordion
 				ref={provided.innerRef}
@@ -49,7 +49,7 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
 					<Icon sx={{ color: iconColor, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
-					<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span>
+					<span style={{ marginRight: '0.75rem' }}>{indicesToString(listIndex)}</span>
 					{question.internalTitle || question.title || emptyQuestion}
 				</AccordionSummary>
 				{expanded ? <>
@@ -64,7 +64,7 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 							<MCE label="Beschreibung" height="225" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" />
 						</FormPart>
 						<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
-						<Options {...{ simulation, question, index }} />
+						<Options {...{ simulation, question, index: dragIndex }} />
 					</AccordionDetails>
 					<AccordionActions key="actions">
 						<Button sx={{ mt: 2 }} onClick={() => deleteQuestion(simulation, question)}>Frage löschen</Button>
@@ -74,7 +74,14 @@ export function Question({ simulation, question, index, expanded, flipExpand }) 
 	</Draggable>
 }
 
-function Folder({ simulation, question: folder, index, expanded, flipExpand }) {
+function Folder(props) {
+	const folder = props.question
+	if (folder.closer)
+		return <FolderCloser {...props} />
+	return <FolderOpener {...props} />
+}
+
+function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expanded, flipExpand }) {
 	const theme = useTheme()
 
 	// Define the expandIcon depending on whether the folder is empty or not. Also override the default animation.
@@ -84,7 +91,7 @@ function Folder({ simulation, question: folder, index, expanded, flipExpand }) {
 		<ExpandMoreIcon sx={{ transition: 'transform 150ms', ...(expanded ? { transform: 'rotate(180deg)', transition: 'transform 150ms' } : {}) }} />
 
 	// Render the folder. Make sure it never expands, as this is organized elsewhere.
-	return <Draggable key={folder.id} index={index} draggableId={folder.id}>
+	return <Draggable key={folder.id} index={dragIndex} draggableId={folder.id}>
 		{(provided, snapshot) =>
 			<Accordion
 				ref={provided.innerRef}
@@ -102,7 +109,7 @@ function Folder({ simulation, question: folder, index, expanded, flipExpand }) {
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
 					<FolderIcon sx={{ color: theme.palette.secondary.main, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
-					<span style={{ marginRight: '0.75rem' }}>{index + 1}.</span>
+					<span style={{ marginRight: '0.75rem' }}>{indicesToString(listIndex)}</span>
 					<span style={{ cursor: 'text' }} onClick={(event) => {
 						event.stopPropagation() // Don't expand folder.
 						console.log('Changing folder title ... ToDo')
@@ -111,4 +118,20 @@ function Folder({ simulation, question: folder, index, expanded, flipExpand }) {
 				</AccordionSummary>
 			</Accordion>}
 	</Draggable>
+}
+
+// The FolderCloser is an invisible marker with height 0. If an object is dragged above this separator, it will be dropped inside the folder. If it is dragged below this separator, it will be dropped below the folder.
+function FolderCloser({ question: folder, index }) {
+	return <Draggable key={folder.id} index={index} draggableId={folder.id}>
+		{(provided) =>
+			<div style={{ height: 10, background: 'red', width: '100%' }} ref={provided.innerRef} />}
+	</Draggable>
+}
+
+function indicesToString(indices) {
+	return indices.map((value, i) => {
+		if (i > 0 && i === indices.length - 1 && value === 0)
+			return '' // Do not show the "0" index for folders.
+		return `${i === 0 ? (value + 1) : value}.` // Ensure we start counting at 1 everywhere.
+	}).join('')
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
 import { useTheme } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
@@ -10,6 +10,7 @@ import MenuItem from '@mui/material/MenuItem'
 import { Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon } from '@mui/icons-material'
 import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
+import { nestedListToIndices } from 'util'
 import { FormPart, Label } from 'components'
 import { updateSimulation, getQuestionRef } from 'simulations'
 
@@ -37,8 +38,19 @@ export function Questions({ simulation }) {
 		if (!isDragDataValid(dragData, simulation))
 			return
 		setDraggingQuestionList()
-		return await updateSimulation(simulation.id, { questionOrder: getNewQuestionOrder(dragData, simulation) })
+		console.log('Processing drag', dragData, getNewQuestionOrder(dragData, simulation))
+		// return await updateSimulation(simulation.id, { questionOrder: getNewQuestionOrder(dragData, simulation) })
+		// ToDo: rebuild the drag processor above.
 	}
+
+	// Set up a list of all draggable items to render them one by one.
+	const { questions, questionOrder } = simulation
+	const { draggableList, indices } = useMemo(() => {
+		const list = expandFolders(questionOrder, questions, expandedMap)
+		const indices = nestedListToIndices(list)
+		return { draggableList: list.flat(Infinity), indices }
+	}, [questions, questionOrder, expandedMap])
+	console.log(indices)
 
 	// Render the questions through an Accordion.
 	return <>
@@ -53,9 +65,8 @@ export function Questions({ simulation }) {
 						ref={provided.innerRef}
 						{...provided.droppableProps}
 						style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
-						{simulation.questionList.map((question, index) => <QuestionOrFolder key={question.id} {...{ simulation, question, index: draggingQuestionList && draggingQuestionList.indexOf(question.id) !== -1 ? draggingQuestionList.indexOf(question.id) : index, expanded: !!expandedMap[question.id], flipExpand: () => flipExpand(question.id) }} />)}
+						{draggableList.map((question, index) => <QuestionOrFolder key={`${question.id}${question.closer ? '-closer' : ''}`} {...{ simulation, question, dragIndex: draggingQuestionList && draggingQuestionList.indexOf(question.id) !== -1 ? draggingQuestionList.indexOf(question.id) : index, listIndex: indices[index], expanded: !!expandedMap[question.id], flipExpand: () => flipExpand(question.id) }} />)}
 						{provided.placeholder}
-
 						<AddQuestionButton {...{ simulation, setExpandedMap }} />
 						<AddFolderButton {...{ simulation, setExpandedMap }} />
 					</div>
@@ -153,4 +164,25 @@ function getNewQuestionOrder(dragData, simulation) {
 	const oldOrder = simulation.questionOrder
 	const newOrder = from < to ? [...oldOrder.slice(0, from), ...oldOrder.slice(from + 1, to + 1), oldOrder[from], ...oldOrder.slice(to + 1)] : [...oldOrder.slice(0, to), oldOrder[from], ...oldOrder.slice(to, from), ...oldOrder.slice(from + 1)]
 	return newOrder
+}
+
+// expandFolders takes a list of questions (or question IDs) with potential folders in them. It then expands this list by including all the questions inside the folders too. Optionally, an expandedMap can be given (if not all folders are open) that specifies which folders are open.
+function expandFolders(questionList, questions, expandedMap) {
+	return questionList.map(question => {
+		// Ensure we have a question object.
+		if (typeof question === 'string')
+			question = questions[question]
+
+		// For folders, add an opener and a closer and, if needed, contents.
+		if (question.type === 'folder') {
+			const value = [{ ...question }, { ...question, closer: true }]
+			if (!expandedMap || expandedMap[question.id])
+				value.splice(1, 0, ...expandFolders(question.contents, questions, expandedMap))
+			return value
+		}
+
+		// For questions return the question.
+		if (question.type === 'question' || question.type === undefined)
+			return question
+	})
 }

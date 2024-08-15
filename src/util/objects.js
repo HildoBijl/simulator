@@ -39,3 +39,20 @@ export function removeKeys(obj, keysToRemove) {
 	})
 	return clone
 }
+
+// nestedListToIndices will take a nested list, like [a, [b, [c, d], e, f], g], and turn it into an array with index lists, which is [[0], [1, 0], [1, 1, 0], [1, 1, 1], [1, 2], [1, 3], [2]]. So each final element in the list gets turned into a list of indices through which it could be accessed.
+export function nestedListToIndices(list, indices = []) {
+	const result = []
+
+	// Walk through the list to get the indices of each element.
+	list.forEach((element, index) => {
+		if (Array.isArray(element)) { // On a sub-array, recursively add its indices.
+			result.push(...nestedListToIndices(element, [...indices, index]))
+		} else { // On a regular element, add a clone of the indices array to the result.
+			result.push([...indices, index])
+		}
+	})
+
+	// All done!
+	return result
+}

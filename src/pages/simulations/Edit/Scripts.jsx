@@ -47,10 +47,11 @@ export function Scripts() {
 
 function ScriptsForSimulation({ simulation }) {
 	const [variableId, setVariableId] = useState()
+	console.log(simulation)
 	return <>
 		<VariableSelector {...{ simulation, variableId, setVariableId }} />
 		<GeneralScripts {...{ variableId, simulation }} />
-		{simulation.questionOrder.map((questionId, index) => <ScriptsForQuestion key={questionId} simulation={simulation} question={simulation.questions[questionId]} index={index} variableId={variableId} />)}
+		{simulation.questionList.map(question => <ScriptsForQuestion key={question.id} simulation={simulation} question={question} variableId={variableId} />)}
 	</>
 }
 
@@ -82,7 +83,7 @@ function GeneralScripts({ simulation, variableId }) {
 	</>
 }
 
-function ScriptsForQuestion({ simulation, question, index, variableId }) {
+function ScriptsForQuestion({ simulation, question, variableId }) {
 	// If the question has no update scripts, or none that match the filtering condition, show nothing.
 	const variableName = variableId && simulation.variables[variableId].name
 	if (!shouldShowScript(question.updateScript, variableName) && (!question.options || !question.options.some(option => shouldShowScript(option.updateScript, variableName))))
@@ -90,9 +91,9 @@ function ScriptsForQuestion({ simulation, question, index, variableId }) {
 
 	// Render the update scripts for this question.
 	return <>
-		<h4>Frage {index + 1}. {question.internalTitle || question.title || emptyQuestion}</h4>
+		<h4>Frage {question.index.map(index => index + 1).join('.')}. {question.internalTitle || question.title || emptyQuestion}</h4>
 		{shouldShowScript(question.updateScript, variableName) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
-		{question.options.map((option, optionIndex) => shouldShowScript(option.updateScript, variableName) ? <OptionUpdateScriptWithLabel key={optionIndex} {...{ simulation, question, optionIndex }} /> : null)}
+		{(question.options || []).map((option, optionIndex) => shouldShowScript(option.updateScript, variableName) ? <OptionUpdateScriptWithLabel key={optionIndex} {...{ simulation, question, optionIndex }} /> : null)}
 	</>
 }
 

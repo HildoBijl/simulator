@@ -36,7 +36,7 @@ export function useSimulation(id, once = false) {
 			return {
 				...simulation,
 				questions,
-				questionList: (simulation.questionOrder || []).map(questionId => getQuestionOrFolder(questionId, questions)),
+				questionList: (simulation.questionOrder || []).map((questionId, index) => getQuestionOrFolder(questionId, questions, [index])).flat(Infinity),
 				variables,
 				events,
 			}
@@ -70,20 +70,17 @@ export function useIsOwner(simulation) {
 }
 
 // getQuestionOrFolder takes an element from a questionOrder array and returns the respective question or folder.
-function getQuestionOrFolder(questionId, questions) {
+function getQuestionOrFolder(questionId, questions, indices) {
 	const question = questions[questionId]
 
 	// On a folder, process the contents.
 	if (question.type === 'folder') {
-		return {
-			...question,
-			questionList: (question.contents || []).map(questionId => getQuestionOrFolder(questionId, questions)),
-		}
+		return (question.contents || []).map((questionId, index) => getQuestionOrFolder(questionId, questions, [...indices, index]))
 	}
 
 	// On a question (default case) return it right away.
 	if (question.type === 'question' || question.type === undefined)
-		return question
+		return { ...question, index: indices }
 
 	// Check for impossible cases.
 	throw new Error(`Invalid question type: received a question of type "${question.type}" but this type is not known.`)

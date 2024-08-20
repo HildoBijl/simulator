@@ -133,7 +133,7 @@ function StartingQuestion({ simulation }) {
 			<InputLabel>Startfrage</InputLabel>
 			<Select value={startingQuestion} label="Startfrage" onChange={(event) => setStartingQuestion(event.target.value)}>
 				{simulation.questionList.length > 0 ?
-					simulation.questionList.map((question, index) => <MenuItem key={question.id} value={question.id}>{`${index + 1}.  ${question.title || emptyQuestion}`}</MenuItem>) :
+					simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{`${question.index.map(index => index + 1).join('.')}.  ${question.internalTitle || question.title || emptyQuestion}`}</MenuItem>) :
 					<MenuItem key="none" value="none">Es sind noch keine Fragen vorhanden.</MenuItem>}
 			</Select>
 		</FormControl>

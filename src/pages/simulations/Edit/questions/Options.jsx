@@ -126,6 +126,10 @@ function FollowUpDropdown({ simulation, question, questionIndex, optionIndex }) 
 		return await updateQuestion(simulation.id, question.id, { options: [...options.slice(0, optionIndex), newOption, ...options.slice(optionIndex + 1)] })
 	}
 
+	// Determine the next question, which would be the standard option for follow-up.
+	const currQuestionIndex = simulation.questionList.findIndex(currQuestion => currQuestion.id === question.id)
+	const nextQuestion = simulation.questionList[currQuestionIndex + 1]
+
 	// Render the dropdown field.
 	const label = `${forQuestion ? 'Standard ' : ''}Folgefrage`
 	const value = (forQuestion ? question.followUpQuestion : option.followUpQuestion) || 'default'
@@ -133,8 +137,8 @@ function FollowUpDropdown({ simulation, question, questionIndex, optionIndex }) 
 		<FormControl fullWidth>
 			<InputLabel>{label}</InputLabel>
 			<Select value={value} label={label} onChange={(event) => setFollowUpQuestion(event.target.value)}>
-				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Frage in der Reihenfolge (jetzt {questionIndex === simulation.questionList.length - 1 ? 'das Ende der Simulation' : `Frage ${questionIndex + 2}`})</> : <>Die Standardeinstellung verwenden</>}</MenuItem>
-				{simulation.questionList.map((otherQuestion, index) => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{index + 1}. {otherQuestion.title || emptyQuestion}</MenuItem>)}
+				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Frage in der Reihenfolge (jetzt {nextQuestion ? `Frage ${nextQuestion.index.map(index => index + 1).join('.')}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung verwenden</>}</MenuItem>
+				{simulation.questionList.map(otherQuestion => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{otherQuestion.index.map(index => index + 1).join('.')}. {otherQuestion.internalTitle || otherQuestion.title || emptyQuestion}</MenuItem>)}
 				<MenuItem key="end" value="end">Ende: Danach wird die Simulation beendet</MenuItem>
 			</Select>
 		</FormControl>

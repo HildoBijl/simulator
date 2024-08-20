@@ -1,4 +1,5 @@
-import { useTheme } from '@mui/material/styles'
+import { useRef } from 'react'
+import { useTheme, alpha } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -23,12 +24,17 @@ export function QuestionOrFolder(data) {
 		return <Question {...data} />
 }
 
-export function Question({ simulation, question, dragIndex, listIndex, expanded, flipExpand }) {
+export function Question({ simulation, question, dragIndex, listIndex, expanded, isDragging, flipExpand }) {
 	const theme = useTheme()
 
 	// Determine the icon for this question.
 	const Icon = question.options ? HelpIcon : InfoIcon
 	const iconColor = question.options ? theme.palette.primary.main : theme.palette.info.main
+
+	// Determine the jump-in. Ensure this doesn't change upon dragging.
+	const jumpInRef = useRef()
+	const jumpIn = isDragging ? jumpInRef.current : listIndex.length - 1
+	jumpInRef.current = jumpIn
 
 	// Render the question.
 	return <Draggable key={question.id} index={dragIndex} draggableId={question.id}>
@@ -40,7 +46,7 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 					...provided.draggableProps.style, // Default drag style from the toolbox.
 					...(snapshot.isDragging ? { color: theme.palette.primary.main } : {}), // Further drag style customization.
 				}}
-				sx={{ ...accordionStyle, marginLeft: `${(listIndex.length - 1) * 16}px !important` }}
+				sx={{ ...accordionStyle, marginLeft: `${jumpIn * 16}px !important` }}
 				expanded={expanded}
 				onChange={() => flipExpand()}
 			>
@@ -81,7 +87,7 @@ function Folder(props) {
 	return <FolderOpener {...props} />
 }
 
-function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expanded, flipExpand }) {
+function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expanded, isDestinationFolder, flipExpand }) {
 	const theme = useTheme()
 
 	// Define the expandIcon depending on whether the folder is empty or not. Also override the default animation.
@@ -101,11 +107,14 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 					...provided.draggableProps.style, // Default drag style from the toolbox.
 					...(snapshot.isDragging ? { color: theme.palette.primary.main } : {}), // Further drag style customization.
 				}}
-				sx={{ ...accordionStyle, marginLeft: `${(listIndex.length - 2) * 16}px !important` }}
+				sx={{ ...accordionStyle, marginLeft: snapshot.isDragging ? 0 : `${(listIndex.length - 2) * 16}px !important` }}
 				expanded={false}
 				onChange={() => !isEmpty && flipExpand()}
 			>
-				<AccordionSummary sx={isEmpty ? { cursor: 'default', '& div': { cursor: 'default' } } : {}} key="summary" expandIcon={expandIcon}>
+				<AccordionSummary sx={{
+					...(isEmpty ? { cursor: 'default', '& div': { cursor: 'default' } } : {}),
+					...(isDestinationFolder ? { background: alpha(theme.palette.primary.main, 0.1) } : {}),
+				}} key="summary" expandIcon={expandIcon}>
 					<span {...provided.dragHandleProps} style={{ visibility: expanded && !isEmpty ? 'hidden' : 'visible' }}>
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
@@ -116,8 +125,9 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 						console.log('Changing folder title ... ToDo')
 					}}>{folder.title || emptyFolder}</span>
 				</AccordionSummary>
-			</Accordion>}
-	</Draggable>
+			</Accordion>
+		}
+	</Draggable >
 }
 
 // The FolderCloser is an invisible marker with height 0. If an object is dragged above this separator, it will be dropped inside the folder. If it is dragged below this separator, it will be dropped below the folder.

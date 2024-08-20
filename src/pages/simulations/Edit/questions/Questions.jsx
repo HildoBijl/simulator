@@ -10,7 +10,7 @@ import MenuItem from '@mui/material/MenuItem'
 import { Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon } from '@mui/icons-material'
 import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
-import { nestedListToIndices } from 'util'
+import { nestedListToIndices, insertIntoArray } from 'util'
 import { FormPart, Label } from 'components'
 import { updateSimulation, getQuestionRef, moveQuestion } from 'simulations'
 
@@ -27,16 +27,20 @@ export function Questions({ simulation }) {
 
 	// Set up a list of all draggable items to render them one by one.
 	const { questions, questionOrder } = simulation
-	const { draggableList, indices } = useMemo(() => {
-		const list = expandFolders(questionOrder, questions, expandedMap)
-		const indices = nestedListToIndices(list)
-		return { draggableList: list.flat(Infinity), indices }
+	const { structure: draggableStructure, list: draggableList } = useMemo(() => {
+		const structure = expandFolders(questionOrder, questions, expandedMap)
+		const list = structure.flat(Infinity)
+		return { list, structure }
 	}, [questions, questionOrder, expandedMap])
+
+	// On a drag start, already save the move inside a state.
+	const onDragStart = (dragData) => {
+		setMove([dragData.source.index, dragData.source.index])
+	}
 
 	// On a drag update, save the move inside a state.
 	const [move, setMove] = useState() // An array of indices, like [4, 2] when element 4 moves to spot 2.
 	const onDragUpdate = (dragData) => {
-		console.log('Update: From ' + dragData.source.index + ' to ' + dragData.destination.index)
 		if (!isDragDataValid(dragData, draggableList))
 			return
 		setMove([dragData.source.index, dragData.destination.index])
@@ -47,8 +51,6 @@ export function Questions({ simulation }) {
 		// Reset any dragging parameters.
 		setMove()
 
-		console.log('End: From ' + dragData.source.index + ' to ' + dragData.destination.index)
-		console.log('All stuff', simulation, dragData, draggableList)
 		// On an invalid drag, or on a useless drag, do nothing.
 		if (!isDragDataValid(dragData, draggableList))
 			return
@@ -57,42 +59,32 @@ export function Questions({ simulation }) {
 		if (from === to)
 			return
 
-		// If a folder is moved right after its closer, also do nothing.
-		const questionToMove = draggableList[from]
-		if (questionToMove.type === 'folder' && to - from === 1)
-			return
-
-		// Determine the origins of the question that will be moved.
-		const originFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(questionToMove.id))
-		console.log('From data', from, questionToMove, originFolder)
-
-		// Determine the destination, and the index within the destination folder.
-		let destinationFolder, index
-		if (to === 0) {
-			index = 0
-		} else {
-			const shouldComeAfter = draggableList[to < from ? to - 1 : to]
-			console.log(shouldComeAfter)
-			if (shouldComeAfter && shouldComeAfter.type === 'folder' && !shouldComeAfter.closer) {
-				destinationFolder = shouldComeAfter
-				index = 0
-			} else {
-				destinationFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(shouldComeAfter.id))
-				const destinationArray = destinationFolder ? destinationFolder.contents : simulation.questionOrder
-				index = destinationArray.indexOf(shouldComeAfter.id) + 1
-				const oldIndex = destinationArray.indexOf(questionToMove.id)
-				if (oldIndex !== -1 && oldIndex < index)
-					index-- // If the item was already in this list prior to the index, the desired index should be one lower.
-			}
-		}
-
-		console.log('To data', to, destinationFolder, index)
-		// All data gathered. Move the question.
+		// Get all the data about the move and store it in the database.
+		const { questionToMove, originFolder, destinationFolder, index } = getMoveData(simulation, draggableList, from, to)
 		await moveQuestion(simulation, questionToMove, originFolder, destinationFolder, index)
 	}
 
-	// ToDo: apply move in the draggableList.
-	// const updatedDraggableList = useMemo()
+	// Determine move data depending on the move command stored.
+	const moveData = useMemo(() => move && getMoveData(simulation, draggableList, move[0], move[1]), [simulation, draggableList, move])
+
+	// For each question, determine the indices. Also take into account a potential move.
+	const indices = useMemo(() => {
+		// First apply the move to the existing structure.
+		const structure = moveData ? expandFolders(simulation.questionOrder, simulation.questions, undefined, moveData) : draggableStructure
+
+		// Then turn the structure into a list of indices.
+		const indicesList = nestedListToIndices(structure)
+		const list = structure.flat(Infinity)
+
+		// Finally couple the indices to the question IDs for easy reference.
+		const indices = {}
+		list.forEach((question, index) => {
+			if (question.type === 'folder' && question.closer)
+				return
+			indices[question.id] = indicesList[index]
+		})
+		return indices
+	}, [simulation, moveData, draggableStructure])
 
 	// Render the questions through an Accordion.
 	return <>
@@ -101,13 +93,23 @@ export function Questions({ simulation }) {
 		</FormPart>
 		<FormPart>
 			<Label>Fragen</Label>
-			<DragDropContext onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
+			<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
 				<Droppable droppableId="questions">{(provided, snapshot) => (
 					<div
 						ref={provided.innerRef}
 						{...provided.droppableProps}
 						style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
-						{draggableList.map((question, index) => <QuestionOrFolder key={`${question.id}${question.closer ? '-closer' : ''}`} {...{ simulation, question, dragIndex: index, listIndex: indices[index], expanded: !!expandedMap[question.id], flipExpand: () => flipExpand(question.id) }} />)}
+						{draggableList.map((question, index) => <QuestionOrFolder
+							key={`${question.id}${question.closer ? '-closer' : ''}`}
+							{...{
+								simulation,
+								question,
+								dragIndex: index,
+								listIndex: indices[question.id],
+								expanded: !!expandedMap[question.id],
+								isDragging: moveData?.questionToMove?.id === question.id, isDestinationFolder: moveData?.destinationFolder?.id === question.id,
+								flipExpand: () => flipExpand(question.id)
+							}} />)}
 						{provided.placeholder}
 						<AddQuestionButton {...{ simulation, setExpandedMap }} />
 						<AddFolderButton {...{ simulation, setExpandedMap }} />
@@ -196,23 +198,88 @@ function isDragDataValid(dragData, draggableList) {
 	return true
 }
 
-// expandFolders takes a list of questions (or question IDs) with potential folders in them. It then not only includes the folder, but also (assuming the folder is opened) all questions inside the folder. At the end it adds a folder-closer, which is needed for the dragging system.
-function expandFolders(questionList, questions, expandedMap) {
-	return questionList.map(question => {
+// expandFolders takes a list of questions (or question IDs) with potential folders in them. It then not only turns the ID into the question/folder, but also (assuming the folder is opened) includes all questions (and recursively all folders) inside the folder. At the end it adds a folder-closer, which is needed for the dragging system.
+function expandFolders(questionList, questions, expandedMap, moveData, topLevel = true) {
+	const { questionToMove, originFolder, destinationFolder, index } = moveData || {}
+	let list = [...questionList]
+
+	// If we are on the top level of the question list, and there is a move command, apply it.
+	if (topLevel && moveData && questionToMove && !originFolder) {
+		const index = list.indexOf(questionToMove.id)
+		list = [...list.slice(0, index), ...list.slice(index + 1)]
+	}
+	if (topLevel && moveData && questionToMove && !destinationFolder) {
+		list = insertIntoArray(list, index, questionToMove.id)
+	}
+
+	// Walk through the question list to set up its contents.
+	return list.map(question => {
 		// Ensure we have a question object.
 		if (typeof question === 'string')
 			question = questions[question]
 
 		// For folders, add an opener and a closer and, if needed, contents.
 		if (question.type === 'folder') {
+			// Set up the default value for a closed folder.
 			const value = [{ ...question }, { ...question, closer: true }]
-			if (!expandedMap || expandedMap[question.id])
-				value.splice(1, 0, ...expandFolders(question.contents || [], questions, expandedMap))
+
+			// If all folders are examined, or if specifically the folder is opened, also add contents.
+			if (!expandedMap || expandedMap[question.id]) {
+				// If there is a move, implement it into the contents.
+				let contents = question.contents
+				if (questionToMove && originFolder && originFolder.id === question.id) {
+					const index = contents.indexOf(questionToMove.id)
+					contents = [...contents.slice(0, index), ...contents.slice(index + 1)]
+				}
+				if (questionToMove && destinationFolder && destinationFolder.id === question.id) {
+					contents = insertIntoArray(contents, index, questionToMove.id)
+				}
+
+				// Add the contents.
+				value.splice(1, 0, ...expandFolders(contents || [], questions, expandedMap, moveData, false))
+			}
+
+			// Return the result.
 			return value
 		}
 
-		// For questions return the question.
+		// For questions directly return the question.
 		if (question.type === 'question' || question.type === undefined)
 			return question
 	})
+}
+
+// getMoveData takes a (flattened) list of questions and a move command: which should move to where. It then determines which question will be moved, from which folder, to which folder, and what the new index there will be.
+function getMoveData(simulation, draggableList, from, to) {
+	// Find the question to be move.
+	const questionToMove = draggableList[from]
+
+	// If a folder is moved right after its closer, do nothing.
+	if (questionToMove.type === 'folder' && to - from === 1)
+		return
+
+	// Determine the origin of the question that will be moved.
+	const originFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(questionToMove.id))
+
+	// Determine the destination, and the index within the destination folder.
+	let destinationFolder, index
+	if (to === 0) {
+		index = 0
+	} else {
+		const shouldComeAfter = draggableList[to < from ? to - 1 : to]
+		const shouldComeBefore = draggableList[to < from ? to : to + 1]
+		if (shouldComeAfter && shouldComeAfter.type === 'folder' && !shouldComeAfter.closer) {
+			destinationFolder = shouldComeAfter
+			index = shouldComeBefore.id === shouldComeAfter.id ? shouldComeAfter.contents.length : 0 // For a closed folder, put at the end. For an open folder, put at the start.
+		} else {
+			destinationFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(shouldComeAfter.id))
+			const destinationArray = destinationFolder ? destinationFolder.contents : simulation.questionOrder
+			index = destinationArray.indexOf(shouldComeAfter.id) + 1
+			const oldIndex = destinationArray.indexOf(questionToMove.id)
+			if (oldIndex !== -1 && oldIndex < index)
+				index-- // If the item was already in this list prior to the index, the desired index should be one lower.
+		}
+	}
+
+	return { questionToMove, originFolder, destinationFolder, index }
 }

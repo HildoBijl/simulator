@@ -19,7 +19,7 @@ import { updateQuestion } from 'simulations'
 import { emptyQuestion, emptyOption } from '../../settings'
 import { hasVariables, getScriptError } from '../../util'
 
-export function Options({ simulation, question, index: questionIndex }) {
+export function Options({ simulation, question }) {
 	// Set up manual expansion controls.
 	const options = question.options || []
 	const [defaultsExpanded, setDefaultsExpanded] = useState(false)
@@ -43,8 +43,8 @@ export function Options({ simulation, question, index: questionIndex }) {
 	return <>
 		<Label>Antwortmöglichtkeiten</Label>
 		<div>
-			<Defaults {...{ simulation, question, questionIndex, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />
-			{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, questionIndex, optionIndex, expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
+			<Defaults {...{ simulation, question, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />
+			{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, optionIndex, expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
 			{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>
 				<AccordionSummary>
 					<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
@@ -55,7 +55,7 @@ export function Options({ simulation, question, index: questionIndex }) {
 	</>
 }
 
-function Defaults({ simulation, question, questionIndex, expanded, flipExpand }) {
+function Defaults({ simulation, question, expanded, flipExpand }) {
 	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 			Standardeinstellungen für alle Antwortmöglichkeiten (sofern nicht weiter eingestellt)
@@ -64,13 +64,13 @@ function Defaults({ simulation, question, questionIndex, expanded, flipExpand })
 			<FormPart>
 				<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
 			</FormPart>
-			<FollowUpDropdown {...{ simulation, question, questionIndex }} />
+			<FollowUpDropdown {...{ simulation, question }} />
 			{hasVariables(simulation) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
 		</AccordionDetails>
 	</Accordion>
 }
 
-function Option({ simulation, question, questionIndex, optionIndex, expanded, flipExpand }) {
+function Option({ simulation, question, optionIndex, expanded, flipExpand }) {
 	// Determine some derived/default properties.
 	const option = question.options[optionIndex]
 	const description = option.description || emptyOption
@@ -101,7 +101,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 				<FormPart>
 					<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
 				</FormPart>
-				<FollowUpDropdown {...{ simulation, question, questionIndex, optionIndex }} />
+				<FollowUpDropdown {...{ simulation, question, optionIndex }} />
 				{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, question, optionIndex }} /> : null}
 			</AccordionDetails>
 			<AccordionActions key="actions">
@@ -111,7 +111,7 @@ function Option({ simulation, question, questionIndex, optionIndex, expanded, fl
 	</Accordion>
 }
 
-function FollowUpDropdown({ simulation, question, questionIndex, optionIndex }) {
+function FollowUpDropdown({ simulation, question, optionIndex }) {
 	const forQuestion = (optionIndex === undefined)
 	const options = question.options || []
 	const option = options[optionIndex]

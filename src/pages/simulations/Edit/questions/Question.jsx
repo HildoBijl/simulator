@@ -70,7 +70,7 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 							<MCE label="Beschreibung" height="225" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" />
 						</FormPart>
 						<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
-						<Options {...{ simulation, question, index: dragIndex }} />
+						<Options {...{ simulation, question }} />
 					</AccordionDetails>
 					<AccordionActions key="actions">
 						<Button sx={{ mt: 2 }} onClick={() => deleteQuestion(simulation, question)}>Frage löschen</Button>
@@ -87,8 +87,13 @@ function Folder(props) {
 	return <FolderOpener {...props} />
 }
 
-function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expanded, isDestinationFolder, flipExpand }) {
+function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expanded, isDragging, isDestinationFolder, flipExpand }) {
 	const theme = useTheme()
+
+	// Determine the jump-in. Ensure this doesn't change upon dragging.
+	const jumpInRef = useRef()
+	const jumpIn = isDragging ? jumpInRef.current : listIndex.length - 2
+	jumpInRef.current = jumpIn
 
 	// Define the expandIcon depending on whether the folder is empty or not. Also override the default animation.
 	const isEmpty = !folder.contents || folder.contents.length === 0
@@ -107,7 +112,7 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 					...provided.draggableProps.style, // Default drag style from the toolbox.
 					...(snapshot.isDragging ? { color: theme.palette.primary.main } : {}), // Further drag style customization.
 				}}
-				sx={{ ...accordionStyle, marginLeft: snapshot.isDragging ? 0 : `${(listIndex.length - 2) * 16}px !important` }}
+				sx={{ ...accordionStyle, marginLeft: snapshot.isDragging ? 0 : `${jumpIn * 16}px !important` }}
 				expanded={false}
 				onChange={() => !isEmpty && flipExpand()}
 			>

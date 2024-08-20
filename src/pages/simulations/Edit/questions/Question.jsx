@@ -116,9 +116,11 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 				expanded={false}
 				onChange={() => !isEmpty && flipExpand()}
 			>
-				<AccordionSummary sx={{
+				<AccordionSummary style={{
 					...(isEmpty ? { cursor: 'default', '& div': { cursor: 'default' } } : {}),
-					...(isDestinationFolder ? { background: alpha(theme.palette.primary.main, 0.1) } : {}),
+				}} sx={{
+					'&.Mui-focusVisible': { background: 'transparent' }, // Prevent the whole bar from changing color upon changing the title.
+					...(isEmpty ? { cursor: 'default', '& div': { cursor: 'default' } } : {}),
 				}} key="summary" expandIcon={expandIcon}>
 					<span {...provided.dragHandleProps} style={{ visibility: expanded && !isEmpty ? 'hidden' : 'visible' }}>
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />

@@ -203,7 +203,7 @@ function expandFolders(questionList, questions, expandedMap, moveData, topLevel 
 	const { questionToMove, originFolder, destinationFolder, index } = moveData || {}
 	let list = [...questionList]
 
-	// If we are on the top level of the question list, and there is a move command, apply it.
+	// If we are on the top level of the question list, and there is a move command, apply it. First remove the question to move and then insert it where needed.
 	if (topLevel && moveData && questionToMove && !originFolder) {
 		const index = list.indexOf(questionToMove.id)
 		list = [...list.slice(0, index), ...list.slice(index + 1)]
@@ -226,7 +226,7 @@ function expandFolders(questionList, questions, expandedMap, moveData, topLevel 
 			// If all folders are examined, or if specifically the folder is opened, also add contents.
 			if (!expandedMap || expandedMap[question.id]) {
 				// If there is a move, implement it into the contents.
-				let contents = question.contents
+				let contents = question.contents || []
 				if (questionToMove && originFolder && originFolder.id === question.id) {
 					const index = contents.indexOf(questionToMove.id)
 					contents = [...contents.slice(0, index), ...contents.slice(index + 1)]
@@ -254,9 +254,9 @@ function getMoveData(simulation, draggableList, from, to) {
 	// Find the question to be move.
 	const questionToMove = draggableList[from]
 
-	// If a folder is moved right after its closer, do nothing.
+	// If a folder is moved right after its closer, consider it as "at the same place".
 	if (questionToMove.type === 'folder' && to - from === 1)
-		return
+		to = from
 
 	// Determine the origin of the question that will be moved.
 	const originFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(questionToMove.id))
@@ -266,11 +266,11 @@ function getMoveData(simulation, draggableList, from, to) {
 	if (to === 0) {
 		index = 0
 	} else {
-		const shouldComeAfter = draggableList[to < from ? to - 1 : to]
-		const shouldComeBefore = draggableList[to < from ? to : to + 1]
-		if (shouldComeAfter && shouldComeAfter.type === 'folder' && !shouldComeAfter.closer) {
+		const shouldComeAfter = draggableList[to <= from ? to - 1 : to]
+		const shouldComeBefore = draggableList[to <= from ? to : to + 1]
+		if (shouldComeAfter && shouldComeAfter.type === 'folder' && !shouldComeAfter.closer) { // Should it be put into a (closed) folder?
 			destinationFolder = shouldComeAfter
-			index = shouldComeBefore.id === shouldComeAfter.id ? shouldComeAfter.contents.length : 0 // For a closed folder, put at the end. For an open folder, put at the start.
+			index = shouldComeBefore.id === shouldComeAfter.id ? (shouldComeAfter.contents?.length || 0) : 0 // For a closed folder, put at the end. For an open folder, put at the start.
 		} else {
 			destinationFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(shouldComeAfter.id))
 			const destinationArray = destinationFolder ? destinationFolder.contents : simulation.questionOrder

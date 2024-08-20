@@ -89,7 +89,7 @@ function Folder(props) {
 
 function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expanded, isDragging, isDestinationFolder, flipExpand }) {
 	const theme = useTheme()
-
+	
 	// Determine the jump-in. Ensure this doesn't change upon dragging.
 	const jumpInRef = useRef()
 	const jumpIn = isDragging ? jumpInRef.current : listIndex.length - 2

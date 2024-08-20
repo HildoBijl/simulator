@@ -47,7 +47,6 @@ export function Scripts() {
 
 function ScriptsForSimulation({ simulation }) {
 	const [variableId, setVariableId] = useState()
-	console.log(simulation)
 	return <>
 		<VariableSelector {...{ simulation, variableId, setVariableId }} />
 		<GeneralScripts {...{ variableId, simulation }} />

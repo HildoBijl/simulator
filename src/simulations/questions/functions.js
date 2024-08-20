@@ -18,13 +18,25 @@ export async function updateQuestion(simulationId, questionId, data) {
 
 // deleteQuestion will remove a certain question from the database.
 export async function deleteQuestion(simulation, questionToRemove) {
-	// Walk through the simulation questions to see if this question appears in any link, either as main follow-up question or as an option follow-up.
+	// Walk through the simulation questions and folders and remove any references to this question.
 	await Promise.all(!simulation.questions ? [] : Object.values(simulation.questions).map(async question => {
 		const update = {}
-		if (question.followUpQuestion === questionToRemove.id)
-			update.followUpQuestion = deleteField()
-		if (question.options && question.options.some(option => option.followUpQuestion === questionToRemove.id))
-			update.options = question.options.map(option => option.followUpQuestion === questionToRemove.id ? removeKeys(option, 'followUpQuestion') : option)
+
+		// On a folder, remove the question from its contents.
+		if (question.type === 'folder') {
+			if (question.contents.includes(questionToRemove.id))
+				update.contents = arrayRemove(questionToRemove.id)
+		}
+
+		// On a question, remove it when it appears as follow-up question for the question itself or for an option.
+		if (question.type === 'question' || question.type === undefined) {
+			if (question.followUpQuestion === questionToRemove.id)
+				update.followUpQuestion = deleteField()
+			if (question.options && question.options.some(option => option.followUpQuestion === questionToRemove.id))
+				update.options = question.options.map(option => option.followUpQuestion === questionToRemove.id ? removeKeys(option, 'followUpQuestion') : option)
+		}
+
+		// Apply the update if needed.
 		if (Object.keys(update).length > 0)
 			await updateQuestion(simulation.id, question.id, update)
 	}))
@@ -35,8 +47,10 @@ export async function deleteQuestion(simulation, questionToRemove) {
 			await updateEvent(simulation.id, event.id, { question: deleteField() })
 	}))
 
-	// Update the main simulation object. If the starting question is the question to be removed, update the starting question too.
-	const update = { questionOrder: arrayRemove(questionToRemove.id) }
+	// Update the main simulation object.
+	const update = {}
+	if (simulation.questionOrder.includes(questionToRemove.id))
+		update.questionOrder = arrayRemove(questionToRemove.id)
 	if (simulation.startingQuestion === questionToRemove.id) {
 		if (simulation.questionOrder.length === 1)
 			update.startingQuestion = deleteField() // Last question. Delete it.

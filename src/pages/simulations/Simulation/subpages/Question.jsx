@@ -131,7 +131,7 @@ function JumpDropDown({ simulation, state, jumpToQuestion }) {
 	return <FormControl fullWidth>
 		<InputLabel>{label}</InputLabel>
 		<Select value={value} label={label} onChange={(event) => jumpToQuestion(event.target.value)}>
-			{simulation.questionList.map((question, index) => <MenuItem key={question.id} value={question.id}>{index + 1}. {question.title || emptyQuestion}</MenuItem>)}
+			{simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{question.index.map(index => index + 1).join('.')}. {question.title || emptyQuestion}</MenuItem>)}
 			<MenuItem key="end" value="end">Ende: den Durchlauf beenden</MenuItem>
 		</Select>
 	</FormControl>

@@ -89,7 +89,7 @@ function Folder(props) {
 
 function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expanded, isDragging, isDestinationFolder, flipExpand }) {
 	const theme = useTheme()
-	
+
 	// Determine the jump-in. Ensure this doesn't change upon dragging.
 	const jumpInRef = useRef()
 	const jumpIn = isDragging ? jumpInRef.current : listIndex.length - 2
@@ -155,7 +155,7 @@ function FolderTitle({ simulation, folder }) {
 	const updateTitle = async (event) => {
 		await updateQuestion(simulation.id, folder.id, { title: event.target.value })
 	}
-	return <input type="text" style={{ marginRight: '1em', width: '100%' }} value={folder.title || ''} onClick={(event) => event.stopPropagation()} onChange={updateTitle} autoFocus={true} onBlur={() => setIsEditing(false)} />
+	return <input type="text" style={{ marginRight: '1em', width: '100%' }} value={folder.title || ''} onClick={(event) => event.stopPropagation()} onChange={updateTitle} autoFocus={true} onBlur={() => setIsEditing(false)} onKeyDown={event => (event.key === 'Enter' || event.key === 'Escape') && setIsEditing(false)} />
 }
 
 function indicesToString(indices) {

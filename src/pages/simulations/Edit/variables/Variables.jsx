@@ -101,6 +101,12 @@ function AddVariable({ addVariable }) {
 
 export function GeneralUpdateScript({ simulation }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
+
+	// Don't show on no variables.
+	if (Object.keys(simulation.variables).length === 0 && !simulation.updateScript)
+		return null
+
+	// Render the field.
 	return <FormPart>
 		<TrackedCodeField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Frage</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart>
@@ -108,6 +114,12 @@ export function GeneralUpdateScript({ simulation }) {
 
 function LinkToScriptsPage({ simulation }) {
 	const navigate = useNavigate()
+
+	// Don't show on no variables.
+	if (Object.keys(simulation.variables).length === 0)
+		return null
+
+	// Render the button.
 	return <FormPart>
 		<Button variant="contained" onClick={() => navigate(`/create/${simulation.id}/scripts`)}>Alle Simulationsskripte anzeigen</Button>
 	</FormPart>

@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useTheme, alpha } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
@@ -10,7 +10,7 @@ import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon,
 import { Draggable } from '@hello-pangea/dnd'
 
 import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
-import { deleteQuestion } from 'simulations'
+import { deleteQuestion, updateQuestion } from 'simulations'
 
 import { emptyQuestion, emptyFolder, accordionStyle } from '../../settings'
 
@@ -120,10 +120,7 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 					</span>
 					<Icon sx={{ color: theme.palette.secondary.main, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
 					<span style={{ marginRight: '0.75rem' }}>{indicesToString(listIndex)}</span>
-					<span style={{ cursor: 'text' }} onClick={(event) => {
-						event.stopPropagation() // Don't expand folder.
-						console.log('Changing folder title ... ToDo')
-					}}>{folder.title || emptyFolder}</span>
+					<FolderTitle {...{ simulation, folder }} />
 				</AccordionSummary>
 			</Accordion>
 		}
@@ -136,6 +133,24 @@ function FolderCloser({ question: folder, dragIndex }) {
 		{(provided) => <div ref={provided.innerRef}	{...provided.draggableProps}	{...provided.dragHandleProps}><div style={{ height: 0, background: 'red' }} />
 		</div>}
 	</Draggable>
+}
+
+function FolderTitle({ simulation, folder }) {
+	const [isEditing, setIsEditing] = useState(false)
+
+	// When not editing, set up text that can be clicked on to start editing.
+	const startEditingTitle = (event) => {
+		event.stopPropagation() // Don't expand the folder accordeon.
+		setIsEditing(true)
+	}
+	if (!isEditing)
+		return <span style={{ cursor: 'text' }} onClick={startEditingTitle}>{folder.title || emptyFolder}</span>
+
+	// When editing, store any edits directly.
+	const updateTitle = async (event) => {
+		await updateQuestion(simulation.id, folder.id, { title: event.target.value })
+	}
+	return <input type="text" style={{ marginRight: '1em', width: '100%' }} value={folder.title || ''} onClick={(event) => event.stopPropagation()} onChange={updateTitle} autoFocus={true} onBlur={() => setIsEditing(false)} />
 }
 
 function indicesToString(indices) {

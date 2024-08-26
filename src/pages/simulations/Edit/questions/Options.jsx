@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTheme } from '@mui/material/styles'
 import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
@@ -9,8 +10,9 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { DragIndicator as DragIndicatorIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
 import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 import { numberToLetter, useClearTags } from 'util'
 import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'components'
@@ -20,6 +22,8 @@ import { emptyQuestion, emptyOption } from '../../settings'
 import { hasVariables, getScriptError } from '../../util'
 
 export function Options({ simulation, question }) {
+	const theme = useTheme()
+
 	// Set up manual expansion controls.
 	const options = question.options || []
 	const [defaultsExpanded, setDefaultsExpanded] = useState(false)
@@ -39,18 +43,31 @@ export function Options({ simulation, question }) {
 		setExpanded(expanded => [...expanded.slice(0, index), ...expanded.slice(index + 1)])
 	}
 
+	// ToDo
+	const onDragStart = (dragData) => console.log('Start', dragData?.source?.index, dragData?.destination?.index)
+	const onDragEnd = (dragData) => console.log('End', dragData?.source?.index, dragData?.destination?.index)
+	const onDragUpdate = (dragData) => console.log('Update', dragData?.source?.index, dragData?.destination?.index)
+
 	// Render the options through an Accordion.
 	return <>
 		<Label>Antwortmöglichtkeiten</Label>
-		<div>
-			<Defaults {...{ simulation, question, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />
-			{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, optionIndex, expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
-			{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>
-				<AccordionSummary>
-					<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
-				</AccordionSummary>
-			</Accordion> : null}
-		</div>
+		<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
+			<Droppable droppableId="options">{(provided, snapshot) => (
+				<div
+					ref={provided.innerRef}
+					{...provided.droppableProps}
+					style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
+					<Defaults {...{ simulation, question, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />
+					{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, option, optionIndex, expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
+					{provided.placeholder}
+					{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>
+						<AccordionSummary>
+							<div style={{ fontSize: '2em', lineHeight: '0.7em', textAlign: 'center', transform: 'translateY(-3px)', width: '100%' }}>+</div>
+						</AccordionSummary>
+					</Accordion> : null}
+				</div>
+			)}</Droppable>
+		</DragDropContext>
 		{options.length === 0 ? <Alert severity="info" sx={{ mt: 1 }}>Hinweis: Eine Frage ohne Antwortmöglichkeiten ist einfach eine Infoseite. Sie können diese verwenden, um einige Informationen anzuzeigen, nach denen der Nutzer fortfahren kann. Oder Sie können damit auch eine maßgeschneiderte Endseite erstellen.</Alert> : null}
 	</>
 }
@@ -70,9 +87,10 @@ function Defaults({ simulation, question, expanded, flipExpand }) {
 	</Accordion>
 }
 
-function Option({ simulation, question, optionIndex, expanded, flipExpand }) {
+function Option({ simulation, question, option, optionIndex, expanded, flipExpand }) {
+	const theme = useTheme()
+
 	// Determine some derived/default properties.
-	const option = question.options[optionIndex]
 	const description = option.description || emptyOption
 	let title = useClearTags(description.split('\n')[0] || emptyOption) // Get first line.
 
@@ -89,26 +107,41 @@ function Option({ simulation, question, optionIndex, expanded, flipExpand }) {
 	}, [expanded])
 
 	// Render the option form.
-	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
-		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
-			<span style={{ marginRight: '0.75rem' }}>{numberToLetter(optionIndex).toUpperCase()}.</span>{title}
-		</AccordionSummary>
-		{expanded ? <>
-			<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
-				<FormPart>
-					<MCE ref={descriptionRef} label="Beschreibung" height="150" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" />
-				</FormPart>
-				<FormPart>
-					<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
-				</FormPart>
-				<FollowUpDropdown {...{ simulation, question, optionIndex }} />
-				{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, question, optionIndex }} /> : null}
-			</AccordionDetails>
-			<AccordionActions key="actions">
-				<Button onClick={() => updateQuestion(simulation.id, question.id, { options: arrayRemove(option) })}>Löschen</Button>
-			</AccordionActions>
-		</> : null}
-	</Accordion>
+	return <Draggable key={optionIndex} index={optionIndex} draggableId={optionIndex.toString()}>
+		{(provided, snapshot) =>
+			<Accordion
+				ref={provided.innerRef}
+				{...provided.draggableProps}
+				style={{
+					...provided.draggableProps.style, // Default drag style from the toolbox.
+					...(snapshot.isDragging ? { color: theme.palette.primary.main } : {}), // Further drag style customization.
+				}}
+				expanded={expanded}
+				onChange={() => flipExpand()}
+			>
+				<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
+					<span {...provided.dragHandleProps}>
+						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
+					</span>
+					<span style={{ marginRight: '0.75rem' }}>{numberToLetter(optionIndex).toUpperCase()}.</span>{title}
+				</AccordionSummary>
+				{expanded ? <>
+					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
+						<FormPart>
+							<MCE ref={descriptionRef} label="Beschreibung" height="150" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" />
+						</FormPart>
+						<FormPart>
+							<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
+						</FormPart>
+						<FollowUpDropdown {...{ simulation, question, optionIndex }} />
+						{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, question, optionIndex }} /> : null}
+					</AccordionDetails>
+					<AccordionActions key="actions">
+						<Button onClick={() => updateQuestion(simulation.id, question.id, { options: arrayRemove(option) })}>Antwortmöglichkeit Löschen</Button>
+					</AccordionActions>
+				</> : null}
+			</Accordion>}
+	</Draggable>
 }
 
 function FollowUpDropdown({ simulation, question, optionIndex }) {

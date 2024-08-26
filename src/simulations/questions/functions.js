@@ -24,7 +24,7 @@ export async function deleteQuestion(simulation, questionToRemove) {
 
 		// On a folder, remove the question from its contents.
 		if (question.type === 'folder') {
-			if (question.contents.includes(questionToRemove.id))
+			if ((question.contents || []).includes(questionToRemove.id))
 				update.contents = arrayRemove(questionToRemove.id)
 		}
 

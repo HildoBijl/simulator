@@ -22,7 +22,7 @@ export function Simulation() {
 	if (id === null)
 		return <GeneralErrorPage />
 	if (id === undefined)
-		return <Page title="Simulation laden..." />
+		return <Page title="Simulation laden..." showLogo="right" />
 	return <SimulationWithId id={id} />
 }
 
@@ -42,7 +42,7 @@ function SimulationWithId({ id }) {
 	if (simulation === null) // Failed to load.
 		return <GeneralErrorPage /> // General error page.
 	if (simulation === undefined) // Loading.
-		return <Page title="Simulation laden..." /> // Empty page with just a title.
+		return <Page title="Simulation laden..." showLogo="right" /> // Empty page with just a title.
 
 	// We have a valid simulation! Render it! Add a key to assure a reload of the component (including a new state) on a change of simulation.
 	return <SimulationWithData key={simulation.id} simulation={simulation} />

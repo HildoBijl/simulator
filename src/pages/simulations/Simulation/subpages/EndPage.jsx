@@ -10,7 +10,7 @@ import { VariableOverview } from '../components'
 export function EndPage({ simulation, history, reset }) {
 	const isOwner = useIsOwner(simulation)
 	const state = getState(history)
-	return <Page title="Ende der Simulation">
+	return <Page title="Ende der Simulation" showLogo="right">
 		<p>Sie haben die Simulation abgeschlossen!</p>
 		<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => reset(isOwner)}>Neu anfangen</Button>
 		<VariableOverview {...{ simulation, state }} showHidden={true} />

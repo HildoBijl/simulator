@@ -39,7 +39,7 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion, ju
 	const showNextButton = !showRestartButton && (options.length === 0 || choice !== undefined)
 
 	// Render the question with description, media, options and buttons.
-	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'}>
+	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right">
 		<MCEContents>{question.description}</MCEContents>
 		<Media media={question.media} />
 		{options.length === 0 ? null : <>

@@ -9,7 +9,7 @@ import { useAuthData, useUserId, signInWithGoogleRedirect, useUser } from 'fb'
 import { useSimulationIds, createNewSimulation, useSimulation, useUserInvites, deleteSimulationInvite, acceptSimulationInvite } from 'simulations'
 import { Page } from 'components'
 
-const CreatePage = ({ children }) => <Page title="Simulationsübersicht" showLogo={true}>{children}</Page>
+const CreatePage = ({ children }) => <Page title="Simulationsübersicht" showLogo="left">{children}</Page>
 
 export function Create() {
   const { user, loading } = useAuthData()

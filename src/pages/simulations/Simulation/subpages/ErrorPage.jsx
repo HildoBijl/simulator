@@ -27,7 +27,7 @@ export function ErrorPage({ simulation, error, reset }) {
 	if (!Component)
 		throw new Error(`Invalid simulation validation error: received an error of type "${error.type}" but this type has no known component yet to display the error properly.`)
 
-	return <Page title={simulation.title || '[Simulationstitel fehlt]'}>
+	return <Page title={simulation.title || '[Simulationstitel fehlt]'} showLogo="right">
 		{error.source === 'simulation' ? <StandardSimulationErrorMessage {...{ reset }} /> : <StandardStateErrorMessage {...{ reset }} />}
 		{isOwner ? <Alert severity="error" sx={{ my: 2 }}>
 			<h5 style={{ margin: '0.25rem 0' }}>Informationen für Simulationsentwickler</h5>

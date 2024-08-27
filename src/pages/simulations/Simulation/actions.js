@@ -33,6 +33,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		})
 
 		// Update the statistics.
+		incrementPlayerPlayCounter(simulation)
 		if (!devMode)
 			incrementSimulationField(simulation.id, 'numPlayed')
 	}, [simulation, setHistory, setError])
@@ -168,4 +169,15 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 	// All actions are ready!
 	return { reset, start, chooseOption, goToNextQuestion, jumpToQuestion }
+}
+
+function incrementPlayerPlayCounter(simulation) {
+	// Load the overview and ensure there's an object for the current simulation.
+	const overview = JSON.parse(localStorage.getItem('simulationOverview') || '{}')
+	if (!overview[simulation.id])
+		overview[simulation.id] = {}
+
+	// Increment the play counter and save it.
+	overview[simulation.id].numPlayed = overview[simulation.id].numPlayed ? (overview[simulation.id].numPlayed + 1) : 1
+	localStorage.setItem('simulationOverview', JSON.stringify(overview))
 }

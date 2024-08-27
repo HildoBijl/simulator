@@ -1,11 +1,12 @@
-import { useNavigate } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
-import Button from '@mui/material/Button'
 
 import logo from 'assets/logoWhite.svg'
+
+import { ForStudents } from './ForStudents'
+import { ForTeachers } from './ForTeachers'
 
 export function Home() {
   return <>
@@ -55,11 +56,12 @@ const Block = styled(Grid)(({ theme }) => ({
     alignItems: 'center',
     display: 'flex',
     flexFlow: 'column nowrap',
-    padding: '0 3rem',
+    padding: '0 2rem',
     textAlign: 'center',
 
     [theme.breakpoints.down('md')]: {
-      marginBottom: '2rem',
+      marginBottom: '1rem',
+			padding: '0 1rem',
     },
 
     '& h2': {
@@ -73,21 +75,13 @@ const Block = styled(Grid)(({ theme }) => ({
 }))
 
 export function Blocks() {
-  const navigate = useNavigate()
   return <Container maxWidth="xl">
     <Grid container>
       <Block item xs={12} md={6}>
-        <div>
-          <h2>Für Studierenden</h2>
-          <p>Sie sollten von Ihrem Lehrer/in einen direkten Link zu einem bestimmten Spiel erhalten.</p>
-        </div>
+        <ForStudents />
       </Block>
       <Block item xs={12} md={6}>
-        <div>
-          <h2>Für Lehrende</h2>
-          <p>Sie können Ihre eigenen Simulationen erstellen und sie mit Ihren Studierenden teilen.</p>
-          <Button variant="contained"onClick={() => navigate('/create')}>Eine neue Simulation erstellen</Button>
-        </div>
+        <ForTeachers />
       </Block>
     </Grid>
   </Container>

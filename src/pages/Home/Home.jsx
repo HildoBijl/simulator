@@ -22,20 +22,24 @@ const TitleBarBox = styled(Box)(({ theme }) => ({
   padding: '2rem',
 
   '& .container': {
+		alignItems: 'center',
     display: 'flex',
     flexFlow: 'row nowrap',
+		justifyContent: 'center',
     placeItems: 'center',
 
     '& .logo': {
       display: 'block',
-      height: 'min(11vw, 11rem)',
-      margin: '0 4% 0 6%',
-      width: 'min(11vw, 11rem)',
+      height: 'min(13vw, 11rem)',
+      margin: '0 6% 0 6%',
+      width: 'min(13vw, 11rem)',
     },
 
     '& .title': {
-      flexGrow: 1,
-      fontSize: 'min(7vw, 7rem)',
+      flexGrow: 0,
+      fontSize: 'min(10vw, 7rem)',
+			marginRight: '10vw',
+			transform: 'translateY(-0.4vw)',
     },
   },
 }))
@@ -45,7 +49,7 @@ export function TitleBar() {
     <Container maxWidth="xl" sx={{ flexGrow: 1 }} className="container">
       <img src={logo} className="logo" />
       <div className="title">
-        Führungssimulator
+        Simulator
       </div>
     </Container>
   </TitleBarBox>

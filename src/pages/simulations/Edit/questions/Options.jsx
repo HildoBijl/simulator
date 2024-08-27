@@ -16,7 +16,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 import { numberToLetter, useClearTags } from 'util'
 import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'components'
-import { updateQuestion } from 'simulations'
+import { updateQuestion, moveOption } from 'simulations'
 
 import { emptyQuestion, emptyOption } from '../../settings'
 import { hasVariables, getScriptError } from '../../util'
@@ -44,9 +44,23 @@ export function Options({ simulation, question }) {
 	}
 
 	// ToDo
-	const onDragStart = (dragData) => console.log('Start', dragData?.source?.index, dragData?.destination?.index)
-	const onDragEnd = (dragData) => console.log('End', dragData?.source?.index, dragData?.destination?.index)
-	const onDragUpdate = (dragData) => console.log('Update', dragData?.source?.index, dragData?.destination?.index)
+	const [move, setMove] = useState()
+	const onDragStart = (dragData) => {
+		setMove([dragData.source.index, dragData.source.index])
+	}
+	const onDragUpdate = (dragData) => {
+		if (isDragDataValid(dragData))
+			setMove([dragData.source.index, dragData.destination.index])
+	}
+	const onDragEnd = async (dragData) => {
+		setMove()
+		if (!isDragDataValid(dragData))
+			return
+		const from = dragData.source.index
+		const to = dragData.destination.index
+		if (from !== to)
+			await moveOption(simulation, question, from, to)
+	}
 
 	// Render the options through an Accordion.
 	return <>
@@ -58,7 +72,7 @@ export function Options({ simulation, question }) {
 					{...provided.droppableProps}
 					style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
 					<Defaults {...{ simulation, question, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />
-					{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, option, optionIndex, expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
+					{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, option, optionIndex, updatedIndex: applyMoveToIndex(move, optionIndex), expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
 					{provided.placeholder}
 					{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>
 						<AccordionSummary>
@@ -87,7 +101,7 @@ function Defaults({ simulation, question, expanded, flipExpand }) {
 	</Accordion>
 }
 
-function Option({ simulation, question, option, optionIndex, expanded, flipExpand }) {
+function Option({ simulation, question, option, optionIndex, updatedIndex, expanded, flipExpand }) {
 	const theme = useTheme()
 
 	// Determine some derived/default properties.
@@ -123,7 +137,7 @@ function Option({ simulation, question, option, optionIndex, expanded, flipExpan
 					<span {...provided.dragHandleProps}>
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
-					<span style={{ marginRight: '0.75rem' }}>{numberToLetter(optionIndex).toUpperCase()}.</span>{title}
+					<span style={{ marginRight: '0.75rem' }}>{numberToLetter(updatedIndex).toUpperCase()}.</span>{title}
 				</AccordionSummary>
 				{expanded ? <>
 					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
@@ -191,4 +205,26 @@ export function OptionUpdateScript({ simulation, question, optionIndex, label = 
 	return <FormPart>
 		<TrackedCodeField label={label} value={option.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
 	</FormPart>
+}
+
+function isDragDataValid(dragData) {
+	const { draggableId, source, destination } = dragData
+	if (!destination)
+		return false
+	if (source.index !== parseInt(draggableId))
+		return false
+	return true
+}
+
+function applyMoveToIndex(move, index) {
+	if (!move)
+		return index
+	const [from, to] = move
+	if (index === from)
+		return to
+	if (index < from && index >= to)
+		return index + 1
+	if (index > from && index <= to)
+		return index - 1
+	return index
 }

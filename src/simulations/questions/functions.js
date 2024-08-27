@@ -89,3 +89,12 @@ export async function moveQuestion(simulation, questionToMove, originFolder, des
 	// Await both promises together.
 	return await Promise.all([removingPromise, addingPromise])
 }
+
+// moveOption will switch the order of the options within a question.
+export async function moveOption(simulation, question, from, to) {
+	if (from === to)
+		return
+	return updateQuestion(simulation.id, question.id, {
+		options: moveArrayElement(question.options, from, to)
+	})
+}

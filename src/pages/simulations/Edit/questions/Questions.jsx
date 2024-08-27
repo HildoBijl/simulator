@@ -34,12 +34,12 @@ export function Questions({ simulation }) {
 	}, [questions, questionOrder, expandedMap])
 
 	// On a drag start, already save the move inside a state.
+	const [move, setMove] = useState() // An array of indices, like [4, 2] when element 4 moves to spot 2.
 	const onDragStart = (dragData) => {
 		setMove([dragData.source.index, dragData.source.index])
 	}
 
 	// On a drag update, save the move inside a state.
-	const [move, setMove] = useState() // An array of indices, like [4, 2] when element 4 moves to spot 2.
 	const onDragUpdate = (dragData) => {
 		if (!isDragDataValid(dragData, draggableList))
 			return

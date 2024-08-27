@@ -51,6 +51,7 @@ const Grid = styled('div')({
 	},
 
 	'& .title': {
+		paddingLeft: '0.4rem',
 		textAlign: 'left',
 	},
 	'& .numPlayed': {
@@ -65,7 +66,7 @@ function SimulationPlayOverview({ overview, refreshOverview }) {
 	const [hoverRow, setHoverRow] = useState()
 	return <Grid>
 		<div className="title head">Titel</div>
-		<div className="numPlayed head">Spiele</div>
+		<div className="numPlayed head">Läufe</div>
 		<div className="delete head"></div>
 		{Object.keys(overview).map(simulationId => <OverviewLine key={simulationId} simulationId={simulationId} data={overview[simulationId]} hovering={hoverRow === simulationId} startHover={() => setHoverRow(simulationId)} endHover={() => setHoverRow()} refreshOverview={refreshOverview} />)}
 	</Grid>

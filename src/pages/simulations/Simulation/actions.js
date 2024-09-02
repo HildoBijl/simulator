@@ -189,7 +189,11 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				return [...history.slice(0, -1), newState]
 			}
 
-			// If the state has no choice defined, go back to the previous question.
+			// If there's only two states left, then we should go back to being unitialized.
+			if (history.length === 2)
+				return []
+
+			// If there's more states left, just remove the last state.
 			return history.slice(0, -1)
 		})
 	}, [setHistory])

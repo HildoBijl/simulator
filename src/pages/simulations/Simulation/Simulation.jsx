@@ -68,7 +68,7 @@ function SimulationWithData({ simulation }) {
 
 	// Define actions.
 	const actions = useSimulationActions(simulation, setHistory, clearHistory, setError)
-	const { start, reset, chooseOption, goToNextQuestion, jumpToQuestion } = actions
+	const { start, reset, chooseOption, goToNextQuestion, jumpToQuestion, undo } = actions
 
 	// On an error, show the error page.
 	const isOwner = useIsOwner(simulation)
@@ -82,5 +82,5 @@ function SimulationWithData({ simulation }) {
 		return <StartPage {...{ simulation, start }} />
 	if (questionId === 'end')
 		return <EndPage {...{ simulation, history, reset }} />
-	return <Question key={history.length - 1} {...{ simulation, state, chooseOption, goToNextQuestion, jumpToQuestion, reset }} />
+	return <Question key={history.length - 1} {...{ simulation, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }} />
 }

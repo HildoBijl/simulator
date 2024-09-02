@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom'
 import { useUser } from 'fb'
 import logo from 'assets/logoWhite.svg'
 
-export function AppBar({ title, backButton, showLogo }) {
+export function AppBar({ title, backButton, showLogo, icons }) {
 	const navigate = useNavigate()
 	const user = useUser()
 
@@ -33,11 +33,16 @@ export function AppBar({ title, backButton, showLogo }) {
 						{title || '[Seitentitel fehlt]'}
 					</Typography>
 
-					{!backButton && showLogo === 'right' ? <IconButton size="large" edge="start" color="inherit" sx={{ ml: 1, mr: -1 }} onClick={() => navigate('/')}>
+					{icons && icons.map(({ Icon, onClick }, index) => <IconButton key={index} size="large" edge="start" color="inherit" onClick={onClick}>
+						<Icon sx={{ width: '2rem', height: '2rem' }} />
+					</IconButton>
+					)}
+
+					{!backButton && showLogo === 'right' ? <IconButton size="large" edge="end" color="inherit" onClick={() => navigate('/')}>
 						<img src={logo} style={{ width: '2.5rem', height: '2.5rem' }} />
 					</IconButton> : null}
 
-					{!backButton && showLogo !== 'right' && user ? <IconButton size="large" edge="start" color="inherit" sx={{ ml: 1, mr: -1 }} onClick={() => navigate('/account')}>
+					{!backButton && showLogo !== 'right' && user ? <IconButton size="large" edge="end" color="inherit" onClick={() => navigate('/account')}>
 						<Person sx={{ width: '2.5rem', height: '2.5rem' }} />
 					</IconButton> : null}
 				</Toolbar>

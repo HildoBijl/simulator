@@ -5,6 +5,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import { Undo } from '@mui/icons-material'
 
 import { numberToLetter } from 'util'
 import { Page, InputParagraph, Media, MCEContents } from 'components'
@@ -14,7 +15,7 @@ import { emptyQuestion, emptyOption } from '../../settings'
 
 import { VariableOverview } from '../components/VariableOverview'
 
-export function Question({ simulation, state, chooseOption, goToNextQuestion, jumpToQuestion, reset }) {
+export function Question({ simulation, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }) {
 	const isOwner = useIsOwner(simulation)
 	const { questionId, choice } = state
 
@@ -38,8 +39,11 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion, ju
 	const showRestartButton = options.length === 0 && question.followUpQuestion === 'end'
 	const showNextButton = !showRestartButton && (options.length === 0 || choice !== undefined)
 
+	// Define what icons to show.
+	const icons = simulation.allowUndo ? [{Icon: Undo, onClick: undo }] : []
+
 	// Render the question with description, media, options and buttons.
-	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right">
+	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
 		<MCEContents>{question.description}</MCEContents>
 		<Media media={question.media} />
 		{options.length === 0 ? null : <>

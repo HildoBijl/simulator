@@ -7,14 +7,14 @@ import Tabs from '@mui/material/Tabs'
 import { AppBar } from '../AppBar'
 
 export const TabContext = createContext(0)
-export function Page({ children, addAppBar = true, title, backButton, showLogo, style, tabs }) {
+export function Page({ children, addAppBar = true, title, backButton, showLogo, style, tabs, icons }) {
 	// Set up a state and handler for the tabs.
 	const [tab, setTab] = useState(0)
 	const handleChange = (event, newTab) => setTab(newTab)
 
 	// Show the page with all requested components.
 	return <>
-		{addAppBar ? <AppBar title={title} backButton={backButton} showLogo={showLogo} /> : null}
+		{addAppBar ? <AppBar title={title} backButton={backButton} showLogo={showLogo} icons={icons} /> : null}
 		{tabs ?
 			<Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
 				<Container maxWidth="xl">

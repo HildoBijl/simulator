@@ -175,6 +175,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 	// undo will undo the last action that was taken. It pops off the last entry of the history, assuming there's more than one entry.
 	const undo = useCallback(() => {
 		setHistory(history => {
+			console.log('Calling undo', history)
 			if (history.length <= 1)
 				throw new Error(`Invalid undo call: cannot undo the last action as no action was taken.`)
 

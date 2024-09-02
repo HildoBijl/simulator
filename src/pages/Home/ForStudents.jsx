@@ -23,7 +23,7 @@ const Grid = styled('div')({
 	boxSizing: 'border-box',
 	display: 'grid',
 	gridTemplateColumns: '[start] 5fr minmax(60px, 1fr) 40px [end]',
-	padding: '1rem 0.5rem',
+	padding: '1rem 0.3rem',
 	width: '100%',
 
 	'& > div': {

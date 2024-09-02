@@ -37,8 +37,9 @@ const TitleBarBox = styled(Box)(({ theme }) => ({
 
     '& .title': {
       flexGrow: 0,
-      fontSize: 'min(10vw, 7rem)',
-			marginRight: '10vw',
+      fontSize: 'min(4.5vw, 5rem)',
+      fontWeight: 500,
+			marginRight: '8vw',
 			transform: 'translateY(-0.4vw)',
     },
   },
@@ -49,7 +50,7 @@ export function TitleBar() {
     <Container maxWidth="xl" sx={{ flexGrow: 1 }} className="container">
       <img src={logo} className="logo" />
       <div className="title">
-        Simulator
+        DigiTeach Simulator
       </div>
     </Container>
   </TitleBarBox>

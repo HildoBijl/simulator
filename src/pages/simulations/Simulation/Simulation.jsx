@@ -77,7 +77,7 @@ function SimulationWithData({ simulation }) {
 		return <ErrorPage {...{ simulation, error: stateError, reset }} />
 
 	// Determine whether we're at the start (no question defined), at the end, or at a regular question. Render accordingly.
-	if (!questionId || questionId === 'initialState')
+	if (!questionId || questionId === 'start')
 		return <StartPage {...{ simulation, start }} />
 	if (questionId === 'end')
 		return <EndPage {...{ simulation, history, reset }} />

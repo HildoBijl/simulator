@@ -26,7 +26,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				throw new Error(`Cannot start simulation: it has already been started.`)
 
 			// Define the state.
-			const initialState = history[0] || { questionId: 'initialState' }
+			const initialState = history[0] || { questionId: 'start' }
 			const state = { questionId: simulation.startingQuestion || simulation.questions[0] }
 
 			if (hasVariables(simulation)) {

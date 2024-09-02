@@ -51,7 +51,6 @@ function SimulationWithId({ id }) {
 function SimulationWithData({ simulation }) {
 	// Define the simulation state.
 	const [history, setHistory, clearHistory] = useLocalStorageState([], simulation.id)
-	console.log(history)
 	const [error, setError] = useState(false) // Tracks if an error was encountered during simulation run-time.
 	const state = getState(history)
 	const { questionId } = state

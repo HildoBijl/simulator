@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
+import FormGroup from '@mui/material/FormGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
+import { deleteField } from 'firebase/firestore'
 
 import { getBaseUrl, useTrackedState } from 'util'
 import { useUserId } from 'fb'
@@ -19,6 +23,7 @@ export function Settings({ simulation }) {
 			<MCE label="Beschreibung" height="300" value={simulation.description} path="simulations" documentId={simulation.id} field="description" />
 		</FormPart>
 		<MediaUploader label="Abbildung" value={simulation.media} path="simulations" documentId={simulation.id} fileName="StartImage" />
+		<AllowUndo simulation={simulation} />
 		<Ownership simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />
 	</>
@@ -53,6 +58,14 @@ function ChangeUrl({ simulation }) {
 			conflict ?
 				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Eine Simulation mit der URL &quot;{url}&quot; existiert bereits. Versuchen Sie eine andere URL.</p> :
 				<p>Die Simulation kann über <Link to={fullUrl} target="_blank" rel="noopener noreferrer">{fullUrl}</Link> aufgerufen werden.</p>}
+	</FormPart>
+}
+
+function AllowUndo({ simulation }) {
+	return <FormPart>
+		<FormGroup sx={{ px: '0.5rem' }}>
+			<FormControlLabel control={<Switch checked={simulation.allowUndo || false} onChange={event => updateSimulation(simulation.id, { allowUndo: event.target.checked || deleteField() })} label="Allow Undo" />} label="Benutzern die Möglichkeit geben, ihre letzte Aktion rückgängig zu machen." />
+		</FormGroup>
 	</FormPart>
 }
 

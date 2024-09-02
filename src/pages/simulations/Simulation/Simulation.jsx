@@ -51,11 +51,12 @@ function SimulationWithId({ id }) {
 function SimulationWithData({ simulation }) {
 	// Define the simulation state.
 	const [history, setHistory, clearHistory] = useLocalStorageState([], simulation.id)
+	console.log(history)
 	const [error, setError] = useState(false) // Tracks if an error was encountered during simulation run-time.
 	const state = getState(history)
 	const { questionId } = state
 
-	// Check for an error in the simulation. (For instance a faulty update script.)
+	// Check for any errors in the simulation. (For instance a faulty update script.)
 	const simulationError = useMemo(() => getSimulationError(simulation), [simulation])
 	useEffect(() => { // When the simulation is OK again, go back to normal.
 		if (error && !simulationError)
@@ -77,7 +78,7 @@ function SimulationWithData({ simulation }) {
 		return <ErrorPage {...{ simulation, error: stateError, reset }} />
 
 	// Determine whether we're at the start (no question defined), at the end, or at a regular question. Render accordingly.
-	if (!questionId)
+	if (!questionId || questionId === 'initialState')
 		return <StartPage {...{ simulation, start }} />
 	if (questionId === 'end')
 		return <EndPage {...{ simulation, history, reset }} />

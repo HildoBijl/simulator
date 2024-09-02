@@ -22,14 +22,19 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 		// Initialize the state.
 		setHistory(history => {
-			if (history.length !== 0)
+			if (history.length > 1)
 				throw new Error(`Cannot start simulation: it has already been started.`)
-			const state = {
-				questionId: simulation.startingQuestion || simulation.questions[0],
+
+			// Define the state.
+			const initialState = history[0] || { questionId: 'initialState' }
+			const state = { questionId: simulation.startingQuestion || simulation.questions[0] }
+
+			if (hasVariables(simulation)) {
+				const initialVariables = initialState.variables || getInitialVariables(simulation)
+				initialState.variables = initialVariables
+				state.variables = initialVariables
 			}
-			if (hasVariables(simulation))
-				state.variables = getInitialVariables(simulation)
-			return [state.variables || {}, state]
+			return [initialState, state]
 		})
 
 		// Update the statistics.
@@ -167,8 +172,30 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		})
 	}, [setHistory])
 
+	// undo will undo the last action that was taken. It pops off the last entry of the history, assuming there's more than one entry.
+	const undo = useCallback(() => {
+		setHistory(history => {
+			if (history.length <= 1)
+				throw new Error(`Invalid undo call: cannot undo the last action as no action was taken.`)
+
+			// If the state has a choice defined, remove the choice.
+			const state = history[history.length - 1]
+			if (state.choice !== undefined) {
+				const newState = {
+					...state,
+					variables: history[history.length - 2].variables, // Undo variable change.
+				}
+				delete newState.choice
+				return [...history.slice(0, -1), newState]
+			}
+
+			// If the state has no choice defined, go back to the previous question.
+			return history.slice(0, -1)
+		})
+	}, [setHistory])
+
 	// All actions are ready!
-	return { reset, start, chooseOption, goToNextQuestion, jumpToQuestion }
+	return { reset, start, chooseOption, goToNextQuestion, jumpToQuestion, undo }
 }
 
 function incrementPlayerPlayCounter(simulation) {

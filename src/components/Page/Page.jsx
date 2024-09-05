@@ -1,4 +1,5 @@
 import { useState, createContext } from 'react'
+import { Helmet } from 'react-helmet-async'
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
@@ -14,6 +15,7 @@ export function Page({ children, addAppBar = true, title, backButton, showLogo, 
 
 	// Show the page with all requested components.
 	return <>
+		<Helmet><title>DigiTeach Simulator{title && !title.includes('laden') ? ` - ${title}` : ''}</title></Helmet>
 		{addAppBar ? <AppBar title={title} backButton={backButton} showLogo={showLogo} icons={icons} /> : null}
 		{tabs ?
 			<Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

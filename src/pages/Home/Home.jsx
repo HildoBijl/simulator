@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async'
 import { styled } from '@mui/material/styles'
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
@@ -10,6 +11,7 @@ import { ForTeachers } from './ForTeachers'
 
 export function Home() {
   return <>
+    <Helmet><title>DigiTeach Simulator</title></Helmet>
     <TitleBar />
     <Blocks />
   </>
@@ -22,10 +24,10 @@ const TitleBarBox = styled(Box)(({ theme }) => ({
   padding: '2rem',
 
   '& .container': {
-		alignItems: 'center',
+    alignItems: 'center',
     display: 'flex',
     flexFlow: 'row nowrap',
-		justifyContent: 'center',
+    justifyContent: 'center',
     placeItems: 'center',
 
     '& .logo': {
@@ -39,8 +41,8 @@ const TitleBarBox = styled(Box)(({ theme }) => ({
       flexGrow: 0,
       fontSize: 'min(4.5vw, 5rem)',
       fontWeight: 500,
-			marginRight: '8vw',
-			transform: 'translateY(-0.4vw)',
+      marginRight: '8vw',
+      transform: 'translateY(-0.4vw)',
     },
   },
 }))
@@ -66,7 +68,7 @@ const Block = styled(Grid)(({ theme }) => ({
 
     [theme.breakpoints.down('md')]: {
       marginBottom: '1rem',
-			padding: '0 1rem',
+      padding: '0 1rem',
     },
 
     '& h2': {

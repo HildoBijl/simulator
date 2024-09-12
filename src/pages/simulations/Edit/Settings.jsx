@@ -64,7 +64,7 @@ function ChangeUrl({ simulation }) {
 function AllowUndo({ simulation }) {
 	return <FormPart>
 		<FormGroup sx={{ px: '0.5rem' }}>
-			<FormControlLabel control={<Switch checked={simulation.allowUndo || false} onChange={event => updateSimulation(simulation.id, { allowUndo: event.target.checked || deleteField() })} label="Allow Undo" />} label="Benutzern die Möglichkeit geben, ihre letzte Aktion rückgängig zu machen." />
+			<FormControlLabel control={<Switch checked={simulation.allowUndo || false} onChange={event => updateSimulation(simulation.id, { allowUndo: event.target.checked || deleteField() })} label="Allow Undo" />} label="Benutzern die Möglichkeit geben, ihre Aktionen rückgängig zu machen." />
 		</FormGroup>
 	</FormPart>
 }

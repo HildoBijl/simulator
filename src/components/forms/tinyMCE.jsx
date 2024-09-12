@@ -31,7 +31,7 @@ import 'tinymce/plugins/media'
 // import 'tinymce/plugins/nonbreaking'
 // import 'tinymce/plugins/pagebreak'
 import 'tinymce/plugins/preview'
-// import 'tinymce/plugins/quickbars'
+import 'tinymce/plugins/quickbars'
 // import 'tinymce/plugins/save'
 import 'tinymce/plugins/searchreplace'
 import 'tinymce/plugins/table'
@@ -88,9 +88,9 @@ export const MCE = forwardRef(function MCE({ label, path, documentId, field, val
 			value={value || ''}
 			init={{
 				height: height === undefined ? 250 : height,
-				menubar: false,
-				plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'emoticons'],
-				toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link unlink | image media table emoticons | code removeformat | help',
+				// menubar: false,
+				plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'emoticons', 'quickbars'],
+				// toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link unlink | image media table emoticons | code removeformat | help',
 				content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
 			}}
 			onEditorChange={handleChange}

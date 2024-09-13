@@ -48,3 +48,8 @@ export const fixNumber = str => str.replace(/[^0-9.-]/, '') // Remove unwanted s
 
 // strToNumber converts a string of a number to an actual number.
 export const strToNumber = str => str === '' ? undefined : str === '-' ? 0 : Number(str)
+
+// The following functions are easing functions, useful for setting up animations.
+export const easeInOut = x => (x * x) / (2 * (x * x - x) + 1)
+export const easeShift = x => x < 0.5 ? 2 * x ** 2 : 1 - 2 * (1 - x) ** 2
+export const easeShiftSlow = x => x < 0.5 ? 4 * x ** 3 : 1 - 4 * (1 - x) ** 3

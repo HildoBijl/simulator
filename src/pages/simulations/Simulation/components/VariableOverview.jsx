@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react'
 import { useTheme, alpha } from '@mui/material/styles'
 
-import { bound, roundToDigits, getTickSize, range, applyMapping, useTransitionedValue } from 'util'
+import { bound, roundToDigits, getTickSize, range, applyMapping, usePrevious, useTransitionedValue, useAnimation, easeShift } from 'util'
 
 import { getVariableInitialValue } from '../../util'
 
@@ -20,6 +21,19 @@ export function VariableOverview({ simulation, state, showHidden = false }) {
 	</div>
 }
 
+// Set up a few settings.
+const size = 7 // rem
+const radius = 50 // pixels in SVG, for the outer radius
+const thickness = 10 // pixels in SVG
+const tickLength = thickness // pixels in SVG
+const split = 0.2 // The part of the circle in the bottom, that's unused.
+
+// Settings for the change display.
+const timeToFade = 3000
+const fadeTime = 3000
+const maxAlpha = 0.9
+const alphaEase = easeShift
+
 function Variable({ variable, value }) {
 	const { title, min, max } = variable
 	const theme = useTheme()
@@ -28,15 +42,29 @@ function Variable({ variable, value }) {
 	if (value === undefined)
 		value = getVariableInitialValue(variable)
 
-	// Transition the value on updates.
-	value = useTransitionedValue(value, 1500)
+	// Note changes in value to be able to determine differences.
+	const transitionedValue = useTransitionedValue(value, 3000)
+	const previousValue = usePrevious(value)
+	const [changeData, setChangeData] = useState()
+	useEffect(() => {
+		if (previousValue && value !== previousValue)
+			setChangeData({ previousValue, newValue: value, changeOn: new Date() })
+	}, [value, previousValue, setChangeData])
 
-	// Set up a few settings.
-	const size = 7 // rem
-	const radius = 50 // pixels in SVG, for the outer radius
-	const thickness = 10 // pixels in SVG
-	const tickLength = thickness // pixels in SVG
-	const split = 0.2 // The part of the circle in the bottom, that's unused.
+	// When there is a change in value, calculate this change and the corresponding alpha value of the update.
+	const changeValue = changeData && changeData.newValue - changeData.previousValue
+	const [changeAlpha, setChangeAlpha] = useState(0)
+	useAnimation(() => {
+		if (changeData) {
+			const timeSinceChange = new Date() - changeData.changeOn
+			if (timeSinceChange <= timeToFade)
+				setChangeAlpha(maxAlpha)
+			else if (timeSinceChange >= timeToFade + fadeTime)
+				setChangeAlpha(0)
+			else
+				setChangeAlpha(maxAlpha*(1 - alphaEase((timeSinceChange - timeToFade) / fadeTime)))
+		}
+	})
 
 	// Determine whether to show the markers or not.
 	const showMarkers = (min !== undefined && max !== undefined && min < max && min <= value && value <= max)
@@ -71,15 +99,24 @@ function Variable({ variable, value }) {
 				</> : null}
 			</svg>
 			<div style={{
-				borderRadius: '3.5rem', height: `${size}rem`, width: `${size}rem`, // Sizing.
-				position: 'absolute', zIndex: 2,
-				// background: theme.palette.primary.main,
+				height: `${size}rem`, width: `${size}rem`, // Sizing.
+				position: 'absolute', zIndex: 2, // Positioning.
 				color: theme.palette.primary.contrastText, // Coloring.
 				display: 'flex', alignItems: 'center', justifyContent: 'center', // Content positioning.
 				fontSize: '2rem', fontWeight: '500', // Content styling.
 			}}>
-				{roundToDigits(value, 3, true).toString().replace('.', ',')}
+				{roundToDigits(transitionedValue, 3, true).toString().replace('.', ',')}
 			</div>
+			{changeValue && changeAlpha !== 0 ? <div style={{
+				height: `${0.55 * size}rem`, width: `${size}rem`, // Sizing.
+				position: 'absolute', zIndex: 3, // Positioning.
+				color: theme.palette.primary.contrastText, // Coloring.
+				display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'translateX(-2px)', // Content positioning.
+				fontSize: '0.8rem', fontWeight: '500', // Content styling.
+				opacity: changeAlpha,
+			}}>
+				{changeValue < 0 ? '' : '+'}{roundToDigits(changeValue, 3, true).toString().replace('.', ',').replace('-', '−')}
+			</div> : null}
 		</div>
 		<div style={{
 			marginTop: '0.2rem', width: '100%', // Sizing.

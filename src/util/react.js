@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
+import { easeShiftSlow } from './numbers'
+
 // useLatest is used to directly store a value in a ref. This is useful when you have use-only functions in a useEffect function: plug them in a ref, apply the ref in the useEffect function and the function isn't triggered so much. (Note: this is different from the @react-hook/latest, which uses an event and is hence too slow.)
 export function useLatest(value, initialValue = value) {
 	const ref = useRef(initialValue)
@@ -108,7 +110,7 @@ export function useAnimation(animationFunc) {
 }
 
 // useTransitionedValue will apply slow transitioning of a given value, adjusting it over time.
-export function useTransitionedValue(targetValue, transitionTime = 1000, easing = x => x * x * (3 - 2 * x)) {
+export function useTransitionedValue(targetValue, transitionTime = 1000, easing = easeShiftSlow) {
 	const previousTargetValue = usePrevious(targetValue)
 	const [update, setUpdate] = useState()
 	const [value, setValue] = useState(targetValue)

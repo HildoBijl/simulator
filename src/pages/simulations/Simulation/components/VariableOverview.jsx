@@ -29,8 +29,8 @@ const tickLength = thickness // pixels in SVG
 const split = 0.2 // The part of the circle in the bottom, that's unused.
 
 // Settings for the change display.
-const timeToFade = 3000
-const fadeTime = 3000
+const timeToFade = 2000
+const fadeTime = 4000
 const maxAlpha = 0.9
 const alphaEase = easeShift
 
@@ -43,7 +43,7 @@ function Variable({ variable, value }) {
 		value = getVariableInitialValue(variable)
 
 	// Note changes in value to be able to determine differences.
-	const transitionedValue = useTransitionedValue(value, 3000)
+	const transitionedValue = useTransitionedValue(value, timeToFade)
 	const previousValue = usePrevious(value)
 	const [changeData, setChangeData] = useState()
 	useEffect(() => {
@@ -67,17 +67,17 @@ function Variable({ variable, value }) {
 	})
 
 	// Determine whether to show the markers or not.
-	const showMarkers = (min !== undefined && max !== undefined && min < max && min <= value && value <= max)
+	const showMarkers = (min !== undefined && max !== undefined && min < max && min <= transitionedValue && transitionedValue <= max)
 
 	// On markers, calculate relevant quantities.
 	let part, dash1, dash2, ticks
 	if (showMarkers) {
-		part = bound((value - min) / (max - min))
+		part = bound((transitionedValue - min) / (max - min))
 		const circumference = 2 * Math.PI * (radius - thickness / 2)
 		dash1 = part * (1 - split) * circumference
 		dash2 = circumference - dash1
 		const tickSize = getTickSize(max - min)
-		ticks = range(Math.ceil(min / tickSize), Math.floor(max / tickSize)).map(value => value * tickSize)
+		ticks = range(Math.ceil(min / tickSize), Math.floor(max / tickSize)).map(transitionedValue => transitionedValue * tickSize)
 	}
 
 	return <div style={{

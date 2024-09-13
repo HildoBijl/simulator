@@ -7,7 +7,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon } from '@mui/icons-material'
+import { Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, UnfoldLess as CloseIcon, UnfoldMore as OpenIcon } from '@mui/icons-material'
 import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
 import { nestedListToIndices, insertIntoArray } from 'util'
@@ -93,6 +93,7 @@ export function Questions({ simulation }) {
 		</FormPart>
 		<FormPart>
 			<Label>Fragen</Label>
+			<ExpandButtons {...{ simulation, expandedMap, setExpandedMap }} />
 			<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
 				<Droppable droppableId="questions">{(provided, snapshot) => (
 					<div
@@ -138,6 +139,42 @@ function StartingQuestion({ simulation }) {
 			</Select>
 		</FormControl>
 	</FormPart>
+}
+
+function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
+	// Define handlers to open and close all folders. (openAll opens all folders, leaving questions unchanged. closeAll closes everything, both folders and questions.)
+	const openAll = () => {
+		setExpandedMap(expandedMap => {
+			expandedMap = { ...expandedMap }
+			Object.values(simulation.questions).forEach(question => {
+				if (question.type === 'folder')
+					expandedMap[question.id] = true
+			})
+			return expandedMap
+		})
+	}
+	const closeAll = () => setExpandedMap({})
+
+	// Check if the buttons are available.
+	const allClosed = !Object.values(expandedMap).some(value => value) // No expanded value is truethy.
+	const allFoldersOpen = Object.values(simulation.questions).every(question => question.type !== 'folder' || expandedMap[question.id]) // All folders have a true expansion.
+
+	// Render the buttons, using an outer container with no height and an inner container for the buttons.
+	const buttonStyle = {
+		cursor: 'pointer',
+		padding: '3px',
+	}
+	const buttonStyleInactive = {
+		...buttonStyle,
+		opacity: 0.5,
+		cursor: 'default',
+	}
+	return <div style={{ width: '100%', height: 0, position: 'relative' }}>
+		<div style={{ position: 'absolute', right: 0, bottom: 0, display: 'flex', flexFlow: 'row nowrap' }}>
+			<OpenIcon onClick={openAll} sx={allFoldersOpen ? buttonStyleInactive : buttonStyle} />
+			<CloseIcon onClick={closeAll} sx={allClosed ? buttonStyleInactive : buttonStyle} />
+		</div>
+	</div>
 }
 
 function AddQuestionButton({ simulation, setExpandedMap }) {

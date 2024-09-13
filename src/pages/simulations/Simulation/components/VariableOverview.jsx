@@ -1,6 +1,6 @@
 import { useTheme, alpha } from '@mui/material/styles'
 
-import { bound, roundToDigits, getTickSize, range, applyMapping } from 'util'
+import { bound, roundToDigits, getTickSize, range, applyMapping, useTransitionedValue } from 'util'
 
 import { getVariableInitialValue } from '../../util'
 
@@ -27,6 +27,9 @@ function Variable({ variable, value }) {
 	// On no value, use the initial value. A real value will be defined as soon as an update happens.
 	if (value === undefined)
 		value = getVariableInitialValue(variable)
+
+	// Transition the value on updates.
+	value = useTransitionedValue(value, 1500)
 
 	// Set up a few settings.
 	const size = 7 // rem

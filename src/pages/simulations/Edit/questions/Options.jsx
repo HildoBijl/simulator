@@ -92,10 +92,10 @@ function Defaults({ simulation, question, expanded, flipExpand }) {
 			Standardeinstellungen für alle Antwortmöglichkeiten (sofern nicht weiter eingestellt)
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, mt: -2 }}>
+			<FollowUpDropdown {...{ simulation, question }} />
 			<FormPart>
 				<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
 			</FormPart>
-			<FollowUpDropdown {...{ simulation, question }} />
 			{hasVariables(simulation) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
 		</AccordionDetails>
 	</Accordion>
@@ -144,10 +144,10 @@ function Option({ simulation, question, option, optionIndex, updatedIndex, expan
 						<FormPart>
 							<MCE ref={descriptionRef} label="Beschreibung" height="150" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" />
 						</FormPart>
+						<FollowUpDropdown {...{ simulation, question, optionIndex }} />
 						<FormPart>
 							<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
 						</FormPart>
-						<FollowUpDropdown {...{ simulation, question, optionIndex }} />
 						{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, question, optionIndex }} /> : null}
 					</AccordionDetails>
 					<AccordionActions key="actions">

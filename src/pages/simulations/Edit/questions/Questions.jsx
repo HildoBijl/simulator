@@ -157,8 +157,7 @@ function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
 
 	// Check if the buttons are available.
 	const isEmptyFolder = question => question.type === 'folder' && (!question.contents || question.contents.length === 0)
-	console.log(simulation, expandedMap)
-	const allClosed = Object.keys(expandedMap).every(questionId => !expandedMap[questionId] || isEmptyFolder(simulation.questions[questionId])) // All questions/folders are either closed or are empty folders.
+	const allClosed = Object.keys(expandedMap).every(questionId => !expandedMap[questionId] || !simulation.questions[questionId] || isEmptyFolder(simulation.questions[questionId])) // There are no open questions/folders: all open items are either non-existing, or empty folders.
 	const allFoldersOpen = Object.values(simulation.questions).every(question => question.type !== 'folder' || isEmptyFolder(question) || expandedMap[question.id]) // All folders are either empty or expanded.
 
 	// Render the buttons, using an outer container with no height and an inner container for the buttons.

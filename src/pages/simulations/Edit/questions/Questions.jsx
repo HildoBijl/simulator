@@ -156,8 +156,10 @@ function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
 	const closeAll = () => setExpandedMap({})
 
 	// Check if the buttons are available.
-	const allClosed = !Object.values(expandedMap).some(value => value) // No expanded value is truethy.
-	const allFoldersOpen = Object.values(simulation.questions).every(question => question.type !== 'folder' || expandedMap[question.id]) // All folders have a true expansion.
+	const isEmptyFolder = question => question.type === 'folder' && (!question.contents || question.contents.length === 0)
+	console.log(simulation, expandedMap)
+	const allClosed = Object.keys(expandedMap).every(questionId => !expandedMap[questionId] || isEmptyFolder(simulation.questions[questionId])) // All questions/folders are either closed or are empty folders.
+	const allFoldersOpen = Object.values(simulation.questions).every(question => question.type !== 'folder' || isEmptyFolder(question) || expandedMap[question.id]) // All folders are either empty or expanded.
 
 	// Render the buttons, using an outer container with no height and an inner container for the buttons.
 	const buttonStyle = {
@@ -238,7 +240,7 @@ function isDragDataValid(dragData, draggableList) {
 // expandFolders takes a list of questions (or question IDs) with potential folders in them. It then not only turns the ID into the question/folder, but also (assuming the folder is opened) includes all questions (and recursively all folders) inside the folder. At the end it adds a folder-closer, which is needed for the dragging system.
 function expandFolders(questionList, questions, expandedMap, moveData, topLevel = true) {
 	const { questionToMove, originFolder, destinationFolder, index } = moveData || {}
-	let list = [...questionList]
+	let list = [...(questionList || [])]
 
 	// If we are on the top level of the question list, and there is a move command, apply it. First remove the question to move and then insert it where needed.
 	if (topLevel && moveData && questionToMove && !originFolder) {

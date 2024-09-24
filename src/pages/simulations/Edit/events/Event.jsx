@@ -60,7 +60,7 @@ function QuestionDropdown({ simulation, event }) {
 	const setQuestion = (questionId) => updateEvent(simulation.id, event.id, { question: questionId })
 
 	// Render the dropdown field.
-	const label = 'Frage, zu der gesprungen werden soll'
+	const label = 'Seite, zu der gesprungen werden soll'
 	const value = event.question || simulation.questionList[0].id
 	return <FormPart>
 		<FormControl fullWidth>
@@ -81,8 +81,8 @@ function AfterwardsSetting({ simulation, event }) {
 	return <FormPart>
 		<FormControl fullWidth>
 			<RadioGroup value={value} onChange={(event) => saveAfterwardsSettings(event.target.value)}>
-				<FormControlLabel value="originalFollowUp" control={<Radio />} label="Danach zurück zur ursprünglichen Sequenz springen. (Die Folgefrage des Ereignisszenarios wird ignoriert.)" />
-				<FormControlLabel value="eventFollowUp" control={<Radio />} label="Danach zur Frage springen, die in der Ereignisfrage angegeben ist. (Die ursprüngliche Folgefrage wird ignoriert.)" />
+				<FormControlLabel value="originalFollowUp" control={<Radio />} label="Danach zurück zur ursprünglichen Sequenz springen. (Die Folgeseite des Ereignisszenarios wird ignoriert.)" />
+				<FormControlLabel value="eventFollowUp" control={<Radio />} label="Danach zur Seite springen, die in der Ereignisseite angegeben ist. (Die ursprüngliche Folgeseite wird ignoriert.)" />
 			</RadioGroup>
 		</FormControl>
 	</FormPart>

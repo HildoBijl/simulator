@@ -83,7 +83,7 @@ export function VariablesList({ simulation }) {
 function VariablesIntroduction({ addVariable }) {
 	return <>
 		<p>Eine Parameter ist eine Zahl, die angepasst wird, während der Benutzer das Spiel spielt. Sie kann eine beliebige Größe sein, wie Geld,  Zufriedenheit oder Lebenspunkte.</p>
-		<p>Um Parameter zu verwenden, müssen sie zunächst hier definiert werden. Dann kann für jede Frage oder Antwortmoglichkeit angegeben werden, wie sie angepasst werden sollen: das Update-Skript.</p>
+		<p>Um Parameter zu verwenden, müssen sie zunächst hier definiert werden. Dann kann für jede Seite oder Antwortmoglichkeit angegeben werden, wie sie angepasst werden sollen: das Update-Skript.</p>
 		<p>Ein Beispiel für ein Update-Skript für eine Variable <Code>x</Code> könnte lauten &quot;<Code>x = 10</Code>&quot; oder &quot;<Code>x = x - 2</Code>&quot; oder &quot;<Code>x = x + randInt(2, 4)</Code>&quot; oder &quot;<Code>x = x - rand(0.25, 1.75)</Code>&quot;. Die verwendete Sprache ist Javascript, so dass Sie die genauen Formatierungskriterien nach Belieben nachschlagen können.</p>
 		<FormPart>
 			<AddVariable addVariable={addVariable} />
@@ -108,7 +108,7 @@ export function GeneralUpdateScript({ simulation }) {
 
 	// Render the field.
 	return <FormPart>
-		<TrackedCodeField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Frage</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />
+		<TrackedCodeField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Seite</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }
 

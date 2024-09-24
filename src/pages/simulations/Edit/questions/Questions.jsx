@@ -92,7 +92,7 @@ export function Questions({ simulation }) {
 			<StartingQuestion {...{ simulation }} />
 		</FormPart>
 		<FormPart>
-			<Label>Fragen</Label>
+			<Label>Seiten</Label>
 			<ExpandButtons {...{ simulation, expandedMap, setExpandedMap }} />
 			<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
 				<Droppable droppableId="questions">{(provided, snapshot) => (
@@ -131,11 +131,11 @@ function StartingQuestion({ simulation }) {
 	const startingQuestion = simulation.startingQuestion || simulation.questionList[0]?.id || 'none'
 	return <FormPart>
 		<FormControl fullWidth>
-			<InputLabel>Startfrage</InputLabel>
-			<Select value={startingQuestion} label="Startfrage" onChange={(event) => setStartingQuestion(event.target.value)}>
+			<InputLabel>Startseite</InputLabel>
+			<Select value={startingQuestion} label="Startseite" onChange={(event) => setStartingQuestion(event.target.value)}>
 				{simulation.questionList.length > 0 ?
 					simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{`${question.index.map(index => index + 1).join('.')}.  ${question.internalTitle || question.title || emptyQuestion}`}</MenuItem>) :
-					<MenuItem key="none" value="none">Es sind noch keine Fragen vorhanden.</MenuItem>}
+					<MenuItem key="none" value="none">Es sind noch keine Seiten vorhanden.</MenuItem>}
 			</Select>
 		</FormControl>
 	</FormPart>

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTheme } from '@mui/material/styles'
-import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -82,7 +81,6 @@ export function Options({ simulation, question }) {
 				</div>
 			)}</Droppable>
 		</DragDropContext>
-		{options.length === 0 ? <Alert severity="info" sx={{ mt: 1 }}>Hinweis: Eine Frage ohne Antwortmöglichkeiten ist einfach eine Infoseite. Sie können diese verwenden, um einige Informationen anzuzeigen, nach denen der Nutzer fortfahren kann. Oder Sie können damit auch eine maßgeschneiderte Endseite erstellen.</Alert> : null}
 	</>
 }
 
@@ -178,13 +176,13 @@ function FollowUpDropdown({ simulation, question, optionIndex }) {
 	const nextQuestion = simulation.questionList[currQuestionIndex + 1]
 
 	// Render the dropdown field.
-	const label = `${forQuestion ? 'Standard ' : ''}Folgefrage`
+	const label = `${forQuestion ? 'Standard ' : ''}Folgeseite`
 	const value = (forQuestion ? question.followUpQuestion : option.followUpQuestion) || 'default'
 	return <FormPart>
 		<FormControl fullWidth>
 			<InputLabel>{label}</InputLabel>
 			<Select value={value} label={label} onChange={(event) => setFollowUpQuestion(event.target.value)}>
-				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Frage in der Reihenfolge (jetzt {nextQuestion ? `Frage ${nextQuestion.index.map(index => index + 1).join('.')}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung verwenden</>}</MenuItem>
+				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextQuestion ? `Seite ${nextQuestion.index.map(index => index + 1).join('.')}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung verwenden</>}</MenuItem>
 				{simulation.questionList.map(otherQuestion => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{otherQuestion.index.map(index => index + 1).join('.')}. {otherQuestion.internalTitle || otherQuestion.title || emptyQuestion}</MenuItem>)}
 				<MenuItem key="end" value="end">Ende: Danach wird die Simulation beendet</MenuItem>
 			</Select>

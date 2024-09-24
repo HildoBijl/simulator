@@ -73,7 +73,7 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 						<Options {...{ simulation, question }} />
 					</AccordionDetails>
 					<AccordionActions key="actions">
-						<Button sx={{ mt: 2 }} onClick={() => deleteQuestion(simulation, question)}>Frage löschen</Button>
+						<Button sx={{ mt: 2 }} onClick={() => deleteQuestion(simulation, question)}>Seite löschen</Button>
 					</AccordionActions>
 				</> : null}
 			</Accordion>}

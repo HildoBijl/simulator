@@ -64,13 +64,13 @@ function UpdateScriptError({ error }) {
 	const { question, questionIndex, option, optionIndex, error: errorObj } = error
 	switch (error.subtype) {
 		case 'general':
-			source = <>Es gibt einen Fehler im allgemeinen Update-Skript, das nach jeder Frage ausgeführt wird.</>
+			source = <>Es gibt einen Fehler im allgemeinen Update-Skript, das nach jeder Seite ausgeführt wird.</>
 			break
 		case 'question':
-			source = <>Es gibt einen Fehler im standard Update-Skript von Frage <em>{questionIndex + 1}. {question.title || emptyQuestion}</em>.</>
+			source = <>Es gibt einen Fehler im standard Update-Skript von Seite <em>{questionIndex + 1}. {question.title || emptyQuestion}</em>.</>
 			break
 		case 'option':
-			source = <>Es gibt einen Fehler im Update-Skript von Frage <em>{questionIndex + 1}. {question.title || emptyQuestion}</em>, Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {option.description.split('\n')[0] || emptyOption}</em>.</>
+			source = <>Es gibt einen Fehler im Update-Skript von Seite <em>{questionIndex + 1}. {question.title || emptyQuestion}</em>, Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {option.description.split('\n')[0] || emptyOption}</em>.</>
 			break
 		default:
 			throw new Error(`Invalid update-script error subtype. Received an error for an update script with subtype "${error.subtype}" but could not process this properly.`)
@@ -92,5 +92,5 @@ function EventError({ error }) {
 }
 
 function QuestionError() {
-	return <p>Die Frage, bei der Sie waren, scheint aus der Simulation entfernt worden zu sein. Sie können bei einer unbekannten Frage nicht fortfahren.</p>
+	return <p>Die Seite, bei der Sie waren, scheint aus der Simulation entfernt worden zu sein. Sie können bei einer unbekannten Seite nicht fortfahren.</p>
 }

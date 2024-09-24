@@ -31,7 +31,7 @@ export function Edit() {
 		return <EditPage><p>Simulation laden...</p></EditPage>
 
 	// Show the simulation form itself.
-	const tabs = ['Einstellungen', 'Fragen', 'Parameter']
+	const tabs = ['Einstellungen', 'Seiten', 'Parameter']
 	if (hasVariables(simulation))
 		tabs.push('Ereignisse')
 	return <EditPage tabs={tabs}>

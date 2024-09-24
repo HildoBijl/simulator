@@ -130,7 +130,7 @@ function AdminTool({ simulation, state, jumpToQuestion, reset }) {
 }
 
 function JumpDropDown({ simulation, state, jumpToQuestion }) {
-	const label = 'Zur Frage springen'
+	const label = 'Zur Seite springen'
 	const value = state.questionId
 	return <FormControl fullWidth>
 		<InputLabel>{label}</InputLabel>

@@ -14,7 +14,7 @@ export function roundTo(number, decimals = 0) {
 }
 
 // roundToDigits rounds a number to the given number of digits. So roundToDigits(12.345, 4) will become 12.35. Similarly, roundToDigits(123, 2) will be 120. Do note: roundToDigits(999, 3) will be 999 while roundToDigits(999, 2) will be 1000.
-export function roundToDigits(number, digits, useMinZeroDecimals = false) {
+export function roundToDigits(number, digits, useMinZeroDecimals = false, maxDecimals) {
 	// Boundary cases.
 	if (number === 0)
 		return 0
@@ -25,6 +25,7 @@ export function roundToDigits(number, digits, useMinZeroDecimals = false) {
 
 	// Calculate rounding.
 	let decimals = digits - Math.floor(Math.log10(Math.abs(number))) - 1
+	decimals = maxDecimals === undefined ? decimals : Math.min(decimals, maxDecimals)
 	if (useMinZeroDecimals)
 		decimals = Math.max(decimals, 0)
 	return roundTo(number, decimals)

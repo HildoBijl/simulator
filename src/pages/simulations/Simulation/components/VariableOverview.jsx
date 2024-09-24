@@ -47,7 +47,7 @@ function Variable({ variable, value }) {
 	const previousValue = usePrevious(value)
 	const [changeData, setChangeData] = useState()
 	useEffect(() => {
-		if (previousValue && value !== previousValue)
+		if (previousValue !== undefined && value !== previousValue)
 			setChangeData({ previousValue, newValue: value, changeOn: new Date() })
 	}, [value, previousValue, setChangeData])
 
@@ -105,7 +105,7 @@ function Variable({ variable, value }) {
 				display: 'flex', alignItems: 'center', justifyContent: 'center', // Content positioning.
 				fontSize: '2rem', fontWeight: '500', // Content styling.
 			}}>
-				{roundToDigits(transitionedValue, 3, true).toString().replace('.', ',')}
+				{roundToDigits(transitionedValue, 3, true, 2).toString().replace('.', ',')}
 			</div>
 			{changeValue && changeAlpha !== 0 ? <div style={{
 				height: `${0.55 * size}rem`, width: `${size}rem`, // Sizing.
@@ -115,7 +115,7 @@ function Variable({ variable, value }) {
 				fontSize: '0.8rem', fontWeight: '500', // Content styling.
 				opacity: changeAlpha,
 			}}>
-				{changeValue < 0 ? '' : '+'}{roundToDigits(changeValue, 3, true).toString().replace('.', ',').replace('-', '−')}
+				{changeValue < 0 ? '' : '+'}{roundToDigits(changeValue, 3, true, 2).toString().replace('.', ',').replace('-', '−')}
 			</div> : null}
 		</div>
 		<div style={{

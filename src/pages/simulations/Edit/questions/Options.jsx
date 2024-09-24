@@ -61,8 +61,12 @@ export function Options({ simulation, question }) {
 			await moveOption(simulation, question, from, to)
 	}
 
-	// Render the options through an Accordion.
+	// Render the options through an Accordion. When there are no options, pull out the standard settings.
 	return <>
+		{options.length === 0 ? <>
+			<FollowUpDropdown {...{ simulation, question }} />
+			{hasVariables(simulation) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
+		</> : null}
 		<Label>Antwortmöglichtkeiten</Label>
 		<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
 			<Droppable droppableId="options">{(provided, snapshot) => (
@@ -70,7 +74,7 @@ export function Options({ simulation, question }) {
 					ref={provided.innerRef}
 					{...provided.droppableProps}
 					style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
-					<Defaults {...{ simulation, question, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />
+					{options.length === 0 ? null : <Defaults {...{ simulation, question, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />}
 					{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, option, optionIndex, updatedIndex: applyMoveToIndex(move, optionIndex), expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
 					{provided.placeholder}
 					{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>
@@ -140,7 +144,7 @@ function Option({ simulation, question, option, optionIndex, updatedIndex, expan
 				{expanded ? <>
 					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 						<FormPart>
-							<MCE ref={descriptionRef} label="Beschreibung" height="150" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" />
+							<MCE ref={descriptionRef} label="Beschreibung" height="200" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" />
 						</FormPart>
 						<FollowUpDropdown {...{ simulation, question, optionIndex }} />
 						<FormPart>
@@ -158,6 +162,7 @@ function Option({ simulation, question, option, optionIndex, updatedIndex, expan
 
 function FollowUpDropdown({ simulation, question, optionIndex }) {
 	const forQuestion = (optionIndex === undefined)
+	const forPage = forQuestion && (question.options || []).length === 0
 	const options = question.options || []
 	const option = options[optionIndex]
 
@@ -176,7 +181,7 @@ function FollowUpDropdown({ simulation, question, optionIndex }) {
 	const nextQuestion = simulation.questionList[currQuestionIndex + 1]
 
 	// Render the dropdown field.
-	const label = `${forQuestion ? 'Standard ' : ''}Folgeseite`
+	const label = `${forQuestion && !forPage ? 'Standard ' : ''}Folgeseite`
 	const value = (forQuestion ? question.followUpQuestion : option.followUpQuestion) || 'default'
 	return <FormPart>
 		<FormControl fullWidth>
@@ -192,8 +197,9 @@ function FollowUpDropdown({ simulation, question, optionIndex }) {
 
 export function QuestionUpdateScript({ simulation, question }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
+	const label = `${(question.options || []).length > 0 ? 'Standard ' : ''}Update-Skript`
 	return <FormPart>
-		<TrackedCodeField label="Standard Update-Skript" value={question.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="updateScript" multiline={true} getError={getError} />
+		<TrackedCodeField label={label} value={question.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }
 

@@ -24,10 +24,12 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		setHistory(history => {
 			if (history.length > 1)
 				throw new Error(`Cannot start simulation: it has already been started.`)
+			if (simulation.questionList.length === 0)
+				throw new Error(`Cannot start simulation: it does not contain any questions yet.`)
 
 			// Define the state.
 			const initialState = history[0] || { questionId: 'start' }
-			const state = { questionId: simulation.startingQuestion || simulation.questions[0] }
+			const state = { questionId: simulation.startingQuestion || simulation.questionList[0] }
 
 			if (hasVariables(simulation)) {
 				const initialVariables = initialState.variables || getInitialVariables(simulation)

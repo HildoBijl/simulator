@@ -180,8 +180,13 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 			if (history.length <= 1)
 				throw new Error(`Invalid undo call: cannot undo the last action as no action was taken.`)
 
+			// If there is no choice yet, jump to the previous question.
+			let state = history[history.length - 1]
+			if (state.choice === undefined)
+				history = history.slice(0, -1)
+			
 			// If the state has a choice defined, remove the choice.
-			const state = history[history.length - 1]
+			state = history[history.length - 1]
 			if (state.choice !== undefined) {
 				const newState = {
 					...state,
@@ -191,12 +196,12 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				return [...history.slice(0, -1), newState]
 			}
 
-			// If there's only two states left, then we should go back to being unitialized.
-			if (history.length === 2)
+			// If there's only two states left, then we should go back to being uninitialized.
+			if (history.length === 1)
 				return []
 
-			// If there's more states left, just remove the last state.
-			return history.slice(0, -1)
+			// We should never get here.
+			throw new Error(`Invalid undo case: wound up in a situation that should not have been possible. There's a programming error somewhere.`)
 		})
 	}, [setHistory])
 

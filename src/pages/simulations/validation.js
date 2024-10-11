@@ -99,18 +99,16 @@ export function getSimulationUpdateScriptError(simulation) {
 	// Check the question update scripts, both the main scripts and the ones per option.
 	const questionErrorObj = arrayFind(Object.values(simulation.questions), question => {
 		// Check the question update script.
-		const questionIndex = simulation.questionList.indexOf(question)
-		console.log(questionIndex, question, simulation)
 		const questionError = getScriptError(question.updateScript, simulation)
 		if (questionError)
-			return { source: 'simulation', type: 'updateScript', subtype: 'question', error: questionError, question, questionIndex }
+			return { source: 'simulation', type: 'updateScript', subtype: 'question', error: questionError, question }
 
 		// Check the options update scripts.
 		if (question.options) {
 			const optionErrorObj = arrayFind(question.options, (option, optionIndex) => {
 				const optionError = getScriptError(option.updateScript, simulation)
 				if (optionError)
-					return { source: 'simulation', type: 'updateScript', subtype: 'option', error: optionError, question, questionIndex, option, optionIndex }
+					return { source: 'simulation', type: 'updateScript', subtype: 'option', error: optionError, question, option, optionIndex }
 			})
 			if (optionErrorObj)
 				return optionErrorObj.value

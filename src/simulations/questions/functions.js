@@ -67,8 +67,8 @@ export async function deleteQuestion(simulation, questionToRemove) {
 // moveQuestion will move a question for a given simulation from one folder to another.
 export async function moveQuestion(simulation, questionToMove, originFolder, destinationFolder, index) {
 	const questionOrder = simulation.questionOrder || []
-	const originContents = originFolder?.contents || []
-	const destinationContents = destinationFolder?.contents || []
+	const originContents = (originFolder?.contents || []).map(question => question.id)
+	const destinationContents = (destinationFolder?.contents || []).map(question => question.id)
 
 	// If the origin and the destination folder are the same, adjust only that folder.
 	if (!originFolder && !destinationFolder)
@@ -78,7 +78,7 @@ export async function moveQuestion(simulation, questionToMove, originFolder, des
 
 	// Set up a promise for the removing.
 	const removingPromise = originFolder ?
-		updateQuestion(simulation.id, originFolder.id, { contents: originFolder.contents.filter(questionId => questionId !== questionToMove.id) }) :
+		updateQuestion(simulation.id, originFolder.id, { contents: originContents.filter(questionId => questionId !== questionToMove.id) }) :
 		updateSimulation(simulation.id, { questionOrder: questionOrder.filter(questionId => questionId !== questionToMove.id) })
 
 	// Set up a promise for the adding.

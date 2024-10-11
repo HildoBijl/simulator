@@ -61,9 +61,8 @@ function VariableError({ error }) {
 function UpdateScriptError({ error }) {
 	// Determine in which update script the error took place.
 	let source
-	const { question, questionIndex, option, optionIndex, error: errorObj } = error
+	const { question, option, optionIndex, error: errorObj } = error
 	const optionTitle = useClearTags(option?.description && option?.description.split('\n')[0] || emptyOption)
-	console.log(questionIndex, question)
 	switch (error.subtype) {
 		case 'general':
 			source = <>Es gibt einen Fehler im allgemeinen Update-Skript, das nach jeder Seite ausgeführt wird.</>

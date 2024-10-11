@@ -108,7 +108,7 @@ function Option({ simulation, question, option, optionIndex, updatedIndex, expan
 
 	// Determine some derived/default properties.
 	const description = option.description || emptyOption
-	let title = useClearTags(description.split('\n')[0] || emptyOption) // Get first line.
+	const title = useClearTags(description.split('\n')[0] || emptyOption) // Get first line.
 
 	// Add an effect to auto-focus the description field upon expanding.
 	const descriptionRef = useRef()

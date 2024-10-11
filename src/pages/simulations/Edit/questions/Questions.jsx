@@ -297,7 +297,7 @@ function getMoveData(simulation, draggableList, from, to) {
 		to = from
 
 	// Determine the origin of the question that will be moved.
-	const originFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(questionToMove.id))
+	const originFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.find(folderQuestion => folderQuestion.id === questionToMove.id))
 
 	// Determine the destination, and the index within the destination folder.
 	let destinationFolder, index
@@ -310,10 +310,10 @@ function getMoveData(simulation, draggableList, from, to) {
 			destinationFolder = shouldComeAfter
 			index = shouldComeBefore.id === shouldComeAfter.id ? (shouldComeAfter.contents?.length || 0) : 0 // For a closed folder, put at the end. For an open folder, put at the start.
 		} else {
-			destinationFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.includes(shouldComeAfter.id))
-			const destinationArray = destinationFolder ? destinationFolder.contents : simulation.questionOrder
-			index = destinationArray.indexOf(shouldComeAfter.id) + 1
-			const oldIndex = destinationArray.indexOf(questionToMove.id)
+			destinationFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.find(folderQuestion => folderQuestion.id === shouldComeAfter.id))
+			const destinationArray = destinationFolder ? destinationFolder.contents : simulation.questionTree
+			index = destinationArray.findIndex(question => question.id === shouldComeAfter.id) + 1
+			const oldIndex = destinationArray.findIndex(question => question.id === questionToMove.id)
 			if (oldIndex !== -1 && oldIndex < index)
 				index-- // If the item was already in this list prior to the index, the desired index should be one lower.
 		}

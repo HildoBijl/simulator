@@ -7,7 +7,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 
 import { numberToLetter, useClearTags } from 'util'
-import { useSimulation } from 'simulations'
+import { useSimulation, questionIndexToString } from 'simulations'
 import { Page, FormPart } from 'components'
 
 import { hasVariables } from '../util'
@@ -90,7 +90,7 @@ function ScriptsForQuestion({ simulation, question, variableId }) {
 
 	// Render the update scripts for this question.
 	return <>
-		<h4>Seite {question.index.map(index => index + 1).join('.')}. {question.internalTitle || question.title || emptyQuestion}</h4>
+		<h4>Seite {questionIndexToString(question.index)} {question.internalTitle || question.title || emptyQuestion}</h4>
 		{shouldShowScript(question.updateScript, variableName) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
 		{(question.options || []).map((option, optionIndex) => shouldShowScript(option.updateScript, variableName) ? <OptionUpdateScriptWithLabel key={optionIndex} {...{ simulation, question, optionIndex }} /> : null)}
 	</>

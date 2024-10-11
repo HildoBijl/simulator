@@ -12,7 +12,7 @@ import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
 import { nestedListToIndices, insertIntoArray } from 'util'
 import { FormPart, Label } from 'components'
-import { updateSimulation, getQuestionRef, moveQuestion } from 'simulations'
+import { updateSimulation, getQuestionRef, moveQuestion, questionIndexToString } from 'simulations'
 
 import { emptyQuestion, accordionStyle } from '../../settings'
 
@@ -134,7 +134,7 @@ function StartingQuestion({ simulation }) {
 			<InputLabel>Startseite</InputLabel>
 			<Select value={startingQuestion} label="Startseite" onChange={(event) => setStartingQuestion(event.target.value)}>
 				{simulation.questionList.length > 0 ?
-					simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{`${question.index.map(index => index + 1).join('.')}.  ${question.internalTitle || question.title || emptyQuestion}`}</MenuItem>) :
+					simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{`${questionIndexToString(question.index)}  ${question.internalTitle || question.title || emptyQuestion}`}</MenuItem>) :
 					<MenuItem key="none" value="none">Es sind noch keine Seiten vorhanden.</MenuItem>}
 			</Select>
 		</FormControl>

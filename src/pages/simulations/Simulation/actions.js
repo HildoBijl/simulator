@@ -109,7 +109,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 			// Determine the next question: either the follow-up for the chosen option, the follow-up for the given question, the next question in the order, or (if not existing) the end. Apply it to the new state.
 			const newState = {
-				questionId: (options[choice] && options[choice].followUpQuestion) || question.followUpQuestion || simulation.questionOrder[simulation.questionOrder.indexOf(question.id) + 1] || 'end',
+				questionId: (options[choice] && options[choice].followUpQuestion) || question.followUpQuestion || simulation.questionList[simulation.questionList.findIndex(question => question.id === questionId) + 1]?.id || 'end',
 			}
 
 			// On variables, we should also check for events.
@@ -184,7 +184,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 			let state = history[history.length - 1]
 			if (state.choice === undefined)
 				history = history.slice(0, -1)
-			
+
 			// If the state has a choice defined, remove the choice.
 			state = history[history.length - 1]
 			if (state.choice !== undefined) {

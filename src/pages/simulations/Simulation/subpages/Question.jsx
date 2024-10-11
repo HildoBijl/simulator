@@ -9,7 +9,7 @@ import { Undo } from '@mui/icons-material'
 
 import { numberToLetter } from 'util'
 import { Page, InputParagraph, Media, MCEContents } from 'components'
-import { useIsOwner } from 'simulations'
+import { useIsOwner, questionIndexToString } from 'simulations'
 
 import { emptyQuestion, emptyOption } from '../../settings'
 
@@ -40,7 +40,7 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion, ju
 	const showNextButton = !showRestartButton && (options.length === 0 || choice !== undefined)
 
 	// Define what icons to show.
-	const icons = simulation.allowUndo ? [{Icon: Undo, onClick: undo }] : []
+	const icons = simulation.allowUndo ? [{ Icon: Undo, onClick: undo }] : []
 
 	// Render the question with description, media, options and buttons.
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
@@ -135,7 +135,7 @@ function JumpDropDown({ simulation, state, jumpToQuestion }) {
 	return <FormControl fullWidth>
 		<InputLabel>{label}</InputLabel>
 		<Select value={value} label={label} onChange={(event) => jumpToQuestion(event.target.value)}>
-			{simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{question.index.map(index => index + 1).join('.')}. {question.title || emptyQuestion}</MenuItem>)}
+			{simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{questionIndexToString(question.index)} {question.title || emptyQuestion}</MenuItem>)}
 			<MenuItem key="end" value="end">Ende: den Durchlauf beenden</MenuItem>
 		</Select>
 	</FormControl>

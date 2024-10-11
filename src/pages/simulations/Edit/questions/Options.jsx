@@ -15,7 +15,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 import { numberToLetter, useClearTags } from 'util'
 import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'components'
-import { updateQuestion, moveOption } from 'simulations'
+import { updateQuestion, moveOption, questionIndexToString } from 'simulations'
 
 import { emptyQuestion, emptyOption } from '../../settings'
 import { hasVariables, getScriptError } from '../../util'
@@ -187,8 +187,8 @@ function FollowUpDropdown({ simulation, question, optionIndex }) {
 		<FormControl fullWidth>
 			<InputLabel>{label}</InputLabel>
 			<Select value={value} label={label} onChange={(event) => setFollowUpQuestion(event.target.value)}>
-				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextQuestion ? `Seite ${nextQuestion.index.map(index => index + 1).join('.')}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung verwenden</>}</MenuItem>
-				{simulation.questionList.map(otherQuestion => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{otherQuestion.index.map(index => index + 1).join('.')}. {otherQuestion.internalTitle || otherQuestion.title || emptyQuestion}</MenuItem>)}
+				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextQuestion ? `Seite ${questionIndexToString(nextQuestion.index)}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung verwenden</>}</MenuItem>
+				{simulation.questionList.map(otherQuestion => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{questionIndexToString(otherQuestion.index)} {otherQuestion.internalTitle || otherQuestion.title || emptyQuestion}</MenuItem>)}
 				<MenuItem key="end" value="end">Ende: Danach wird die Simulation beendet</MenuItem>
 			</Select>
 		</FormControl>

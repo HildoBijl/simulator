@@ -15,7 +15,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { deleteField } from 'firebase/firestore'
 
 import { FormPart, TrackedTextField, TrackedCodeField } from 'components'
-import { updateEvent, deleteEvent } from 'simulations'
+import { updateEvent, deleteEvent, questionIndexToString } from 'simulations'
 
 import { emptyQuestion, emptyEventTitle, defaultAfterwards, accordionStyle } from '../../settings'
 import { getConditionError } from '../../util'
@@ -66,7 +66,7 @@ function QuestionDropdown({ simulation, event }) {
 		<FormControl fullWidth>
 			<InputLabel>{label}</InputLabel>
 			<Select value={value} label={label} onChange={(event) => setQuestion(event.target.value)}>
-				{simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{question.index.map(index => index + 1).join('.')}. {question.title || emptyQuestion}</MenuItem>)}
+				{simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{questionIndexToString(question.index)} {question.title || emptyQuestion}</MenuItem>)}
 			</Select>
 		</FormControl>
 	</FormPart>

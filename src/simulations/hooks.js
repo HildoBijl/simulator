@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 
+import { arrayToObject } from 'util'
 import { useUserData, useUserId, useDocument } from 'fb'
 
 import { getSimulationByUrl } from './functions'
@@ -24,24 +25,25 @@ export function useSimulationObject(id, once = false) {
 export function useSimulation(id, once = false) {
 	// Load in all required data.
 	const simulation = useSimulationObject(id, once)
-	const questions = useSimulationQuestions(id, once)
+	const rawQuestions = useSimulationQuestions(id, once)
 	const variables = useSimulationVariables(id, once)
 	const events = useSimulationEvents(id, once)
 
 	// Assemble the data, depending on the loading status.
 	return useMemo(() => {
-		if (simulation === undefined || questions === undefined || variables === undefined)
+		if (simulation === undefined || rawQuestions === undefined || variables === undefined)
 			return undefined // Sign of loading.
-		if (simulation && questions && variables)
+		if (simulation && rawQuestions && variables) {
+			const { questions, questionTree, questionList } = processQuestions(simulation.questionOrder, rawQuestions)
 			return {
 				...simulation,
-				questions,
-				questionList: (simulation.questionOrder || []).map((questionId, index) => getQuestionOrFolder(questionId, questions, [index])).flat(Infinity),
+				questions, questionTree, questionList,
 				variables,
 				events,
 			}
+		}
 		return null // Sign of an error.
-	}, [simulation, questions, variables, events])
+	}, [simulation, rawQuestions, variables, events])
 }
 
 // useSimulationIdFromUrl takes a simulation URL and returns an ID from it.
@@ -69,16 +71,31 @@ export function useIsOwner(simulation) {
 	return simulation?.owners && simulation.owners.includes(userId)
 }
 
-// getQuestionOrFolder takes an element from a questionOrder array and returns the respective question or folder.
-function getQuestionOrFolder(questionId, questions, indices) {
-	const question = questions[questionId]
+// processQuestions gets the raw questions out of the database and adds useful utility info. It receives an array of questionIds to process, as well as a dictionary of raw questions.
+function processQuestions(questionOrder = [], rawQuestions = {}, indices = []) {
+	// Process all questions in the questionOrder to get a questionTree.
+	const questionTree = questionOrder.map((questionId, index) => processQuestion(rawQuestions[questionId], rawQuestions, [...indices, index]))
 
-	// On a folder, process the contents.
+	// Flatten the tree. For now also include folders.
+	const toArray = question => question.type === 'folder' ? [question, ...question.contents.map(question => toArray(question))] : question
+	const questionListFull = questionTree.map(question => toArray(question)).flat(Infinity)
+	const questions = arrayToObject(questionListFull, question => ({ key: question.id, value: question }))
+	const questionList = questionListFull.filter(question => question.type === 'question' || question.type === undefined) // Only keep actual questions.
+	return { questionTree, questionList, questions }
+}
+
+// processQuestion takes a single (raw) question, possibly a folder with contents, and a list of (raw) questions. It processes the question, turning links to contents into actual links.
+function processQuestion(question, questions, indices) {
+	// On a folder, recursively process subquestions.
 	if (question.type === 'folder') {
-		return (question.contents || []).map((questionId, index) => getQuestionOrFolder(questionId, questions, [...indices, index]))
+		return {
+			...question,
+			index: indices,
+			contents: (question.contents || []).map((questionId, index) => processQuestion(questions[questionId], questions, [...indices, index])),
+		}
 	}
 
-	// On a question (default case) return it right away.
+	// On a question (default case) run basic processing.
 	if (question.type === 'question' || question.type === undefined)
 		return { ...question, index: indices }
 

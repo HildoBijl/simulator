@@ -9,6 +9,16 @@ export function applyMapping(obj, func) {
 	return result
 }
 
+// arrayToObject takes an array and a function. The function takes an array value and index, and returns a tuple { key: "...", value: {...} }. This is then assembled into an object.
+export function arrayToObject(array, func) {
+	const result = {}
+	array.forEach((...params) => {
+		const itemResult = func(...params)
+		result[itemResult.key] = itemResult.value
+	})
+	return result
+}
+
 // selectRandomly picks a random element out of an array.
 export function selectRandomly(array) {
 	const index = Math.floor(Math.random() * array.length)

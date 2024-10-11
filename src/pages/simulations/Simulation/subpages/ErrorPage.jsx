@@ -1,9 +1,9 @@
 import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 
-import { numberToLetter } from 'util'
+import { numberToLetter, useClearTags } from 'util'
 import { Page } from 'components'
-import { useIsOwner } from 'simulations'
+import { useIsOwner, questionIndexToString } from 'simulations'
 
 import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle } from '../../settings'
 import { getVariableErrorMessage } from '../../validation'
@@ -62,15 +62,17 @@ function UpdateScriptError({ error }) {
 	// Determine in which update script the error took place.
 	let source
 	const { question, questionIndex, option, optionIndex, error: errorObj } = error
+	const optionTitle = useClearTags(option?.description && option?.description.split('\n')[0] || emptyOption)
+	console.log(questionIndex, question)
 	switch (error.subtype) {
 		case 'general':
 			source = <>Es gibt einen Fehler im allgemeinen Update-Skript, das nach jeder Seite ausgeführt wird.</>
 			break
 		case 'question':
-			source = <>Es gibt einen Fehler im standard Update-Skript von Seite <em>{questionIndex + 1}. {question.title || emptyQuestion}</em>.</>
+			source = <>Es gibt einen Fehler im standard Update-Skript von Seite <em>{questionIndexToString(question.index)} {question.title || emptyQuestion}</em></>
 			break
 		case 'option':
-			source = <>Es gibt einen Fehler im Update-Skript von Seite <em>{questionIndex + 1}. {question.title || emptyQuestion}</em>, Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {option.description.split('\n')[0] || emptyOption}</em>.</>
+			source = <>Es gibt einen Fehler im Update-Skript von Seite <em>{questionIndexToString(question.index)} {question.title || emptyQuestion}</em> Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {optionTitle}</em></>
 			break
 		default:
 			throw new Error(`Invalid update-script error subtype. Received an error for an update script with subtype "${error.subtype}" but could not process this properly.`)

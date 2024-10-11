@@ -100,6 +100,7 @@ export function getSimulationUpdateScriptError(simulation) {
 	const questionErrorObj = arrayFind(Object.values(simulation.questions), question => {
 		// Check the question update script.
 		const questionIndex = simulation.questionList.indexOf(question)
+		console.log(questionIndex, question, simulation)
 		const questionError = getScriptError(question.updateScript, simulation)
 		if (questionError)
 			return { source: 'simulation', type: 'updateScript', subtype: 'question', error: questionError, question, questionIndex }

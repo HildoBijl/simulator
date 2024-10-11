@@ -10,7 +10,7 @@ import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon,
 import { Draggable } from '@hello-pangea/dnd'
 
 import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
-import { deleteQuestion, updateQuestion } from 'simulations'
+import { deleteQuestion, updateQuestion, questionIndexToString } from 'simulations'
 
 import { emptyQuestion, emptyFolder, accordionStyle } from '../../settings'
 
@@ -55,7 +55,7 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
 					<Icon sx={{ color: iconColor, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
-					<span style={{ marginRight: '0.75rem' }}>{indicesToString(listIndex)}</span>
+					<span style={{ marginRight: '0.75rem' }}>{questionIndexToString(question.index)}</span>
 					{question.internalTitle || question.title || emptyQuestion}
 				</AccordionSummary>
 				{expanded ? <>
@@ -126,7 +126,7 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
 					<Icon sx={{ color: theme.palette.secondary.main, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
-					<span style={{ marginRight: '0.75rem' }}>{indicesToString(listIndex)}</span>
+					<span style={{ marginRight: '0.75rem' }}>{questionIndexToString(folder.index)}</span>
 					<FolderTitle {...{ simulation, folder }} />
 				</AccordionSummary>
 			</Accordion>
@@ -158,12 +158,4 @@ function FolderTitle({ simulation, folder }) {
 		await updateQuestion(simulation.id, folder.id, { title: event.target.value })
 	}
 	return <input type="text" style={{ marginRight: '1em', width: '100%' }} value={folder.title || ''} onClick={(event) => event.stopPropagation()} onChange={updateTitle} autoFocus={true} onBlur={() => setIsEditing(false)} onKeyDown={event => (event.key === 'Enter' || event.key === 'Escape') && setIsEditing(false)} />
-}
-
-function indicesToString(indices) {
-	return indices.map((value, i) => {
-		if (i > 0 && i === indices.length - 1 && value === 0)
-			return '' // Do not show the "0" index for folders.
-		return `${i === 0 ? (value + 1) : value}.` // Ensure we start counting at 1 everywhere.
-	}).join('')
 }

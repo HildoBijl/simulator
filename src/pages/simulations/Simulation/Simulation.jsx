@@ -42,7 +42,9 @@ function SimulationWithId({ id }) {
 		return <GeneralErrorPage /> // General error page.
 	if (simulation === undefined) // Loading.
 		return <Page title="Simulation laden..." showLogo="right" /> // Empty page with just a title.
-
+	if (!simulation.questionList || simulation.questionList.length === 0)
+		return <EmptySimulation {...{ simulation }} />
+console.log(simulation.questionList, simulation)
 	// We have a valid simulation! Render it! Add a key to assure a reload of the component (including a new state) on a change of simulation.
 	return <SimulationWithData key={simulation.id} simulation={simulation} />
 }
@@ -81,4 +83,13 @@ function SimulationWithData({ simulation }) {
 	if (questionId === 'end')
 		return <EndPage {...{ simulation, history, reset }} />
 	return <Question key={history.length - 1} {...{ simulation, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }} />
+}
+
+function EmptySimulation({ simulation }) {
+	const isOwner = useIsOwner(simulation)
+	return <Page title={simulation.title || 'Leere Simulation'} showLogo="right">
+		{isOwner ?
+			<p>Sie haben noch keine Seiten zu dieser Simulation hinzugefügt. Fügen Sie eine Seite hinzu, um zu beginnen.</p> :
+			<p>Der Ersteller der Simulation hat noch keine Seiten zu dieser Simulation hinzugefügt. Ohne Seiten kann nichts angezeigt werden.</p>}
+	</Page>
 }

@@ -44,7 +44,7 @@ function SimulationWithId({ id }) {
 		return <Page title="Simulation laden..." showLogo="right" /> // Empty page with just a title.
 	if (!simulation.questionList || simulation.questionList.length === 0)
 		return <EmptySimulation {...{ simulation }} />
-console.log(simulation.questionList, simulation)
+
 	// We have a valid simulation! Render it! Add a key to assure a reload of the component (including a new state) on a change of simulation.
 	return <SimulationWithData key={simulation.id} simulation={simulation} />
 }

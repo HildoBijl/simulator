@@ -154,6 +154,6 @@ export function getStateError(simulation, state) {
 		return undefined
 
 	// Check that the question ID from the state exists. (If there is no questionId, then the simulation hasn't started yet; that's fine too.)
-	if (state.questionId && state.questionId !== 'end' && !simulation.questions[state.questionId])
+	if (state.pageId !== 'end' && !simulation.questions[state.pageId])
 		return { source: 'state', type: 'question', subtype: 'missing' }
 }

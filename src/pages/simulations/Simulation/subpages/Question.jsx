@@ -17,10 +17,10 @@ import { VariableOverview } from '../components/VariableOverview'
 
 export function Question({ simulation, history, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }) {
 	const isOwner = useIsOwner(simulation)
-	const { questionId, choice } = state
+	const { pageId, choice } = state
 
 	// Determine the question we're at.
-	const question = simulation.questions[questionId]
+	const question = simulation.questions[pageId]
 	const options = question.options || []
 
 	// If an option has been chosen and there's no feedback, automatically continue to the next question.
@@ -132,7 +132,7 @@ function AdminTool({ simulation, state, jumpToQuestion, reset }) {
 
 function JumpDropDown({ simulation, state, jumpToQuestion }) {
 	const label = 'Zur Seite springen'
-	const value = state.questionId
+	const value = state.pageId
 	return <FormControl fullWidth>
 		<InputLabel>{label}</InputLabel>
 		<Select value={value} label={label} onChange={(event) => jumpToQuestion(event.target.value)}>

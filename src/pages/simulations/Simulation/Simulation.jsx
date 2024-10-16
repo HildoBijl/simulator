@@ -79,10 +79,12 @@ function SimulationWithData({ simulation }) {
 	if (simulationError && (error || isOwner)) // Only show a simulation error once we encountered it, and the error flag is set to true.
 		return <ErrorPage {...{ simulation, error: simulationError, reset }} />
 
-	// Determine whether we're at the start (no question defined), at the end, or at a regular question. Render accordingly.
+	// Check for special situations that require different renders.
 	if (!state)
 		return <InitializingPage {...{ simulation }} />
-	if (state.questionId === 'end')
+	if (state.pageId === 'end')
 		return <EndPage {...{ simulation, history, reset }} />
+
+	// Render the page as normally.
 	return <Question {...{ simulation, history, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }} />
 }

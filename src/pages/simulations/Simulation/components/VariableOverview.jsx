@@ -14,10 +14,11 @@ export function VariableOverview({ simulation, state, showHidden = false }) {
 		return null
 
 	// Show the variables.
+	const variableValues = state.variablesAfter || state.variablesBefore || {}
 	return <div style={{ display: 'flex', flexFlow: 'row wrap' }}>
 		{Object.values(variables)
 			.sort((a, b) => a.title < b.title ? -1 : 1)
-			.map(variable => <Variable key={variable.id} variable={variable} value={(state.variables || [])[variable.id]} />)}
+			.map(variable => <Variable key={variable.id} variable={variable} value={variableValues[variable.id]} />)}
 	</div>
 }
 
@@ -62,7 +63,7 @@ function Variable({ variable, value }) {
 			else if (timeSinceChange >= timeToFade + fadeTime)
 				setChangeAlpha(0)
 			else
-				setChangeAlpha(maxAlpha*(1 - alphaEase((timeSinceChange - timeToFade) / fadeTime)))
+				setChangeAlpha(maxAlpha * (1 - alphaEase((timeSinceChange - timeToFade) / fadeTime)))
 		}
 	})
 

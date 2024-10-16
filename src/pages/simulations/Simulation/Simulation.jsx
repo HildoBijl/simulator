@@ -51,7 +51,7 @@ function SimulationWithData({ simulation }) {
 	const [history, setHistory, clearHistory] = useLocalStorageState([], simulation.id)
 	const [error, setError] = useState(false) // Tracks if an error was encountered during simulation run-time.
 	const state = getState(history)
-	
+
 	// Check for an error in the state. (For instance an outdated question ID.)
 	const stateError = useMemo(() => getStateError(simulation, state), [simulation, state])
 
@@ -84,5 +84,5 @@ function SimulationWithData({ simulation }) {
 		return <InitializingPage {...{ simulation }} />
 	if (state.questionId === 'end')
 		return <EndPage {...{ simulation, history, reset }} />
-	return <Question key={history.length - 1} {...{ simulation, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }} />
+	return <Question {...{ simulation, history, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }} />
 }

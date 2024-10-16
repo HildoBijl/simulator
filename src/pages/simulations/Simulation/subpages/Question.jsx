@@ -15,7 +15,7 @@ import { emptyQuestion, emptyOption } from '../../settings'
 
 import { VariableOverview } from '../components/VariableOverview'
 
-export function Question({ simulation, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }) {
+export function Question({ simulation, history, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }) {
 	const isOwner = useIsOwner(simulation)
 	const { questionId, choice } = state
 
@@ -40,7 +40,8 @@ export function Question({ simulation, state, chooseOption, goToNextQuestion, ju
 	const showNextButton = !showRestartButton && (options.length === 0 || choice !== undefined)
 
 	// Define what icons to show.
-	const icons = simulation.allowUndo ? [{ Icon: Undo, onClick: undo }] : []
+	const canUndo = history.length > 1 || state.choice !== undefined
+	const icons = simulation.allowUndo && canUndo ? [{ Icon: Undo, onClick: undo }] : []
 
 	// Render the question with description, media, options and buttons.
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>

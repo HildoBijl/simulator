@@ -4,10 +4,10 @@ import { selectRandomly, removeKeys } from 'util'
 import { incrementSimulationField } from 'simulations'
 
 import { defaultAfterwards } from '../settings'
-import { getState, hasVariables, getInitialVariables, switchVariableNames, boundVariables, runUpdateScript, runCondition, getScriptError } from '../util'
+import { getState, hasVariables, runSimulationUpdateScript, getInitialVariables, switchVariableNames, runCondition, getScriptError } from '../util'
 import { getGeneralSimulationError, getSimulationEventError } from '../validation'
 
-// useSimulationActions takes a simulation and a setHistory function, and returns a set of actions (functions) the can be called to adjust the simulation history. It also runs checks on the simulation on required parts (like when a specific update script is needed) and flips an error flag when something is not working properly.
+// useSimulationActions takes a simulation and a setHistory function, and returns a set of actions (functions) that can be called to adjust the simulation history. It also runs checks on the simulation on required parts (like when a specific update script is needed) and flips an error flag when something is not working properly.
 export function useSimulationActions(simulation, setHistory, clearHistory, setError) {
 	// reset will put the simulation back into its initial state with nothing defined.
 	const reset = useCallback(() => {
@@ -16,30 +16,37 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 	// start will initialize the simulation, setting stuff like questions and variables to their (possibly partly randomized) initial values.
 	const start = useCallback((devMode = false) => {
-		// Check for potential general errors.
+		// If there are general errors, no simulation can be started yet. Note this.
 		if (getGeneralSimulationError(simulation))
 			return setError(true)
 
-		// Initialize the state.
+		// Initialize the history by setting up the initial state.
 		setHistory(history => {
-			if (history.length > 1)
-				throw new Error(`Cannot start simulation: it has already been started.`)
 			if (simulation.questionList.length === 0)
 				throw new Error(`Cannot start simulation: it does not contain any questions yet.`)
+			if (history && history.length > 0)
+				throw new Error(`Cannot start simulation: it has already been started.`)
 
-			// Define the state.
-			const initialState = history[0] || { questionId: 'start' }
-			const state = { questionId: simulation.startingQuestion || simulation.questionList[0] }
+			// Determine the starting question.
+			const questionId = simulation.startingQuestion || simulation.questionList[0]
+			const initialQuestion = simulation.questions[questionId]
+			const state = { questionId }
 
+			// On variables, check the entry initialize them and run the entry script of the initial question (after checking it).
 			if (hasVariables(simulation)) {
-				const initialVariables = initialState.variables || getInitialVariables(simulation)
-				initialState.variables = initialVariables
-				state.variables = initialVariables
+				const initialVariables = getInitialVariables(simulation)
+				if (getScriptError(initialQuestion.entryScript, simulation)) {
+					setError(true)
+					return history
+				}
+				state.variablesBefore = runSimulationUpdateScript(initialQuestion.entryScript, initialVariables, simulation)
 			}
-			return [initialState, state]
+
+			// Return the history as a single state.
+			return [state]
 		})
 
-		// Update the statistics.
+		// Update the statistics: first locally for the player and then in the database to show the owner.
 		incrementPlayerPlayCounter(simulation)
 		if (!devMode)
 			incrementSimulationField(simulation.id, 'numPlayed')
@@ -47,7 +54,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 	// chooseOption will pick an option for the current question.
 	const chooseOption = useCallback((index) => {
-		// Check for potential general errors.
+		// On any errors we cannot do anything.
 		if (getGeneralSimulationError(simulation))
 			return setError(true)
 
@@ -55,9 +62,9 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		setHistory(history => {
 			// Check if an option input is possible.
 			const state = getState(history)
-			const { questionId, choice, variables } = state
+			const { questionId, choice, variablesBefore } = state
 			if (choice !== undefined)
-				throw new Error(`Invalid option choice: the question already has been finished.`)
+				throw new Error(`Invalid option choice: an option has already been chosen.`)
 
 			// Extract required data.
 			const question = simulation.questions[questionId]
@@ -76,22 +83,20 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 			// On variables, run all relevant update scripts, assuming they exist.
 			if (hasVariables(simulation) && (option.updateScript || question.updateScript || simulation.updateScript)) {
-				// Check said update scripts first.
-				if (getScriptError(option.updateScript || question.updateScript, simulation) || getScriptError(simulation.updateScript, simulation)) {
+				// Determine the update scripts to be run: first the one of the option (or question default) and then the general simulation update script.
+				const updateScripts = [option.updateScript || question.updateScript, simulation.updateScript]
+
+				// If any of the scripts has an error, note this and do not update.
+				if (updateScripts.some(updateScript => getScriptError(updateScript, simulation))) {
 					setError(true)
 					return history
 				}
 
-				// Run the update scripts on the variables.
-				let variablesAsNames = switchVariableNames(variables, simulation)
-				variablesAsNames = runUpdateScript(variablesAsNames, option.updateScript || question.updateScript)
-				variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
-				variablesAsNames = runUpdateScript(variablesAsNames, simulation.updateScript)
-				variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
-				newState.variables = switchVariableNames(variablesAsNames, simulation, true)
+				// Run the update scripts and store the new variables.
+				newState.variablesAfter = runSimulationUpdateScript(updateScripts, variablesBefore, simulation)
 			}
 
-			// All done!
+			// All done! Update the state in the history and return the new history.
 			return [...history.slice(0, -1), newState]
 		})
 	}, [simulation, setHistory, setError])
@@ -99,31 +104,37 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 	// goToNextQuestion will go to the next question depending on the (confirmed) selected question option.
 	const goToNextQuestion = useCallback((devMode = false) => {
 		setHistory(history => {
-			// If the question has options, but no option has been selected and confirmed, we're not ready yet to move on.
+			// Extract the current state and its parameters.
 			const state = getState(history)
-			const { questionId, choice, variables } = state
+			const { questionId, choice, variablesAfter } = state
 			const question = simulation.questions[questionId]
+
+			// If the question has options, but no option has been selected and confirmed, we're not ready yet to move on.
 			const options = question.options || []
 			if (options.length > 0 && choice === undefined)
 				throw new Error(`Invalid nextQuestion request: no option has been selected for the given state yet. Cannot go to the next question.`)
 
 			// Determine the next question: either the follow-up for the chosen option, the follow-up for the given question, the next question in the order, or (if not existing) the end. Apply it to the new state.
 			const newState = {
-				questionId: (options[choice] && options[choice].followUpQuestion) || question.followUpQuestion || simulation.questionList[simulation.questionList.findIndex(question => question.id === questionId) + 1]?.id || 'end',
+				questionId: (options[choice] && options[choice].followUpQuestion) ||
+					question.followUpQuestion ||
+					simulation.questionList[simulation.questionList.findIndex(question => question.id === questionId) + 1]?.id ||
+					'end',
 			}
 
 			// On variables, we should also check for events.
 			if (hasVariables(simulation)) {
-				// Copy necessary parameters.
-				newState.variables = state.variables
-				if (state.experiencedEvents)
-					newState.experiencedEvents = state.experiencedEvents
+				const variables = variablesAfter
 
-				// Verify the existing events.
+				// Check all events for possible errors. If there are any, do not update.
 				if (getSimulationEventError(simulation)) {
 					setError(true)
 					return history
 				}
+
+				// Copy necessary parameters into the new state.
+				if (state.experiencedEvents)
+					newState.experiencedEvents = state.experiencedEvents
 
 				// Find all events that did not fire/trigger before, but do fire now. On multiple, select one randomly.
 				const experiencedEvents = newState.experiencedEvents || []
@@ -143,7 +154,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 					}
 
 					// Apply the event into the state.
-					newState.questionId = triggeredEvent.question || simulation.questionOrder[0]
+					newState.questionId = triggeredEvent.question || simulation.questionOrder[0] // Indicated or default, in case not set.
 					newState.event = triggeredEvent.id // For history display purposes.
 					newState.experiencedEvents = [...experiencedEvents, triggeredEvent.id] // To prevent events from triggering multiple times.
 				} else {
@@ -151,6 +162,14 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 					if (state.jumpQuestionId)
 						newState.questionId = state.jumpQuestionId
 				}
+
+				// Upon entering the new question, run its entry script (after checking it).
+				const newQuestion = simulation.questions[newState.questionId]
+				if (getScriptError(newQuestion.entryScript, simulation)) {
+					setError(true)
+					return history
+				}
+				newState.variablesBefore = runSimulationUpdateScript(newQuestion.entryScript, variables, simulation)
 			}
 
 			// If the simulation ends, update the statistics.
@@ -164,44 +183,65 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		})
 	}, [simulation, setHistory, setError])
 
-	// jumpToQuestion is a function that allows to jump to any question. It's used for admin control. It hard-overwrites the questionId, either as the next question if a choice has been made, or as the current question if no choice has been made.
+	// jumpToQuestion is a function that allows to jump to any question. It's used for admin control. It hard-overwrites the questionId, either as the next question if a choice has been made, or as the current question if no choice has been made. It runs the entry script of the given question on jumping.
 	const jumpToQuestion = useCallback((questionId) => {
+		// Retrieve the question to be jumped to.
+		const question = simulation[questionId]
+
+		// Update the history to jump to the new question.
 		setHistory(history => {
 			const state = getState(history)
-			if (state.choice === undefined)
-				return [...history.slice(0, -1), { ...state, questionId }]
-			return [...history, removeKeys({ ...state, questionId }, 'choice')]
+
+			// When no choice has been made, overwrite the current question in the history.
+			if (state.choice === undefined) {
+				const newState = { ...state, questionId }
+
+				// When there are variables, take them from the previous question (or the initial values if non-existing) and run the entry script on those.
+				if (hasVariables(simulation)) {
+					if (getScriptError(question.entryScript, simulation)) {
+						setError(true)
+						return history
+					}
+					const previousVariables = history[history.length - 2]?.variablesAfter || getInitialVariables(simulation)
+					newState.variablesBefore = runSimulationUpdateScript(question.entryScript, previousVariables, simulation)
+				}
+				return [...history.slice(0, -1), newState]
+			}
+
+			// When a choice has been made, create a new state for this upcoming question.
+			const newState = { questionId }
+			if (hasVariables(simulation)) {
+				// Copy necessary parameters into the new state.
+				if (state.experiencedEvents)
+					newState.experiencedEvents = state.experiencedEvents
+
+				// Run the entry script of the question that's jumped to, to set the variables.
+				newState.variablesBefore = runSimulationUpdateScript(question.entryScript, state.variablesAfter, simulation)
+			}
+			return [...history, newState]
 		})
-	}, [setHistory])
+	}, [simulation, setHistory, setError])
 
 	// undo will undo the last action that was taken. It pops off the last entry of the history, assuming there's more than one entry.
 	const undo = useCallback(() => {
 		setHistory(history => {
-			if (history.length <= 1)
+			if (history.length < 1 || (history.length === 1 && history[0].choice === undefined))
 				throw new Error(`Invalid undo call: cannot undo the last action as no action was taken.`)
 
-			// If there is no choice yet, jump to the previous question.
-			let state = history[history.length - 1]
+			// If there is no choice yet, jump to the previous state.
+			let state = getState(history)
 			if (state.choice === undefined)
 				history = history.slice(0, -1)
 
-			// If the state has a choice defined, remove the choice.
+			// If the state still has no choice defined, we jumped back to an info page. Keep it as is.
 			state = history[history.length - 1]
-			if (state.choice !== undefined) {
-				const newState = {
-					...state,
-					variables: history[history.length - 2].variables, // Undo variable change.
-				}
-				delete newState.choice
-				return [...history.slice(0, -1), newState]
+			if (state.choice === undefined) {
+				return history
 			}
 
-			// If there's only two states left, then we should go back to being uninitialized.
-			if (history.length === 1)
-				return []
-
-			// We should never get here.
-			throw new Error(`Invalid undo case: wound up in a situation that should not have been possible. There's a programming error somewhere.`)
+			// However, if the state does have a choice defined, remove it.
+			const newState = removeKeys(state, ['choice', 'variablesAfter'])
+			return [...history.slice(0, -1), newState]
 		})
 	}, [setHistory])
 
@@ -209,6 +249,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 	return { reset, start, chooseOption, goToNextQuestion, jumpToQuestion, undo }
 }
 
+// incrementPlayerPlayCounter tracks on the user's LocalStorage how many times he/she played the given simulation. It increases the counter for the given simulation by one.
 function incrementPlayerPlayCounter(simulation) {
 	// Load the overview and ensure there's an object for the current simulation.
 	const overview = JSON.parse(localStorage.getItem('simulationOverview') || '{}')

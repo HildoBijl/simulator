@@ -21,7 +21,7 @@ export function canSimulationHaveErrors(simulation) {
 	return true
 }
 
-// getGeneralSimulationError looks for any error in the simulation that is generally a problem. (Like faulty variables.) It does not check for errors that are specific to certain situations (like update scripts to specific questions or question options). On no errors it gives undefined.
+// getGeneralSimulationError looks for any error in the simulation that is generally a problem. (Like faulty variables.) It does not check for errors that are specific to certain situations (like entry/update scripts to specific questions or question options). On no errors it gives undefined.
 export function getGeneralSimulationError(simulation) {
 	// When the simulation can't have errors, don't run checks: return undefined immediately.
 	if (!canSimulationHaveErrors(simulation))
@@ -43,6 +43,11 @@ export function getSimulationError(simulation) {
 	const generalError = getGeneralSimulationError(simulation)
 	if (generalError)
 		return generalError
+
+	// Check all entry scripts.
+	const entryScriptError = getSimulationEntryScriptError(simulation)
+	if (entryScriptError)
+		return entryScriptError
 
 	// Check all update scripts.
 	const updateScriptError = getSimulationUpdateScriptError(simulation)
@@ -89,6 +94,19 @@ export function getVariableErrorMessage(error) {
 	}[subtype]
 }
 
+// getSimulationEntryScriptError checks for a given simulation whether all entry scripts are OK. If so, undefined is given. If not, an error is returned.
+export function getSimulationEntryScriptError(simulation) {
+	// Walk through all questions to check their entry scripts.
+	const questionErrorObj = arrayFind(Object.values(simulation.questions), question => {
+		// Check the question update script.
+		const questionError = getScriptError(question.entrySript, simulation)
+		if (questionError)
+			return { source: 'simulation', type: 'entryScript', subtype: 'question', error: questionError, question }
+	})
+	if (questionErrorObj)
+		return questionErrorObj.value
+}
+
 // getSimulationUpdateScriptError checks for a given simulation whether all update scripts are OK. If so, undefined is given. If not, an error is returned.
 export function getSimulationUpdateScriptError(simulation) {
 	// Check the general update script.
@@ -131,7 +149,11 @@ export function getSimulationEventError(simulation) {
 
 // getStateError checks, for a given simulation, whether the state is still OK. Stuff like missing variables can be fixed on-the-go, but a questionId that is not known is a fatal error.
 export function getStateError(simulation, state) {
+	// When there is no state yet, then there cannot be erroneous data in the state. No error.
+	if (!state)
+		return undefined
+
 	// Check that the question ID from the state exists. (If there is no questionId, then the simulation hasn't started yet; that's fine too.)
-	if (state.questionId && state.questionId !== 'start' && state.questionId !== 'end' && !simulation.questions[state.questionId])
+	if (state.questionId && state.questionId !== 'end' && !simulation.questions[state.questionId])
 		return { source: 'state', type: 'question', subtype: 'missing' }
 }

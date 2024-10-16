@@ -11,9 +11,24 @@ export function hasVariables(simulation) {
 	return simulation?.variables && Object.keys(simulation.variables).length > 0
 }
 
+// runSimulationUpdateScript takes a simulation and runs a given update script for that simulation. Variables should be ID-based, since the simulation knows about the IDs. The updateScript given can be an array too, in which case they are run sequentially.
+export function runSimulationUpdateScript(updateScripts, variables, simulation) {
+	// Ensure we have an array of update scripts.
+	if (!Array.isArray(updateScripts))
+		updateScripts = [updateScripts]
+
+	// Set the variables to a name-basis, run the scripts, and set them back.
+	let variablesAsNames = switchVariableNames(variables, simulation)
+	updateScripts.forEach(updateScript => {
+		variablesAsNames = runUpdateScript(variablesAsNames, updateScript)
+		variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
+	})
+	return switchVariableNames(variablesAsNames, simulation, true)
+}
+
 // getState takes a simulation history object and extracts the state from it.
 export function getState(history) {
-	return history[history.length - 1] || {}
+	return history[history.length - 1]
 }
 
 // getVariableInitialValue gets the initial value of a variable. If it's defined, that is returned. If not, it is derived from the minimum and maximum.

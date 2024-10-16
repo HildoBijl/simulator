@@ -11,10 +11,7 @@ import { getState } from '../util'
 import { getSimulationError, getStateError } from '../validation'
 
 import { useSimulationActions } from './actions'
-import { ErrorPage } from './subpages/ErrorPage'
-import { StartPage } from './subpages/StartPage'
-import { EndPage } from './subpages/EndPage'
-import { Question } from './subpages/Question'
+import { ErrorPage, EmptySimulation, InitializingPage, Question, EndPage } from './subpages'
 
 export function Simulation() {
 	const { simulationUrl } = useParams()
@@ -54,7 +51,9 @@ function SimulationWithData({ simulation }) {
 	const [history, setHistory, clearHistory] = useLocalStorageState([], simulation.id)
 	const [error, setError] = useState(false) // Tracks if an error was encountered during simulation run-time.
 	const state = getState(history)
-	const { questionId } = state
+	
+	// Check for an error in the state. (For instance an outdated question ID.)
+	const stateError = useMemo(() => getStateError(simulation, state), [simulation, state])
 
 	// Check for any errors in the simulation. (For instance a faulty update script.)
 	const simulationError = useMemo(() => getSimulationError(simulation), [simulation])
@@ -63,33 +62,27 @@ function SimulationWithData({ simulation }) {
 			setError(false)
 	}, [error, simulationError])
 
-	// Check for an error in the state. (For instance an outdated question ID.)
-	const stateError = useMemo(() => getStateError(simulation, state), [simulation, state])
-
 	// Define actions.
 	const actions = useSimulationActions(simulation, setHistory, clearHistory, setError)
 	const { start, reset, chooseOption, goToNextQuestion, jumpToQuestion, undo } = actions
 
-	// On an error, show the error page.
+	// When there is no state yet, and we hence haven't started yet, start the simulation.
 	const isOwner = useIsOwner(simulation)
-	if (simulationError && (error || isOwner)) // Only show a simulation error once we encountered it, and the error flag is set to true.
-		return <ErrorPage {...{ simulation, error: simulationError, reset }} />
+	useEffect(() => {
+		if (!state)
+			start(isOwner)
+	}, [state, start, isOwner])
+
+	// On an error, show the error page.
 	if (stateError) // Always show a state error.
 		return <ErrorPage {...{ simulation, error: stateError, reset }} />
+	if (simulationError && (error || isOwner)) // Only show a simulation error once we encountered it, and the error flag is set to true.
+		return <ErrorPage {...{ simulation, error: simulationError, reset }} />
 
 	// Determine whether we're at the start (no question defined), at the end, or at a regular question. Render accordingly.
-	if (!questionId || questionId === 'start')
-		return <StartPage {...{ simulation, start }} />
-	if (questionId === 'end')
+	if (!state)
+		return <InitializingPage {...{ simulation }} />
+	if (state.questionId === 'end')
 		return <EndPage {...{ simulation, history, reset }} />
 	return <Question key={history.length - 1} {...{ simulation, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }} />
-}
-
-function EmptySimulation({ simulation }) {
-	const isOwner = useIsOwner(simulation)
-	return <Page title={simulation.title || 'Leere Simulation'} showLogo="right">
-		{isOwner ?
-			<p>Sie haben noch keine Seiten zu dieser Simulation hinzugefügt. Fügen Sie eine Seite hinzu, um zu beginnen.</p> :
-			<p>Der Ersteller der Simulation hat noch keine Seiten zu dieser Simulation hinzugefügt. Ohne Seiten kann nichts angezeigt werden.</p>}
-	</Page>
 }

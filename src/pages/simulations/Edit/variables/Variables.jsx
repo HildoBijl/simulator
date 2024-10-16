@@ -16,8 +16,8 @@ import { Variable } from './Variable'
 export function Variables({ simulation }) {
 	return <>
 		<VariablesList {...{ simulation }} />
-		<GeneralUpdateScript {...{ simulation }} />
 		<LinkToScriptsPage {...{ simulation }} />
+		<GeneralUpdateScript {...{ simulation }} />
 	</>
 }
 
@@ -108,7 +108,7 @@ export function GeneralUpdateScript({ simulation }) {
 
 	// Render the field.
 	return <FormPart>
-		<TrackedCodeField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Seite</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />
+		<TrackedCodeField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Auswahl einer Antwortmöglichkeit</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }
 

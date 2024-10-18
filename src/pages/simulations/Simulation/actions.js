@@ -4,7 +4,7 @@ import { selectRandomly, removeKeys } from 'util'
 import { incrementSimulationField } from 'simulations'
 
 import { defaultAfterwards } from '../settings'
-import { getState, hasVariables, runSimulationUpdateScript, getInitialVariables, switchVariableNames, runCondition, getScriptError } from '../util'
+import { getState, hasVariables, getFollowUpPage, runSimulationUpdateScript, getInitialVariables, switchVariableNames, runCondition, getScriptError } from '../util'
 import { getGeneralSimulationError, getSimulationEventError } from '../validation'
 
 // useSimulationActions takes a simulation and a setHistory function, and returns a set of actions (functions) that can be called to adjust the simulation history. It also runs checks on the simulation on required parts (like when a specific update script is needed) and flips an error flag when something is not working properly.
@@ -116,10 +116,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 			// Determine the next question: either the follow-up for the chosen option, the follow-up for the given question, the next question in the order, or (if not existing) the end. Apply it to the new state.
 			const newState = {
-				pageId: (options[choice] && options[choice].followUpQuestion) ||
-					question.followUpQuestion ||
-					simulation.questionList[simulation.questionList.findIndex(question => question.id === pageId) + 1]?.id ||
-					'end',
+				pageId: (options[choice] && options[choice].followUpQuestion) || getFollowUpPage(question, simulation),
 			}
 
 			// On variables, we should also check for events.
@@ -174,10 +171,15 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				}
 			}
 
-			// If the simulation ends, update the statistics.
-			if (newState.pageId === 'end') {
-				if (!devMode)
+			// If the simulation ends, either because we show the ending screen, or we have a page with no options and an end-follow-up, then update the numFinished statistics.
+			if (!devMode) {
+				if (newState.pageId === 'end') {
 					incrementSimulationField(simulation.id, 'numFinished')
+				} else {
+					const newPage = simulation.questions[newState.pageId]
+					if ((newPage.options || []).length === 0 && getFollowUpPage(newPage, simulation) === 'end')
+						incrementSimulationField(simulation.id, 'numFinished')
+				}
 			}
 
 			// The update is all done. Add the new state to the history.

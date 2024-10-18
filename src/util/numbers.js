@@ -54,3 +54,15 @@ export const strToNumber = str => str === '' ? undefined : str === '-' ? 0 : Num
 export const easeInOut = x => (x * x) / (2 * (x * x - x) + 1)
 export const easeShift = x => x < 0.5 ? 2 * x ** 2 : 1 - 2 * (1 - x) ** 2
 export const easeShiftSlow = x => x < 0.5 ? 4 * x ** 3 : 1 - 4 * (1 - x) ** 3
+
+// fileSizeText turns a number like "2560" into a string like "2.5 kB" that can be displayed.
+export function fileSizeText(size) {
+	let prefixIndex = 0
+	while (size >= 1024) {
+		prefixIndex++
+		size /= 1024
+	}
+	const number = size < 9.95 ? roundTo(size, 1) : roundTo(size, 0)
+	const prefix = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'][prefixIndex]
+	return `${number} ${prefix || ''}B`
+}

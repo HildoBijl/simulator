@@ -163,13 +163,15 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 						newState.pageId = state.jumpPageId
 				}
 
-				// Upon entering the new question, run its entry script (after checking it).
+				// Upon entering the new question (if it exists, and is not the end) run its entry script (after checking it).
 				const newQuestion = simulation.questions[newState.pageId]
-				if (getScriptError(newQuestion.entryScript, simulation)) {
-					setError(true)
-					return history
+				if (newQuestion) {
+					if (getScriptError(newQuestion.entryScript, simulation)) {
+						setError(true)
+						return history
+					}
+					newState.variablesBefore = runSimulationUpdateScript(newQuestion.entryScript, variables, simulation)
 				}
-				newState.variablesBefore = runSimulationUpdateScript(newQuestion.entryScript, variables, simulation)
 			}
 
 			// If the simulation ends, update the statistics.

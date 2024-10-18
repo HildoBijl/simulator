@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
+import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import FormGroup from '@mui/material/FormGroup'
@@ -10,19 +11,18 @@ import { deleteField } from 'firebase/firestore'
 
 import { getBaseUrl, useTrackedState } from 'util'
 import { useUserId } from 'fb'
-import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
+import { FormPart, TrackedTextField } from 'components'
 import { unlinkUserFromSimulation, getSimulationByUrl, updateSimulation, registerSimulationInvite, useSimulationInvites } from 'simulations'
 
 export function Settings({ simulation }) {
+	console.log(simulation)
 	return <>
 		<ChangeUrl simulation={simulation} />
 		<FormPart>
 			<TrackedTextField label="Titel (z.B. Meine erste Simulation)" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
 		</FormPart>
-		<FormPart>
-			<MCE label="Beschreibung" height="300" value={simulation.description} path="simulations" documentId={simulation.id} field="description" />
-		</FormPart>
-		<MediaUploader label="Abbildung" value={simulation.media} path="simulations" documentId={simulation.id} fileName="StartImage" />
+		{simulation.questionList.length !== 0 ? <Alert severity="info" sx={{ my: 2 }}>Tipp: Öffnen Sie Ihre Simulation als "Benutzer" in einem zweiten Browser-Tab über den obigen Link. Um Ihre Simulation zu erstellen, fügen Sie dann über "Seiten" (oben) Seiten hinzu. Sie können Ihre Änderungen live verfolgen.</Alert> : null}
+		<h2>Sonstige Einstellungen</h2>
 		<AllowUndo simulation={simulation} />
 		<Ownership simulation={simulation} />
 		<RemoveSimulation simulation={simulation} />

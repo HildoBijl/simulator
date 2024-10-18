@@ -23,8 +23,8 @@ export function ImageLibrary({ simulation }) {
 }
 
 function CurrentImages({ simulation }) {
-	const { images } = simulation
-	const imagesSorted = useMemo(() => images.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0), [images]) // Sort alphabetically by filename.
+	const { images } = simulation.images
+	const imagesSorted = useMemo(() => (images || []).sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0), [images]) // Sort alphabetically by filename.
 	return <div style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'flex-start', alignItems: 'stretch', gap: '6px' }}>
 		{imagesSorted.map(image => <Image key={image.name} {...{ simulation, image }} />)}
 	</div>
@@ -71,7 +71,7 @@ function Image({ simulation, image }) {
 		</div>
 		<div style={{ color: theme.palette.primary.contrastText, fontSize: '10px', width: `${width}px`, height: `${heightLabel}px`, boxSizing: 'content-box', padding: '0px 2px 6px', display: 'flex', flexFlow: 'column nowrap', alignItems: 'center', justifyContent: 'center', lineHeight: '5px' }}>
 			<div style={{ textAlign: 'center' }}>
-				<span style={{}}>{image.name}</span> <span style={{ opacity: 0.65 }}>({fileSizeText(image.size)})</span> <span style={{ }}><Delete sx={{ width: '16px', height: '16px', transform: 'translateY(4px)', cursor: 'pointer' }} onClick={deleteImage} /></span>
+				<span style={{}}>{image.name}</span> <span style={{ opacity: 0.65 }}>({fileSizeText(image.size)})</span> <span style={{}}><Delete sx={{ width: '16px', height: '16px', transform: 'translateY(4px)', cursor: 'pointer' }} onClick={deleteImage} /></span>
 			</div>
 		</div>
 	</div>

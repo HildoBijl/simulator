@@ -13,7 +13,7 @@ import { Page, FormPart } from 'components'
 import { hasVariables } from '../util'
 import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle } from '../settings'
 
-import { QuestionUpdateScript, OptionUpdateScript } from './questions'
+import { QuestionEntryScript, QuestionUpdateScript, OptionUpdateScript } from './questions'
 import { GeneralUpdateScript } from './variables'
 
 const ScriptsPage = ({ children, simulationId }) => <Page title="Simulation Skript Übersicht" backButton={`/create/${simulationId}`}>{children}</Page>
@@ -23,7 +23,7 @@ export function Scripts() {
 	const { simulationId } = useParams()
 	const simulation = useSimulation(simulationId)
 
-	// When the simulation is missing, go back to the create page.
+	// If the simulation is missing, go back to the create page.
 	useEffect(() => {
 		if (simulation === null)
 			navigate('/create')
@@ -83,14 +83,15 @@ function GeneralScripts({ simulation, variableId }) {
 }
 
 function ScriptsForQuestion({ simulation, question, variableId }) {
-	// If the question has no update scripts, or none that match the filtering condition, show nothing.
+	// If the question has no entry/update scripts, or none that match the filtering condition, show nothing.
 	const variableName = variableId && simulation.variables[variableId].name
-	if (!shouldShowScript(question.updateScript, variableName) && (!question.options || !question.options.some(option => shouldShowScript(option.updateScript, variableName))))
+	if (!shouldShowScript(question.entryScript, variableName) && !shouldShowScript(question.updateScript, variableName) && (!question.options || !question.options.some(option => shouldShowScript(option.updateScript, variableName))))
 		return null
 
 	// Render the update scripts for this question.
 	return <>
 		<h4>Seite {questionIndexToString(question.index)} {question.internalTitle || question.title || emptyQuestion}</h4>
+		{shouldShowScript(question.entryScript, variableName) ? <QuestionEntryScript {...{ simulation, question }} /> : null}
 		{shouldShowScript(question.updateScript, variableName) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
 		{(question.options || []).map((option, optionIndex) => shouldShowScript(option.updateScript, variableName) ? <OptionUpdateScriptWithLabel key={optionIndex} {...{ simulation, question, optionIndex }} /> : null)}
 	</>

@@ -81,8 +81,8 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				choice: index,
 			}
 
-			// On variables, run all relevant update scripts, assuming they exist.
-			if (hasVariables(simulation) && (option.updateScript || question.updateScript || simulation.updateScript)) {
+			// On variables, run all relevant update scripts.
+			if (hasVariables(simulation)) {
 				// Determine the update scripts to be run: first the one of the option (or question default) and then the general simulation update script.
 				const updateScripts = [option.updateScript || question.updateScript, simulation.updateScript]
 

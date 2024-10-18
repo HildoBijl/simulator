@@ -1,12 +1,16 @@
-import { useState, useMemo } from 'react'
-import { useTheme, alpha } from '@mui/material/styles'
+import { useState, useMemo, useCallback } from 'react'
+import { useTheme } from '@mui/material/styles'
+import Snackbar from '@mui/material/Snackbar'
+import Fab from '@mui/material/Fab'
+import Tooltip from '@mui/material/Tooltip'
 import Button from '@mui/material/Button'
+import { ContentCopy, Delete } from '@mui/icons-material'
 import { arrayRemove, arrayUnion } from 'firebase/firestore'
 import { ref, uploadBytesResumable } from 'firebase/storage'
 
 import { fileSizeText } from 'util'
-import { storage, useStorageUrl } from 'fb'
-import { FormPart, FormSubPart } from 'components'
+import { storage, useStorageUrl, deleteFile } from 'fb'
+import { FormSubPart } from 'components'
 import { updateSimulation } from 'simulations'
 
 export function ImageLibrary({ simulation }) {
@@ -21,22 +25,53 @@ export function ImageLibrary({ simulation }) {
 function CurrentImages({ simulation }) {
 	const { images } = simulation
 	const imagesSorted = useMemo(() => images.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0), [images]) // Sort alphabetically by filename.
-	return <div style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'flex-start', alignItems: 'stretch' }}>
+	return <div style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'flex-start', alignItems: 'stretch', gap: '6px' }}>
 		{imagesSorted.map(image => <Image key={image.name} {...{ simulation, image }} />)}
 	</div>
 }
 
-const width = 140, heightImage = 120, heightLabel = 24
+const width = 140, heightImage = 120, heightLabel = 28
 function Image({ simulation, image }) {
 	const theme = useTheme()
 	const url = useStorageUrl(`simulations/${simulation.id}/images/${image.name}`)
-	return <div style={{ background: alpha(theme.palette.primary.main, 0.05), display: 'flex', flexFlow: 'column nowrap', margin: '4px', borderRadius: '8px', alignItems: 'center' }}>
-		<div style={{ width: `${width}px`, height: `${heightImage}px`, boxSizing: 'content-box', padding: '8px', display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center' }}>
+	const [open, setOpen] = useState(false)
+
+	// Set up a handler for copying the URL.
+	const copyUrl = useCallback(() => {
+		navigator.clipboard.writeText(url)
+		setOpen(true)
+	}, [url])
+
+	// Set up a handler for deleting the image.
+	const deleteImage = useCallback(() => {
+		if (!window.confirm('Sind Sie sicher, dass Sie dieses Bild löschen möchten?'))
+			return
+		updateSimulation(simulation.id, { images: arrayRemove(image) })
+		deleteFile(`simulations/${simulation.id}/images/${image.name}`)
+	}, [simulation, image])
+
+	// Render the image.
+	return <div style={{ background: theme.palette.primary.main, display: 'flex', flexFlow: 'column nowrap', borderRadius: '8px', alignItems: 'center', position: 'relative' }}>
+		<div style={{ position: 'absolute', top: 4, right: 4 }} onClick={copyUrl}>
+			<Tooltip title="URL kopieren" arrow>
+				<Fab color="secondary" size="small" >
+					<ContentCopy />
+				</Fab>
+			</Tooltip>
+			<Snackbar
+				open={open}
+				autoHideDuration={1200}
+				onClose={() => setOpen(false)}
+				anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+				message="Die URL wurde in die Zwischenablage kopiert"
+			/>
+		</div>
+		<div style={{ width: `${width}px`, height: `${heightImage}px`, boxSizing: 'content-box', padding: '12px', display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center' }}>
 			{url ? <img src={url} style={{ maxWidth: `${width}px`, maxHeight: `${heightImage}px` }} /> : null}
 		</div>
-		<div style={{ fontSize: '10px', width: `${width}px`, height: `${heightLabel}px`, boxSizing: 'content-box', padding: '4px', display: 'flex', flexFlow: 'column nowrap', alignItems: 'center', justifyContent: 'center' }}>
+		<div style={{ color: theme.palette.primary.contrastText, fontSize: '10px', width: `${width}px`, height: `${heightLabel}px`, boxSizing: 'content-box', padding: '0px 2px 6px', display: 'flex', flexFlow: 'column nowrap', alignItems: 'center', justifyContent: 'center', lineHeight: '5px' }}>
 			<div style={{ textAlign: 'center' }}>
-				<span style={{}}>{image.name}</span> <span style={{ opacity: 0.6 }}>({fileSizeText(image.size)})</span>
+				<span style={{}}>{image.name}</span> <span style={{ opacity: 0.65 }}>({fileSizeText(image.size)})</span> <span style={{ }}><Delete sx={{ width: '16px', height: '16px', transform: 'translateY(4px)', cursor: 'pointer' }} onClick={deleteImage} /></span>
 			</div>
 		</div>
 	</div>
@@ -75,17 +110,15 @@ function ImageUploader({ simulation }) {
 				console.error(error)
 				if (existingFile) // Delete any potential existing file.
 					updateSimulation(simulation.id, { images: arrayRemove(existingFile) })
-				// ToDo: remove media.
-				// ToDo: check if on overwrite link is maintained.
+				deleteFile(filePath)
 			},
 			async () => { // On finished uploading.
-				console.log('Complete! Store data about the image.', file)
 				const imageData = { name: file.name, size: file.size }
-				if (existingFileIndex !== -1) {
+				if (existingFileIndex !== -1) { // Existing name? Overwrite the array entry.
 					const images = [...simulationImages]
 					images[existingFileIndex] = imageData
 					await updateSimulation(simulation.id, { images })
-				} else {
+				} else { // No file? Add it to the array.
 					await updateSimulation(simulation.id, { images: arrayUnion(imageData) })
 				}
 				setFile(undefined)

@@ -7,7 +7,7 @@ import { Page, useTab } from 'components'
 
 import { hasVariables } from '../util'
 
-import { Settings } from './Settings'
+import { Settings } from './settings'
 import { Questions } from './questions'
 import { Variables } from './variables'
 import { Events } from './events'

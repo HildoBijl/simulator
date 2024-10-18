@@ -20,7 +20,7 @@ export function Settings({ simulation }) {
 		<FormPart>
 			<TrackedTextField label="Titel (z.B. Meine erste Simulation)" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
 		</FormPart>
-		{simulation.questionList.length !== 0 ? <Alert severity="info" sx={{ my: 2 }}>Tipp: Öffnen Sie Ihre Simulation als &quot;Benutzer&quot; in einem zweiten Browser-Tab über den obigen Link. Um Ihre Simulation zu erstellen, fügen Sie dann über &quot;Seiten&quot; (oben) Seiten hinzu. Sie können Ihre Änderungen live verfolgen.</Alert> : null}
+		{simulation.questionList.length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Tipp: Öffnen Sie Ihre Simulation als &quot;Benutzer&quot; in einem zweiten Browser-Tab über den obigen Link. Um Ihre Simulation zu erstellen, fügen Sie dann über &quot;Seiten&quot; (oben) Seiten hinzu. Sie können Ihre Änderungen live verfolgen.</Alert> : null}
 		<h2>Sonstige Einstellungen</h2>
 		<AllowUndo simulation={simulation} />
 		<Ownership simulation={simulation} />

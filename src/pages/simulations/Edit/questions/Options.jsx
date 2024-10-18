@@ -42,7 +42,7 @@ export function Options({ simulation, question }) {
 		setExpanded(expanded => [...expanded.slice(0, index), ...expanded.slice(index + 1)])
 	}
 
-	// ToDo
+	// Set up handlers for dragging answer options.
 	const [move, setMove] = useState()
 	const onDragStart = (dragData) => {
 		setMove([dragData.source.index, dragData.source.index])
@@ -65,7 +65,9 @@ export function Options({ simulation, question }) {
 	return <>
 		{options.length === 0 ? <>
 			<FollowUpDropdown {...{ simulation, question }} />
-			{hasVariables(simulation) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
+			{hasVariables(simulation) ? <>
+				<QuestionUpdateScript {...{ simulation, question }} />
+			</> : null}
 		</> : null}
 		<Label>Antwortmöglichtkeiten</Label>
 		<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
@@ -187,7 +189,7 @@ function FollowUpDropdown({ simulation, question, optionIndex }) {
 		<FormControl fullWidth>
 			<InputLabel>{label}</InputLabel>
 			<Select value={value} label={label} onChange={(event) => setFollowUpQuestion(event.target.value)}>
-				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextQuestion ? `Seite ${questionIndexToString(nextQuestion.index)}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung verwenden</>}</MenuItem>
+				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextQuestion ? `Seite ${questionIndexToString(nextQuestion.index)}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung dieser Frage verwenden</>}</MenuItem>
 				{simulation.questionList.map(otherQuestion => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{questionIndexToString(otherQuestion.index)} {otherQuestion.internalTitle || otherQuestion.title || emptyQuestion}</MenuItem>)}
 				<MenuItem key="end" value="end">Ende: Danach wird die Simulation beendet</MenuItem>
 			</Select>
@@ -197,13 +199,13 @@ function FollowUpDropdown({ simulation, question, optionIndex }) {
 
 export function QuestionUpdateScript({ simulation, question }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
-	const label = `${(question.options || []).length > 0 ? 'Standard ' : ''}Update-Skript`
+	const label = (question.options || []).length > 0 ? 'Standard Update-Skript (wird bei Auswahl einer Antwortmöglichkeit ohne eigenes Update-Skript ausgeführt)' : 'Update-Skript (wird beim Verlassen der Seite ausgeführt)'
 	return <FormPart>
 		<TrackedCodeField label={label} value={question.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }
 
-export function OptionUpdateScript({ simulation, question, optionIndex, label = "Update-Skript" }) {
+export function OptionUpdateScript({ simulation, question, optionIndex, label = "Update-Skript (wird bei Auswahl dieser Antwortmöglichkeit ausgeführt)" }) {
 	const option = question.options[optionIndex]
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useTheme, alpha } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
@@ -9,10 +9,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, FolderOpen as FolderEmptyIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { Draggable } from '@hello-pangea/dnd'
 
-import { FormPart, TrackedTextField, MediaUploader, MCE } from 'components'
+import { FormPart, TrackedTextField, TrackedCodeField, MediaUploader, MCE } from 'components'
 import { deleteQuestion, updateQuestion, questionIndexToString } from 'simulations'
 
 import { emptyQuestion, emptyFolder, accordionStyle } from '../../settings'
+import { hasVariables, getScriptError } from '../../util'
 
 import { Options } from './Options'
 
@@ -70,6 +71,7 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 							<MCE label="Beschreibung" height="225" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" />
 						</FormPart>
 						<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
+						{hasVariables(simulation) ? <QuestionEntryScript {...{ simulation, question }} /> : null}
 						<Options {...{ simulation, question }} />
 					</AccordionDetails>
 					<AccordionActions key="actions">
@@ -158,4 +160,11 @@ function FolderTitle({ simulation, folder }) {
 		await updateQuestion(simulation.id, folder.id, { title: event.target.value })
 	}
 	return <input type="text" style={{ marginRight: '1em', width: '100%' }} value={folder.title || ''} onClick={(event) => event.stopPropagation()} onChange={updateTitle} autoFocus={true} onBlur={() => setIsEditing(false)} onKeyDown={event => (event.key === 'Enter' || event.key === 'Escape') && setIsEditing(false)} />
+}
+
+export function QuestionEntryScript({ simulation, question }) {
+	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
+	return <FormPart>
+		<TrackedCodeField label="Eintrittsskript (wird beim Laden der Seite ausgeführt)" value={question.entryScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="entryScript" multiline={true} getError={getError} />
+	</FormPart>
 }

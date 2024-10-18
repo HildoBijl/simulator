@@ -105,7 +105,7 @@ function Ownership({ simulation }) {
 	const theme = useTheme()
 	return <>
 		<h2>Simulationseigentümer</h2>
-		<p>Derzeit hat diese Simulation {simulation.owners.length === 1 ? 'nur einen' : simulation.owners.length} Besitzer. Sie können Besitzer einladen, indem Sie ihre E-Mail-Adresse hier eingeben.</p>
+		<p>Derzeit hat diese Simulation {simulation.owners.length === 1 ? 'nur einen' : simulation.owners.length} Besitzer. Sie können Besitzer einladen, indem Sie ihre E-Mail-Adresse hier eingeben. Beachten Sie: Dies muss die Adresse sein, mit der sie sich bei dieser App anmelden.</p>
 		<form onSubmit={registerInvite}>
 			<FormPart>
 				<TextField variant="outlined" fullWidth label="E-Mail Adresse" value={email} onChange={handleEmailChange} />

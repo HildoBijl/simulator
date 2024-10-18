@@ -72,10 +72,12 @@ export async function removeOwnerFromSimulation(userId, simulationId) {
 	if (simulation.owners.length > 1)
 		return await updateDocument('simulations', simulationId, { owners: arrayRemove(userId) })
 
-	// When this is the last owner, remove the simulation.
-	const questions = await getQuestions(simulationId)
+	// When this is the last owner, remove the simulation. First remove the media files.
 	await deleteMediaFile(simulation?.media) // Remove the main media file of the simulation.
+	const questions = await getQuestions(simulationId) // Load questions to access their contents.
 	await Promise.all(Object.values(questions).map(question => deleteMediaFile(question?.media))) // Remove all media files of the questions.
+
+	// Then delete the documents.
 	await deleteDocument('simulationInvitesPerSimulation', simulationId) // Remove the simulation invites document.
 	await deleteDocument('simulations', simulationId) // Remove the simulation document.
 }

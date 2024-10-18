@@ -8,7 +8,7 @@ import MenuItem from '@mui/material/MenuItem'
 import { Undo } from '@mui/icons-material'
 
 import { numberToLetter } from 'util'
-import { Page, InputParagraph, Media, MCEContents } from 'components'
+import { Page, InputParagraph, MCEContents } from 'components'
 import { useIsOwner, questionIndexToString } from 'simulations'
 
 import { emptyQuestion, emptyOption } from '../../settings'
@@ -46,7 +46,6 @@ export function Question({ simulation, history, state, chooseOption, goToNextQue
 	// Render the question with description, media, options and buttons.
 	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
 		<MCEContents>{question.description}</MCEContents>
-		<Media media={question.media} />
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
 				{question.options.map((option, index) => choice !== undefined ?

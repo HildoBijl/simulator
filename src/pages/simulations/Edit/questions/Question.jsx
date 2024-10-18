@@ -9,7 +9,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, FolderOpen as FolderEmptyIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { Draggable } from '@hello-pangea/dnd'
 
-import { FormPart, TrackedTextField, TrackedCodeField, MediaUploader, MCE } from 'components'
+import { FormPart, TrackedTextField, TrackedCodeField, MCE } from 'components'
 import { deleteQuestion, updateQuestion, questionIndexToString } from 'simulations'
 
 import { emptyQuestion, emptyFolder, accordionStyle } from '../../settings'
@@ -70,7 +70,6 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 						<FormPart>
 							<MCE label="Beschreibung" height="225" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" />
 						</FormPart>
-						<MediaUploader label="Abbildung" value={question.media} path={`simulations/${simulation.id}/questions`} documentId={question.id} fileName="QuestionImage" />
 						{hasVariables(simulation) ? <QuestionEntryScript {...{ simulation, question }} /> : null}
 						<Options {...{ simulation, question }} />
 					</AccordionDetails>

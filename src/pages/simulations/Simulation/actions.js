@@ -23,9 +23,11 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		// Initialize the history by setting up the initial state.
 		setHistory(history => {
 			if (simulation.questionList.length === 0)
-				throw new Error(`Cannot start simulation: it does not contain any questions yet.`)
+				throw new Error(`Cannot start simulation: it does not contain any pages yet. No first page can be defined.`)
+
+			// When the simulation has already started, don't start it again.
 			if (history && history.length > 0)
-				throw new Error(`Cannot start simulation: it has already been started.`)
+				return history
 
 			// Determine the starting question.
 			const pageId = simulation.startingQuestion || simulation.questionList[0]

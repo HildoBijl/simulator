@@ -23,7 +23,7 @@ export function ImageLibrary({ simulation }) {
 }
 
 function CurrentImages({ simulation }) {
-	const { images } = simulation.images
+	const { images } = simulation
 	const imagesSorted = useMemo(() => (images || []).sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0), [images]) // Sort alphabetically by filename.
 	return <div style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'flex-start', alignItems: 'stretch', gap: '6px' }}>
 		{imagesSorted.map(image => <Image key={image.name} {...{ simulation, image }} />)}

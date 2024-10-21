@@ -77,13 +77,13 @@ function OverviewLine({ simulationId, data, hovering, startHover, endHover, refr
 
 	// Load the simulation data.
 	let simulation = useSimulation(simulationId)
-	if (!simulation)
+	if (simulation === undefined)
 		simulation = { title: 'Laden...' }
-
+	
 	// Set up a navigation function.
 	const navigate = useNavigate()
 	const onClick = () => simulation?.url && navigate(`/s/${simulation.url}`)
-
+	
 	// Set up a function to remove this item from the list.
 	const remove = () => {
 		const overview = JSON.parse(localStorage.getItem('simulationOverview') || '{}')
@@ -91,6 +91,10 @@ function OverviewLine({ simulationId, data, hovering, startHover, endHover, refr
 		localStorage.setItem('simulationOverview', JSON.stringify(overview))
 		refreshOverview()
 	}
+	
+	// On an erroreneous simulation, don't show anything.
+	if (simulation === null)
+		return null
 
 	// Show a row for the simulation.
 	const title = simulation.title || 'Unbekannter Titel'

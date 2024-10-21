@@ -57,7 +57,7 @@ export function Events({ simulation }) {
 function EventsIntroduction({ addEvent }) {
 	return <>
 		<p>Ein Ereignis ist eine besondere Situation, die eintritt, wenn eine bestimmte Bedingung erfüllt ist.</p>
-		<p>Ein Ereignis hat eine Bedingung (Auslöser) wie &quot;geld &lt; 20&quot;. Wenn (nach einer Update) diese Bedingung erfüllt ist, wird dem Benutzer eine bestimmte neue Seite/ein bestimmtes Szenario angezeigt, unabhängig davon, was vorher passiert ist. (Wenn mehrere Ereignisse eintreten, wird eines davon willkürlich ausgewählt.)</p>
+		<p>Ein Ereignis hat eine Bedingung (Auslöser) wie &quot;geld &lt; 20&quot;. Wenn (beim Verlassen einer Seite) diese Bedingung erfüllt ist, wird dem Benutzer eine bestimmte neue Seite angezeigt, unabhängig von der Seite, die wir normalerweise aufrufen würden. (Wenn mehrere Ereignisse eintreten, wird eines davon willkürlich ausgewählt.)</p>
 		<FormPart>
 			<AddEvent addEvent={addEvent} />
 		</FormPart>

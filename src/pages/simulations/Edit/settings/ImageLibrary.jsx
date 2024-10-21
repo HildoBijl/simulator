@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Snackbar from '@mui/material/Snackbar'
 import Fab from '@mui/material/Fab'
@@ -13,6 +14,9 @@ import { storage, useStorageUrl, deleteFile } from 'fb'
 import { FormSubPart } from 'components'
 import { updateSimulation } from 'simulations'
 
+const maxFileSize = 0.5 * 1024 ** 2 // MB to bytes
+const maxLibrarySize = 2 * 1024 ** 2 // MB to bytes
+
 export function ImageLibrary({ simulation }) {
 	return <>
 		<h2>Bilddatenbank</h2>
@@ -25,9 +29,16 @@ export function ImageLibrary({ simulation }) {
 function CurrentImages({ simulation }) {
 	const { images } = simulation
 	const imagesSorted = useMemo(() => (images || []).sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0), [images]) // Sort alphabetically by filename.
-	return <div style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'flex-start', alignItems: 'stretch', gap: '6px' }}>
-		{imagesSorted.map(image => <Image key={image.name} {...{ simulation, image }} />)}
-	</div>
+	const totalSize = imagesSorted.reduce((total, image) => total + image.size, 0)
+	return <>
+		<div style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'flex-start', alignItems: 'stretch', gap: '6px' }}>
+			{imagesSorted.map(image => <Image key={image.name} {...{ simulation, image }} />)}
+		</div>
+		{imagesSorted.length > 1 ? <p>
+			Gesamtgröße aller Dateien ist <span>{fileSizeText(totalSize)}</span>. <span style={{ opacity: 0.65 }}>({Math.round(totalSize / maxLibrarySize * 100)}% von {fileSizeText(maxLibrarySize)} maximum.)</span>
+			{totalSize / maxLibrarySize >= 0.6 ? <> <span>Brauchen Sie mehr Platz? Sie können direkte Links zu öffentlich in <Link to="https://hochschulcloud.nrw/">Sciebo</Link> gespeicherten Bildern erhalten. Oder Sie können einen Bild-Upload-Service wie <Link to="https://imgur.com/">Imgur</Link>, <Link to="https://imgbb.com/">ImgBB</Link> oder <Link to="https://postimages.org/">Postimages</Link> nutzen.</span></> : null}
+		</p> : null}
+	</>
 }
 
 const width = 140, heightImage = 120, heightLabel = 28
@@ -71,23 +82,30 @@ function Image({ simulation, image }) {
 		</div>
 		<div style={{ color: theme.palette.primary.contrastText, fontSize: '10px', width: `${width}px`, height: `${heightLabel}px`, boxSizing: 'content-box', padding: '0px 2px 6px', display: 'flex', flexFlow: 'column nowrap', alignItems: 'center', justifyContent: 'center', lineHeight: '5px' }}>
 			<div style={{ textAlign: 'center' }}>
-				<span style={{}}>{image.name}</span> <span style={{ opacity: 0.65 }}>({fileSizeText(image.size)})</span> <span style={{}}><Delete sx={{ width: '16px', height: '16px', transform: 'translateY(4px)', cursor: 'pointer' }} onClick={deleteImage} /></span>
+				<span style={{}}>{image.name}</span> <span style={{ opacity: 0.65 }}>({fileSizeText(image.size)})</span> <span><Delete sx={{ width: '16px', height: '16px', transform: 'translateY(4px)', cursor: 'pointer' }} onClick={deleteImage} /></span>
 			</div>
 		</div>
 	</div>
 }
 
-const maxFileSize = 2 // MB
 function ImageUploader({ simulation }) {
 	const theme = useTheme()
 	const [file, setFile] = useState()
 	const [percentage, setPercentage] = useState()
+	const totalSizeUsed = (simulation.images || []).reduce((totalSize, image) => totalSize + image.size, 0)
+
+	// On a change in images, like a removal of one, get rid of the file stored.
+	useEffect(() => {
+		setFile(undefined)
+	}, [totalSizeUsed])
 
 	const setAndSaveFile = async (event) => {
 		// Set the file locally.
 		const file = event.target.files[0]
 		setFile(file)
-		if (file.size > maxFileSize * 1024 ** 2)
+		if (file.size > maxFileSize)
+			return
+		if (file.size + totalSizeUsed > maxLibrarySize)
 			return
 
 		// Start uploading the new file.
@@ -127,9 +145,15 @@ function ImageUploader({ simulation }) {
 
 	// When a file is selected, show an upload notification, or an error if there's a problem.
 	if (file) {
-		if (file.size > maxFileSize * 1024 ** 2) { // File too large?
+		if (file.size > maxFileSize) { // File too large?
 			return <>
-				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Die Datei ist zu groß. Die maximale Dateigröße beträgt {maxFileSize} MB, aber die angegebene Datei ist {Math.round(file.size / 1024 ** 2 * 10) / 10} MB groß.</p>
+				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Die Datei <span>({fileSizeText(file.size)})</span> ist größer als das zulässige Maximum <span>({fileSizeText(maxFileSize)})</span>.</p>
+				<UploadButton onChange={setAndSaveFile} />
+			</>
+		}
+		if (file.size + totalSizeUsed > maxLibrarySize) { // Maximum storage reached?
+			return <>
+				<p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Diese Datei <span>({fileSizeText(file.size)})</span> passt nicht in den verbleibenden Speicherplatz. Es ist nur noch <span>({fileSizeText(maxLibrarySize - totalSizeUsed)})</span> übrig.</p>
 				<UploadButton onChange={setAndSaveFile} />
 			</>
 		}

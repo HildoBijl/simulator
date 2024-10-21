@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { setDoc, deleteField, arrayUnion } from 'firebase/firestore'
 import { useTheme } from '@mui/material/styles'
+import Tooltip from '@mui/material/Tooltip'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import FormControl from '@mui/material/FormControl'
@@ -172,8 +173,12 @@ function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
 	}
 	return <div style={{ width: '100%', height: 0, position: 'relative' }}>
 		<div style={{ position: 'absolute', right: 0, bottom: 0, display: 'flex', flexFlow: 'row nowrap' }}>
-			<OpenIcon onClick={openAll} sx={allFoldersOpen ? buttonStyleInactive : buttonStyle} />
-			<CloseIcon onClick={closeAll} sx={allClosed ? buttonStyleInactive : buttonStyle} />
+			<Tooltip title="Alle Ordner aufklappen" arrow enterDelay={500}>
+				<OpenIcon onClick={openAll} sx={allFoldersOpen ? buttonStyleInactive : buttonStyle} />
+			</Tooltip>
+			<Tooltip title="Alle Fragen und Ordner schließen" arrow enterDelay={500}>
+				<CloseIcon onClick={closeAll} sx={allClosed ? buttonStyleInactive : buttonStyle} />
+			</Tooltip>
 		</div>
 	</div>
 }
@@ -190,7 +195,7 @@ function AddQuestionButton({ simulation, setExpandedMap }) {
 	}
 
 	// Render the button as an accordion item.
-	return <AddButton onClick={addQuestion}>
+	return <AddButton onClick={addQuestion} title="Neue Seite/Frage">
 		<InfoIcon style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.info.main }} />
 		<div style={{ fontSize: '1.2em', transform: 'translateY(-2px)' }}>/</div>
 		<HelpIcon style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.primary.main }} />
@@ -209,20 +214,22 @@ function AddFolderButton({ simulation, setExpandedMap }) {
 	}
 
 	// Render the button as an accordion item.
-	return <AddButton onClick={addFolder}>
+	return <AddButton onClick={addFolder} title="Neuer Ordner">
 		<FolderIcon style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.secondary.main }} />
 	</AddButton>
 }
 
-function AddButton({ onClick, children }) {
+function AddButton({ onClick, children, title }) {
 	return <Accordion sx={accordionStyle} onClick={onClick} expanded={false}>
 		<AccordionSummary>
-			<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', lineHeight: '0.7em', textAlign: 'center', width: '100%' }}>
-				<div style={{ fontSize: '2em', transform: 'translateY(-3px)' }}>+</div>
-				<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '4em' }}>
-					{children}
+			<Tooltip title={title} arrow enterDelay={500}>
+				<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', lineHeight: '0.7em', textAlign: 'center', width: '100%' }}>
+					<div style={{ fontSize: '2em', transform: 'translateY(-3px)' }}>+</div>
+					<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '4em' }}>
+						{children}
+					</div>
 				</div>
-			</div>
+			</Tooltip>
 		</AccordionSummary>
 	</Accordion>
 }

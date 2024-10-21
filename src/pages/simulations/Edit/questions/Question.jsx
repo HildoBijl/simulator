@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { useTheme, alpha } from '@mui/material/styles'
+import Tooltip from '@mui/material/Tooltip'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -99,7 +100,9 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 	// Define the expandIcon depending on whether the folder is empty or not. Also override the default animation.
 	const isEmpty = !folder.contents || folder.contents.length === 0
 	const expandIcon = isEmpty ?
-		<DeleteIcon sx={{ cursor: 'pointer' }} onClick={() => deleteQuestion(simulation, folder)} /> :
+		<Tooltip title="Ordner löschen" arrow enterDelay={500}>
+			<DeleteIcon sx={{ cursor: 'pointer' }} onClick={() => deleteQuestion(simulation, folder)} />
+		</Tooltip> :
 		<ExpandMoreIcon sx={{ transition: 'transform 150ms', ...(expanded ? { transform: 'rotate(180deg)', transition: 'transform 150ms' } : {}) }} />
 
 	// Render the folder. Make sure it never expands, as this is organized elsewhere.

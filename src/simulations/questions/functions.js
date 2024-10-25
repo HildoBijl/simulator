@@ -8,12 +8,12 @@ import { updateEvent } from '../events'
 
 // getPageRef will create a reference to a potential new page.
 export function getPageRef(simulationId) {
-	return getDocumentRef(`simulations/${simulationId}/questions`)
+	return getDocumentRef(`simulations/${simulationId}/pages`)
 }
 
 // updatePage will update certain values for a page with a given simulationId and pageId.
 export async function updatePage(simulationId, pageId, data) {
-	return await updateDocument(`simulations/${simulationId}/questions`, pageId, data)
+	return await updateDocument(`simulations/${simulationId}/pages`, pageId, data)
 }
 
 // deletePage will remove a certain page from the database.
@@ -61,7 +61,7 @@ export async function deletePage(simulation, pageToRemove) {
 
 	// Finally delete the page itself.
 	await deleteMediaFile(pageToRemove.media)
-	return await deleteDocument(`simulations/${simulation.id}/questions`, pageToRemove.id)
+	return await deleteDocument(`simulations/${simulation.id}/pages`, pageToRemove.id)
 }
 
 // movePage will move a page for a given simulation from one folder to another.

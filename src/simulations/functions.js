@@ -16,7 +16,7 @@ export async function getSimulation(simulationId) {
 
 // getPages gets all the pages for a simulation with a given simulationId.
 export async function getPages(simulationId) {
-	return await getCollection(`simulations/${simulationId}/questions`)
+	return await getCollection(`simulations/${simulationId}/pages`)
 }
 
 // getSimulationByUrl takes a URL and retrieves the given (raw) simulation object, or undefined when it does not exist.

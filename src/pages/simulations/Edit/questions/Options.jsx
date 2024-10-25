@@ -98,7 +98,7 @@ function Defaults({ simulation, page, expanded, flipExpand }) {
 		<AccordionDetails key="details" sx={{ py: 0, mt: -2 }}>
 			<FollowUpDropdown {...{ simulation, page }} />
 			<FormPart>
-				<TrackedTextField label="Standard Rückmeldung" value={page.feedback} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="feedback" multiline={true} />
+				<TrackedTextField label="Standard Rückmeldung" value={page.feedback} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="feedback" multiline={true} />
 			</FormPart>
 			{hasVariables(simulation) ? <PageUpdateScript {...{ simulation, page }} /> : null}
 		</AccordionDetails>
@@ -146,11 +146,11 @@ function Option({ simulation, page, option, optionIndex, updatedIndex, expanded,
 				{expanded ? <>
 					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 						<FormPart>
-							<MCE ref={descriptionRef} label="Beschreibung" height="200" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="description" />
+							<MCE ref={descriptionRef} label="Beschreibung" height="200" value={option.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="description" />
 						</FormPart>
 						<FollowUpDropdown {...{ simulation, page, optionIndex }} />
 						<FormPart>
-							<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
+							<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
 						</FormPart>
 						{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, page, optionIndex }} /> : null}
 					</AccordionDetails>
@@ -200,7 +200,7 @@ export function PageUpdateScript({ simulation, page }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	const label = (page.options || []).length > 0 ? 'Standard Update-Skript (wird bei Auswahl einer Antwortmöglichkeit ohne eigenes Update-Skript ausgeführt)' : 'Update-Skript (wird beim Verlassen der Seite ausgeführt)'
 	return <FormPart>
-		<TrackedCodeField label={label} value={page.updateScript} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="updateScript" multiline={true} getError={getError} />
+		<TrackedCodeField label={label} value={page.updateScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }
 
@@ -208,7 +208,7 @@ export function OptionUpdateScript({ simulation, page, optionIndex, label = "Upd
 	const option = page.options[optionIndex]
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart>
-		<TrackedCodeField label={label} value={option.updateScript} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
+		<TrackedCodeField label={label} value={option.updateScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }
 

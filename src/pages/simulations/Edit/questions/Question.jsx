@@ -63,13 +63,13 @@ export function Page({ simulation, page, dragIndex, listIndex, expanded, isDragg
 				{expanded ? <>
 					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 						<FormPart>
-							<TrackedTextField label="Titel" value={page.title} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="title" />
+							<TrackedTextField label="Titel" value={page.title} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="title" />
 						</FormPart>
 						<FormPart>
-							<TrackedTextField label="Interner Titel (für Benutzer nicht sichtbar)" value={page.internalTitle} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="internalTitle" />
+							<TrackedTextField label="Interner Titel (für Benutzer nicht sichtbar)" value={page.internalTitle} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="internalTitle" />
 						</FormPart>
 						<FormPart>
-							<MCE label="Beschreibung" height="225" value={page.description} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="description" />
+							<MCE label="Beschreibung" height="225" value={page.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="description" />
 						</FormPart>
 						{hasVariables(simulation) ? <PageEntryScript {...{ simulation, page }} /> : null}
 						<Options {...{ simulation, page }} />
@@ -167,6 +167,6 @@ function FolderTitle({ simulation, folder }) {
 export function PageEntryScript({ simulation, page }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart>
-		<TrackedCodeField label="Eintrittsskript (wird beim Laden der Seite ausgeführt)" value={page.entryScript} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="entryScript" multiline={true} getError={getError} />
+		<TrackedCodeField label="Eintrittsskript (wird beim Laden der Seite ausgeführt)" value={page.entryScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="entryScript" multiline={true} getError={getError} />
 	</FormPart>
 }

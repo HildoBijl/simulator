@@ -34,7 +34,6 @@ function SimulationWithId({ id }) {
 			window.history.pushState({}, undefined, `/s/${url}`)
 	}, [previousUrl, url])
 
-	console.log(simulation)
 	// On loading or on a loading error, show the right notification.
 	if (simulation === null) // Failed to load.
 		return <GeneralErrorPage /> // General error page.

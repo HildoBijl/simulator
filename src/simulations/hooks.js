@@ -1,13 +1,13 @@
 import { useMemo, useState, useEffect } from 'react'
+import { doc, setDoc } from 'firebase/firestore'
 
-import { arrayToObject, isLocalhost } from 'util'
-import { useUserData, useUserId, useDocument, useCollection } from 'fb'
+import { arrayToObject, isLocalhost, deepEquals } from 'util'
+import { db, useUserData, useUserId, useDocument, useCollection } from 'fb'
 
 import { getSimulationByUrl } from './functions'
 import { useSimulationPages, updatePage } from './questions'
 import { useSimulationVariables } from './variables'
-import { useSimulationEvents, updateEvent } from './events'
-import { updateSimulation } from './functions'
+import { useSimulationEvents } from './events'
 
 // useAllSimulationIds loads the IDs of ALL simulations that exist. This is generally not used in regular functioning of the app, but only when a manual change needs to be made to ALL simulations on for instance a database structure change.
 export function useAllSimulationIds() {
@@ -31,45 +31,10 @@ export function useSimulationObject(id, once = false) {
 // useSimulation gets a simulation with a specific ID.
 export function useSimulation(id, once = false) {
 	// Load in all required data.
-	let simulation = useSimulationObject(id, once)
+	const simulation = useSimulationObject(id, once)
 	const rawPages = useSimulationPages(id, once)
 	const variables = useSimulationVariables(id, once)
 	const events = useSimulationEvents(id, once)
-
-	// ToDo transition: this part copies questionOrder and startingQuestion.
-	// if (isLocalhost()) {
-	// 	if (simulation && simulation.startingQuestion) {
-	// 		updateSimulation(simulation.id, { startingPage: simulation.startingQuestion })
-	// 		simulation = { ...simulation, startingPage: simulation.startingQuestion }
-	// 	}
-	// 	if (simulation && simulation.questionOrder) {
-	// 		updateSimulation(simulation.id, { pageOrder: simulation.questionOrder })
-	// 		simulation = { ...simulation, pageOrder: simulation.questionOrder }
-	// 	}
-	// 	if (rawPages) {
-	// 		Object.values(rawPages).forEach(question => {
-	// 			if (question.type !== 'folder' && question.type !== 'page')
-	// 				updatePage(id, question.id, { type: 'page' })
-	// 			if (question.followUpQuestion)
-	// 				updatePage(id, question.id, { followUpPage: question.followUpQuestion })
-	// 			if (question.options && question.options.some(option => option.followUpQuestion)) {
-	// 				updatePage(id, question.id, {
-	// 					options: question.options.map(option => {
-	// 						if (!option.followUpQuestion)
-	// 							return option
-	// 						return { ...option, followUpPage: option.followUpQuestion }
-	// 					})
-	// 				})
-	// 			}
-	// 		})
-	// 	}
-	// 	if (events) {
-	// 		Object.values(events).forEach(event => {
-	// 			if (event.question)
-	// 				updateEvent(id, event.id, { page: event.question })
-	// 		})
-	// 	}
-	// }
 
 	// Assemble the data, depending on the loading status.
 	return useMemo(() => {
@@ -122,7 +87,7 @@ function processPages(pageOrder = [], rawPages = {}, indices = []) {
 	const toArray = page => page.type === 'folder' ? [page, ...page.contents.map(page => toArray(page))] : page
 	const pageListFull = pageTree.map(page => toArray(page)).flat(Infinity)
 	const pages = arrayToObject(pageListFull, page => ({ key: page.id, value: page }))
-	const pageList = pageListFull.filter(page => page.type === 'page' || page.type === 'question' || page.type === undefined) // Only keep actual pages. // ToDo transition
+	const pageList = pageListFull.filter(page => page.type === 'page') // Only keep actual pages.
 	return { pageTree, pageList, pages }
 }
 
@@ -138,7 +103,7 @@ function processPage(page, pages, indices) {
 	}
 
 	// On a page run basic processing.
-	if (page.type === 'page' || page.type === 'question' || page.type === undefined) // ToDo transition
+	if (page.type === 'page')
 		return { ...page, index: indices }
 
 	// Check for impossible cases.

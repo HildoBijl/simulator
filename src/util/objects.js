@@ -91,3 +91,24 @@ export function nestedListToIndices(list, indices = []) {
 	// All done!
 	return result
 }
+
+// deepEquals checks if two objects are the same.
+export function deepEquals(a, b) {
+	// On arrays check their length and walk through the items.
+	if (Array.isArray(a)) {
+		if (!Array.isArray(b))
+			return false
+		return a.length === b.length && a.every((value, index) => deepEquals(value, b[index]))
+	}
+
+	// On objects check their key length and walk through the parameters.
+	if (typeof a === 'object') {
+		if (typeof b !== 'object')
+			return false
+		const aKeys = Object.keys(a), bKeys = Object.keys(b)
+		return aKeys.length === bKeys.length && aKeys.every(key => deepEquals(a[key], b[key]))
+	}
+
+	// On a basic type do a direct comparison.
+	return a === b
+}

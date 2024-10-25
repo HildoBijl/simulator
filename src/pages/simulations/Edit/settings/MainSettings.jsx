@@ -14,7 +14,7 @@ export function MainSettings({ simulation }) {
 		<FormPart>
 			<TrackedTextField label="Titel (z.B. Meine erste Simulation)" value={simulation.title} path="simulations" documentId={simulation.id} field="title" />
 		</FormPart>
-		{simulation.pageList.length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Tipp: Öffnen Sie Ihre Simulation als &quot;Benutzer&quot; in einem zweiten Browser-Tab über den obigen Link. Um Ihre Simulation zu erstellen, fügen Sie dann über &quot;Seiten&quot; (oben) Seiten hinzu. Sie können Ihre Änderungen live verfolgen.</Alert> : null}
+		{simulation.pageList.length === 0 ? <Alert severity="info" sx={{ my: 2 }}>{simulation.url ? <>Tipp: Öffnen Sie Ihre Simulation als &quot;Benutzer&quot; über den obigen Link in einem zweiten Browser-Tab. Um Ihre Simulation zu erstellen, fügen Sie dann über &quot;Seiten&quot; (oben) Seiten hinzu. Sie können Ihre Änderungen live verfolgen.</> : <>Um loszulegen, müssen Sie zunächst (oben) eine URL für Ihre Simulation einrichten.</>}</Alert> : null}
 	</>
 }
 

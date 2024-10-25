@@ -26,9 +26,3 @@ export async function deleteFile(path) {
 	const fileRef = ref(storage, path)
 	return await deleteObject(fileRef)
 }
-
-// deleteMedia takes a (self-defined) media parameter and deletes the corresponding internal media file if it exists.
-export async function deleteMediaFile(media) {
-	if (media?.type === 'internalImage')
-		return deleteFile(media.path)
-}

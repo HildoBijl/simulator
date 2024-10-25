@@ -1,6 +1,6 @@
 import { collection, query, where, getDocs, arrayUnion, arrayRemove, increment } from 'firebase/firestore'
 
-import { db, getUserData, addDocument, getDocument, getCollection, updateDocument, deleteDocument, deleteMediaFile } from 'fb'
+import { db, getUserData, addDocument, getDocument, updateDocument, deleteDocument, deleteFile, deleteCollection } from 'fb'
 
 // getUserSimulationIds takes a userId and returns all simultion IDs for that user.
 export async function getUserSimulationIds(userId) {
@@ -12,11 +12,6 @@ export async function getUserSimulationIds(userId) {
 export async function getSimulation(simulationId) {
 	const simulationDoc = await getDocument('simulations', simulationId)
 	return simulationDoc && simulationDoc.exists() ? simulationDoc.data() : undefined
-}
-
-// getPages gets all the pages for a simulation with a given simulationId.
-export async function getPages(simulationId) {
-	return await getCollection(`simulations/${simulationId}/pages`)
 }
 
 // getSimulationByUrl takes a URL and retrieves the given (raw) simulation object, or undefined when it does not exist.
@@ -72,12 +67,19 @@ export async function removeOwnerFromSimulation(userId, simulationId) {
 	if (simulation.owners.length > 1)
 		return await updateDocument('simulations', simulationId, { owners: arrayRemove(userId) })
 
-	// When this is the last owner, remove the simulation. First remove the media files.
-	await deleteMediaFile(simulation?.media) // Remove the main media file of the simulation.
-	const pages = await getPages(simulationId) // Load pages to access their contents.
-	await Promise.all(Object.values(pages).map(page => deleteMediaFile(page?.media))) // Remove all media files of the pages.
+	// When this is the last owner, remove the simulation.
+	// Delete all subcollections of the simulation.
+	await deleteCollection(`simulations/${simulationId}/events`)
+	await deleteCollection(`simulations/${simulationId}/variables`)
+	await deleteCollection(`simulations/${simulationId}/pages`)
 
-	// Then delete the documents.
+	// Remove the media files.
+	const images = simulation.images || []
+	await Promise.all(images.map(image => {
+		deleteFile(`simulations/${simulationId}/images/${image.name}`)
+	}))
+
+	// Then delete the simulation documents.
 	await deleteDocument('simulationInvitesPerSimulation', simulationId) // Remove the simulation invites document.
 	await deleteDocument('simulations', simulationId) // Remove the simulation document.
 }

@@ -43,3 +43,12 @@ export function getDocuments(snapshot, includeId = true) {
 	})
 	return documents
 }
+
+// deleteCollection removes a whole collection from the database. Be careful while using this.
+export async function deleteCollection(path) {
+	const collection = await getCollection(path)
+	const documentIds = Object.keys(collection)
+	console.log('Deleting collection ' + path)
+	console.log(documentIds)
+	return await Promise.all(documentIds.map(documentId => deleteDocument(path, documentId)))
+}

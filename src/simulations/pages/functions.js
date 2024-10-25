@@ -1,7 +1,7 @@
 import { arrayRemove, deleteField } from 'firebase/firestore'
 
 import { removeKeys, insertIntoArray, moveArrayElement } from 'util'
-import { getDocumentRef, updateDocument, deleteDocument, deleteMediaFile } from 'fb'
+import { getDocumentRef, updateDocument, deleteDocument, getCollection } from 'fb'
 
 import { updateSimulation } from '../functions'
 import { updateEvent } from '../events'
@@ -9,6 +9,11 @@ import { updateEvent } from '../events'
 // getPageRef will create a reference to a potential new page.
 export function getPageRef(simulationId) {
 	return getDocumentRef(`simulations/${simulationId}/pages`)
+}
+
+// getPages gets all the pages for a simulation with a given simulationId.
+export async function getPages(simulationId) {
+	return await getCollection(`simulations/${simulationId}/pages`)
 }
 
 // updatePage will update certain values for a page with a given simulationId and pageId.
@@ -60,7 +65,6 @@ export async function deletePage(simulation, pageToRemove) {
 	await updateSimulation(simulation.id, update)
 
 	// Finally delete the page itself.
-	await deleteMediaFile(pageToRemove.media)
 	return await deleteDocument(`simulations/${simulation.id}/pages`, pageToRemove.id)
 }
 

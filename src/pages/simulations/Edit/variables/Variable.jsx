@@ -34,10 +34,10 @@ export function Variable({ simulation, variable, expanded, flipExpand, duplicate
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 			<FormPart>
-				<TrackedTextField label="Titel (zur Anzeige)" value={variable.title} path={`simulations/${simulation.id}/variables`} documentId={variable.id} field="title" />
+				<TrackedTextField label={`Titel${variable.title ? '' : ' (zur Anzeige, z.B. "Geld")'}`} value={variable.title} path={`simulations/${simulation.id}/variables`} documentId={variable.id} field="title" />
 			</FormPart>
 			<FormPart>
-				<TrackedTextField label="Name (intern, zur Programmierung)" value={variable.name} path={`simulations/${simulation.id}/variables`} documentId={variable.id} field="name" process={name => name.replace(/[^a-zA-Z0-9_-]/, '')} />
+				<TrackedTextField label={`Name${variable.name ? '' : ' (intern zur Programmierung, z.B. "x")'}`} value={variable.name} path={`simulations/${simulation.id}/variables`} documentId={variable.id} field="name" process={name => name.replace(/[^a-zA-Z0-9_-]/, '')} />
 				{variableError?.subtype === 'duplicateName' ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>{getVariableErrorMessage(variableError)}</p> : null}
 			</FormPart>
 

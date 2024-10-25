@@ -13,13 +13,13 @@ import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
 import { nestedListToIndices, insertIntoArray } from 'util'
 import { FormPart, Label } from 'components'
-import { updateSimulation, getQuestionRef, moveQuestion, questionIndexToString } from 'simulations'
+import { updateSimulation, getPageRef, movePage, pageIndexToString } from 'simulations'
 
-import { emptyQuestion, accordionStyle } from '../../settings'
+import { emptyPage, accordionStyle } from '../../settings'
 
-import { QuestionOrFolder } from './Question'
+import { PageOrFolder } from './Question'
 
-export function Questions({ simulation }) {
+export function Pages({ simulation }) {
 	const theme = useTheme()
 
 	// Set up manual expansion controls.
@@ -27,12 +27,12 @@ export function Questions({ simulation }) {
 	const flipExpand = (id) => setExpandedMap(expanded => ({ ...expanded, [id]: !expanded[id] }))
 
 	// Set up a list of all draggable items to render them one by one.
-	const { questions, questionOrder } = simulation
+	const { pages, pageOrder } = simulation
 	const { structure: draggableStructure, list: draggableList } = useMemo(() => {
-		const structure = expandFolders(questionOrder, questions, expandedMap)
+		const structure = expandFolders(pageOrder, pages, expandedMap)
 		const list = structure.flat(Infinity)
 		return { list, structure }
-	}, [questions, questionOrder, expandedMap])
+	}, [pages, pageOrder, expandedMap])
 
 	// On a drag start, already save the move inside a state.
 	const [move, setMove] = useState() // An array of indices, like [4, 2] when element 4 moves to spot 2.
@@ -61,59 +61,59 @@ export function Questions({ simulation }) {
 			return
 
 		// Get all the data about the move and store it in the database.
-		const { questionToMove, originFolder, destinationFolder, index } = getMoveData(simulation, draggableList, from, to)
-		await moveQuestion(simulation, questionToMove, originFolder, destinationFolder, index)
+		const { pageToMove, originFolder, destinationFolder, index } = getMoveData(simulation, draggableList, from, to)
+		await movePage(simulation, pageToMove, originFolder, destinationFolder, index)
 	}
 
 	// Determine move data depending on the move command stored.
 	const moveData = useMemo(() => move && getMoveData(simulation, draggableList, move[0], move[1]), [simulation, draggableList, move])
 
-	// For each question, determine the indices. Also take into account a potential move.
+	// For each page, determine the indices. Also take into account a potential move.
 	const indices = useMemo(() => {
 		// First apply the move to the existing structure.
-		const structure = moveData ? expandFolders(simulation.questionOrder, simulation.questions, undefined, moveData) : draggableStructure
+		const structure = moveData ? expandFolders(simulation.pageOrder, simulation.pages, undefined, moveData) : draggableStructure
 
 		// Then turn the structure into a list of indices.
 		const indicesList = nestedListToIndices(structure)
 		const list = structure.flat(Infinity)
 
-		// Finally couple the indices to the question IDs for easy reference.
+		// Finally couple the indices to the page IDs for easy reference.
 		const indices = {}
-		list.forEach((question, index) => {
-			if (question.type === 'folder' && question.closer)
+		list.forEach((page, index) => {
+			if (page.type === 'folder' && page.closer)
 				return
-			indices[question.id] = indicesList[index]
+			indices[page.id] = indicesList[index]
 		})
 		return indices
 	}, [simulation, moveData, draggableStructure])
 
-	// Render the questions through an Accordion.
+	// Render the pages through an Accordion.
 	return <>
 		<FormPart>
-			<StartingQuestion {...{ simulation }} />
+			<StartingPage {...{ simulation }} />
 		</FormPart>
 		<FormPart>
 			<Label>Seiten</Label>
 			<ExpandButtons {...{ simulation, expandedMap, setExpandedMap }} />
 			<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
-				<Droppable droppableId="questions">{(provided, snapshot) => (
+				<Droppable droppableId="pages">{(provided, snapshot) => (
 					<div
 						ref={provided.innerRef}
 						{...provided.droppableProps}
 						style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
-						{draggableList.map((question, index) => <QuestionOrFolder
-							key={`${question.id}${question.closer ? '-closer' : ''}`}
+						{draggableList.map((page, index) => <PageOrFolder
+							key={`${page.id}${page.closer ? '-closer' : ''}`}
 							{...{
 								simulation,
-								question,
+								page,
 								dragIndex: index,
-								listIndex: indices[question.id],
-								expanded: !!expandedMap[question.id],
-								isDragging: moveData?.questionToMove?.id === question.id, isDestinationFolder: moveData?.destinationFolder?.id === question.id,
-								flipExpand: () => flipExpand(question.id)
+								listIndex: indices[page.id],
+								expanded: !!expandedMap[page.id],
+								isDragging: moveData?.pageToMove?.id === page.id, isDestinationFolder: moveData?.destinationFolder?.id === page.id,
+								flipExpand: () => flipExpand(page.id)
 							}} />)}
 						{provided.placeholder}
-						<AddQuestionButton {...{ simulation, setExpandedMap }} />
+						<AddPageButton {...{ simulation, setExpandedMap }} />
 						<AddFolderButton {...{ simulation, setExpandedMap }} />
 					</div>
 				)}</Droppable>
@@ -122,20 +122,20 @@ export function Questions({ simulation }) {
 	</>
 }
 
-function StartingQuestion({ simulation }) {
-	// Set up a handler to set the starting question.
-	const setStartingQuestion = async (questionId) => {
-		return await updateSimulation(simulation.id, { startingQuestion: questionId === 'none' ? deleteField() : questionId })
+function StartingPage({ simulation }) {
+	// Set up a handler to set the starting page.
+	const setStartingPage = async (pageId) => {
+		return await updateSimulation(simulation.id, { startingPage: pageId === 'none' ? deleteField() : pageId })
 	}
 
 	// Render the dropdown list.
-	const startingQuestion = simulation.startingQuestion || simulation.questionList[0]?.id || 'none'
+	const startingPage = simulation.startingPage || simulation.pageList[0]?.id || 'none'
 	return <FormPart>
 		<FormControl fullWidth>
 			<InputLabel>Startseite</InputLabel>
-			<Select value={startingQuestion} label="Startseite" onChange={(event) => setStartingQuestion(event.target.value)}>
-				{simulation.questionList.length > 0 ?
-					simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{`${questionIndexToString(question.index)}  ${question.internalTitle || question.title || emptyQuestion}`}</MenuItem>) :
+			<Select value={startingPage} label="Startseite" onChange={(event) => setStartingPage(event.target.value)}>
+				{simulation.pageList.length > 0 ?
+					simulation.pageList.map(page => <MenuItem key={page.id} value={page.id}>{`${pageIndexToString(page.index)}  ${page.internalTitle || page.title || emptyPage}`}</MenuItem>) :
 					<MenuItem key="none" value="none">Es sind noch keine Seiten vorhanden.</MenuItem>}
 			</Select>
 		</FormControl>
@@ -143,13 +143,13 @@ function StartingQuestion({ simulation }) {
 }
 
 function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
-	// Define handlers to open and close all folders. (openAll opens all folders, leaving questions unchanged. closeAll closes everything, both folders and questions.)
+	// Define handlers to open and close all folders. (openAll opens all folders, leaving pages unchanged. closeAll closes everything, both folders and pages.)
 	const openAll = () => {
 		setExpandedMap(expandedMap => {
 			expandedMap = { ...expandedMap }
-			Object.values(simulation.questions).forEach(question => {
-				if (question.type === 'folder')
-					expandedMap[question.id] = true
+			Object.values(simulation.pages).forEach(page => {
+				if (page.type === 'folder')
+					expandedMap[page.id] = true
 			})
 			return expandedMap
 		})
@@ -157,9 +157,9 @@ function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
 	const closeAll = () => setExpandedMap({})
 
 	// Check if the buttons are available.
-	const isEmptyFolder = question => question.type === 'folder' && (!question.contents || question.contents.length === 0)
-	const allClosed = Object.keys(expandedMap).every(questionId => !expandedMap[questionId] || !simulation.questions[questionId] || isEmptyFolder(simulation.questions[questionId])) // There are no open questions/folders: all open items are either non-existing, or empty folders.
-	const allFoldersOpen = Object.values(simulation.questions).every(question => question.type !== 'folder' || isEmptyFolder(question) || expandedMap[question.id]) // All folders are either empty or expanded.
+	const isEmptyFolder = page => page.type === 'folder' && (!page.contents || page.contents.length === 0)
+	const allClosed = Object.keys(expandedMap).every(pageId => !expandedMap[pageId] || !simulation.pages[pageId] || isEmptyFolder(simulation.pages[pageId])) // There are no open pages/folders: all open items are either non-existing, or empty folders.
+	const allFoldersOpen = Object.values(simulation.pages).every(page => page.type !== 'folder' || isEmptyFolder(page) || expandedMap[page.id]) // All folders are either empty or expanded.
 
 	// Render the buttons, using an outer container with no height and an inner container for the buttons.
 	const buttonStyle = {
@@ -183,19 +183,19 @@ function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
 	</div>
 }
 
-function AddQuestionButton({ simulation, setExpandedMap }) {
+function AddPageButton({ simulation, setExpandedMap }) {
 	const theme = useTheme()
 
-	// Set up an addQuestion handler that opens a new question upon entry.
-	const addQuestion = async () => {
-		const ref = getQuestionRef(simulation.id)
+	// Set up an addPage handler that opens a new page upon entry.
+	const addPage = async () => {
+		const ref = getPageRef(simulation.id)
 		setExpandedMap(expanded => ({ ...expanded, [ref.id]: true }))
-		await setDoc(ref, { type: 'question' })
-		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id), startingQuestion: simulation.startingQuestion || ref.id })
+		await setDoc(ref, { type: 'page' })
+		await updateSimulation(simulation.id, { pageOrder: arrayUnion(ref.id), startingPage: simulation.startingPage || ref.id })
 	}
 
 	// Render the button as an accordion item.
-	return <AddButton onClick={addQuestion} title="Neue Seite/Frage">
+	return <AddButton onClick={addPage} title="Neue Seite/Frage">
 		<InfoIcon style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.info.main }} />
 		<div style={{ fontSize: '1.2em', transform: 'translateY(-2px)' }}>/</div>
 		<HelpIcon style={{ transform: 'scale(0.75) translateY(0px)', color: theme.palette.primary.main }} />
@@ -207,10 +207,10 @@ function AddFolderButton({ simulation, setExpandedMap }) {
 
 	// Set up an addFolder handler that opens a new folder upon entry.
 	const addFolder = async () => {
-		const ref = getQuestionRef(simulation.id)
+		const ref = getPageRef(simulation.id)
 		setExpandedMap(expanded => ({ ...expanded, [ref.id]: true }))
 		await setDoc(ref, { type: 'folder' })
-		await updateSimulation(simulation.id, { questionOrder: arrayUnion(ref.id) })
+		await updateSimulation(simulation.id, { pageOrder: arrayUnion(ref.id) })
 	}
 
 	// Render the button as an accordion item.
@@ -243,68 +243,68 @@ function isDragDataValid(dragData, draggableList) {
 	return true
 }
 
-// expandFolders takes a list of questions (or question IDs) with potential folders in them. It then not only turns the ID into the question/folder, but also (assuming the folder is opened) includes all questions (and recursively all folders) inside the folder. At the end it adds a folder-closer, which is needed for the dragging system.
-function expandFolders(questionList, questions, expandedMap, moveData, topLevel = true) {
-	const { questionToMove, originFolder, destinationFolder, index } = moveData || {}
-	let list = [...(questionList || [])]
+// expandFolders takes a list of pages (or page IDs) with potential folders in them. It then not only turns the ID into the page/folder, but also (assuming the folder is opened) includes all pages (and recursively all folders) inside the folder. At the end it adds a folder-closer, which is needed for the dragging system.
+function expandFolders(pageList, pages, expandedMap, moveData, topLevel = true) {
+	const { pageToMove, originFolder, destinationFolder, index } = moveData || {}
+	let list = [...(pageList || [])]
 
-	// If we are on the top level of the question list, and there is a move command, apply it. First remove the question to move and then insert it where needed.
-	if (topLevel && moveData && questionToMove && !originFolder) {
-		const index = list.indexOf(questionToMove.id)
+	// If we are on the top level of the page list, and there is a move command, apply it. First remove the page to move and then insert it where needed.
+	if (topLevel && moveData && pageToMove && !originFolder) {
+		const index = list.indexOf(pageToMove.id)
 		list = [...list.slice(0, index), ...list.slice(index + 1)]
 	}
-	if (topLevel && moveData && questionToMove && !destinationFolder) {
-		list = insertIntoArray(list, index, questionToMove.id)
+	if (topLevel && moveData && pageToMove && !destinationFolder) {
+		list = insertIntoArray(list, index, pageToMove.id)
 	}
 
-	// Walk through the question list to set up its contents.
-	return list.map(question => {
-		// Ensure we have a question object.
-		if (typeof question === 'string')
-			question = questions[question]
+	// Walk through the page list to set up its contents.
+	return list.map(page => {
+		// Ensure we have a page object.
+		if (typeof page === 'string')
+			page = pages[page]
 
 		// For folders, add an opener and a closer and, if needed, contents.
-		if (question.type === 'folder') {
+		if (page.type === 'folder') {
 			// Set up the default value for a closed folder.
-			const value = [{ ...question }, { ...question, closer: true }]
+			const value = [{ ...page }, { ...page, closer: true }]
 
 			// If all folders are examined, or if specifically the folder is opened, also add contents.
-			if (!expandedMap || expandedMap[question.id]) {
+			if (!expandedMap || expandedMap[page.id]) {
 				// If there is a move, implement it into the contents.
-				let contents = question.contents || []
-				if (questionToMove && originFolder && originFolder.id === question.id) {
-					const index = contents.indexOf(questionToMove.id)
+				let contents = page.contents || []
+				if (pageToMove && originFolder && originFolder.id === page.id) {
+					const index = contents.indexOf(pageToMove.id)
 					contents = [...contents.slice(0, index), ...contents.slice(index + 1)]
 				}
-				if (questionToMove && destinationFolder && destinationFolder.id === question.id) {
-					contents = insertIntoArray(contents, index, questionToMove.id)
+				if (pageToMove && destinationFolder && destinationFolder.id === page.id) {
+					contents = insertIntoArray(contents, index, pageToMove.id)
 				}
 
 				// Add the contents.
-				value.splice(1, 0, ...expandFolders(contents || [], questions, expandedMap, moveData, false))
+				value.splice(1, 0, ...expandFolders(contents || [], pages, expandedMap, moveData, false))
 			}
 
 			// Return the result.
 			return value
 		}
 
-		// For questions directly return the question.
-		if (question.type === 'question' || question.type === undefined)
-			return question
+		// For pages directly return the page.
+		if (page.type === 'page')
+			return page
 	})
 }
 
-// getMoveData takes a (flattened) list of questions and a move command: which should move to where. It then determines which question will be moved, from which folder, to which folder, and what the new index there will be.
+// getMoveData takes a (flattened) list of pages and a move command: which should move to where. It then determines which page will be moved, from which folder, to which folder, and what the new index there will be.
 function getMoveData(simulation, draggableList, from, to) {
-	// Find the question to be move.
-	const questionToMove = draggableList[from]
+	// Find the page to be move.
+	const pageToMove = draggableList[from]
 
 	// If a folder is moved right after its closer, consider it as "at the same place".
-	if (questionToMove.type === 'folder' && to - from === 1)
+	if (pageToMove.type === 'folder' && to - from === 1)
 		to = from
 
-	// Determine the origin of the question that will be moved.
-	const originFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.find(folderQuestion => folderQuestion.id === questionToMove.id))
+	// Determine the origin of the page that will be moved.
+	const originFolder = Object.values(simulation.pages).find(page => page.type === 'folder' && page.contents && page.contents.find(folderContent => folderContent.id === pageToMove.id))
 
 	// Determine the destination, and the index within the destination folder.
 	let destinationFolder, index
@@ -317,14 +317,14 @@ function getMoveData(simulation, draggableList, from, to) {
 			destinationFolder = shouldComeAfter
 			index = shouldComeBefore.id === shouldComeAfter.id ? (shouldComeAfter.contents?.length || 0) : 0 // For a closed folder, put at the end. For an open folder, put at the start.
 		} else {
-			destinationFolder = Object.values(simulation.questions).find(question => question.type === 'folder' && question.contents && question.contents.find(folderQuestion => folderQuestion.id === shouldComeAfter.id))
-			const destinationArray = destinationFolder ? destinationFolder.contents : simulation.questionTree
-			index = destinationArray.findIndex(question => question.id === shouldComeAfter.id) + 1
-			const oldIndex = destinationArray.findIndex(question => question.id === questionToMove.id)
+			destinationFolder = Object.values(simulation.pages).find(page => page.type === 'folder' && page.contents && page.contents.find(folderContent => folderContent.id === shouldComeAfter.id))
+			const destinationArray = destinationFolder ? destinationFolder.contents : simulation.pageTree
+			index = destinationArray.findIndex(page => page.id === shouldComeAfter.id) + 1
+			const oldIndex = destinationArray.findIndex(page => page.id === pageToMove.id)
 			if (oldIndex !== -1 && oldIndex < index)
 				index-- // If the item was already in this list prior to the index, the desired index should be one lower.
 		}
 	}
 
-	return { questionToMove, originFolder, destinationFolder, index }
+	return { pageToMove, originFolder, destinationFolder, index }
 }

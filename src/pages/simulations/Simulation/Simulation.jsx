@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { usePrevious, useLocalStorageState } from 'util'
-import { Page } from 'components'
+import { Page as PageContainer } from 'components'
 import { useSimulation, useSimulationIdFromUrl, useIsOwner } from 'simulations'
 
 import { ErrorPage as GeneralErrorPage } from '../../ErrorPage'
@@ -11,7 +11,7 @@ import { getState } from '../util'
 import { getSimulationError, getStateError } from '../validation'
 
 import { useSimulationActions } from './actions'
-import { ErrorPage, EmptySimulation, InitializingPage, Question, EndPage } from './subpages'
+import { ErrorPage, EmptySimulation, InitializingPage, Page, EndPage } from './subpages'
 
 export function Simulation() {
 	const { simulationUrl } = useParams()
@@ -19,7 +19,7 @@ export function Simulation() {
 	if (id === null)
 		return <GeneralErrorPage />
 	if (id === undefined)
-		return <Page title="Simulation laden..." showLogo="right" />
+		return <PageContainer title="Simulation laden..." showLogo="right" />
 	return <SimulationWithId id={id} />
 }
 
@@ -34,12 +34,13 @@ function SimulationWithId({ id }) {
 			window.history.pushState({}, undefined, `/s/${url}`)
 	}, [previousUrl, url])
 
+	console.log(simulation)
 	// On loading or on a loading error, show the right notification.
 	if (simulation === null) // Failed to load.
 		return <GeneralErrorPage /> // General error page.
 	if (simulation === undefined) // Loading.
-		return <Page title="Simulation laden..." showLogo="right" /> // Empty page with just a title.
-	if (!simulation.questionList || simulation.questionList.length === 0)
+		return <PageContainer title="Simulation laden..." showLogo="right" /> // Empty page with just a title.
+	if (!simulation.pageList || simulation.pageList.length === 0)
 		return <EmptySimulation {...{ simulation }} />
 
 	// We have a valid simulation! Render it! Add a key to assure a reload of the component (including a new state) on a change of simulation.
@@ -52,7 +53,7 @@ function SimulationWithData({ simulation }) {
 	const [error, setError] = useState(false) // Tracks if an error was encountered during simulation run-time.
 	const state = getState(history)
 
-	// Check for an error in the state. (For instance an outdated question ID.)
+	// Check for an error in the state. (For instance an outdated pageId.)
 	const stateError = useMemo(() => getStateError(simulation, state), [simulation, state])
 
 	// Check for any errors in the simulation. (For instance a faulty update script.)
@@ -64,7 +65,7 @@ function SimulationWithData({ simulation }) {
 
 	// Define actions.
 	const actions = useSimulationActions(simulation, setHistory, clearHistory, setError)
-	const { start, reset, chooseOption, goToNextQuestion, jumpToQuestion, undo } = actions
+	const { start, reset, chooseOption, goToNextPage, jumpToPage, undo } = actions
 
 	// When there is no state yet, and we hence haven't started yet, start the simulation.
 	const isOwner = useIsOwner(simulation)
@@ -86,5 +87,5 @@ function SimulationWithData({ simulation }) {
 		return <EndPage {...{ simulation, history, reset }} />
 
 	// Render the page as normally.
-	return <Question {...{ simulation, history, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }} />
+	return <Page {...{ simulation, history, state, chooseOption, goToNextPage, jumpToPage, reset, undo }} />
 }

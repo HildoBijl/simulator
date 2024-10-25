@@ -1,12 +1,19 @@
 import { useMemo, useState, useEffect } from 'react'
 
-import { arrayToObject } from 'util'
-import { useUserData, useUserId, useDocument } from 'fb'
+import { arrayToObject, isLocalhost } from 'util'
+import { useUserData, useUserId, useDocument, useCollection } from 'fb'
 
 import { getSimulationByUrl } from './functions'
-import { useSimulationQuestions } from './questions'
+import { useSimulationPages, updatePage } from './questions'
 import { useSimulationVariables } from './variables'
-import { useSimulationEvents } from './events'
+import { useSimulationEvents, updateEvent } from './events'
+import { updateSimulation } from './functions'
+
+// useAllSimulationIds loads the IDs of ALL simulations that exist. This is generally not used in regular functioning of the app, but only when a manual change needs to be made to ALL simulations on for instance a database structure change.
+export function useAllSimulationIds() {
+	const simulations = useCollection('simulations')
+	return useMemo(() => simulations ? Object.values(simulations).map(simulation => simulation.id) : [], [simulations])
+}
 
 // useSimulationIds gets all the simulation IDs for a specific user.
 export function useSimulationIds() {
@@ -16,7 +23,7 @@ export function useSimulationIds() {
 	return userData.simulations || []
 }
 
-// useSimulationObject returns the raw simulation object from the database. It is not merged yet with other parameters, like the questions.
+// useSimulationObject returns the raw simulation object from the database. It is not merged yet with other parameters, like the pages.
 export function useSimulationObject(id, once = false) {
 	return useDocument('simulations', id, once)
 }
@@ -24,26 +31,61 @@ export function useSimulationObject(id, once = false) {
 // useSimulation gets a simulation with a specific ID.
 export function useSimulation(id, once = false) {
 	// Load in all required data.
-	const simulation = useSimulationObject(id, once)
-	const rawQuestions = useSimulationQuestions(id, once)
+	let simulation = useSimulationObject(id, once)
+	const rawPages = useSimulationPages(id, once)
 	const variables = useSimulationVariables(id, once)
 	const events = useSimulationEvents(id, once)
 
+	// ToDo transition: this part copies questionOrder and startingQuestion.
+	// if (isLocalhost()) {
+	// 	if (simulation && simulation.startingQuestion) {
+	// 		updateSimulation(simulation.id, { startingPage: simulation.startingQuestion })
+	// 		simulation = { ...simulation, startingPage: simulation.startingQuestion }
+	// 	}
+	// 	if (simulation && simulation.questionOrder) {
+	// 		updateSimulation(simulation.id, { pageOrder: simulation.questionOrder })
+	// 		simulation = { ...simulation, pageOrder: simulation.questionOrder }
+	// 	}
+	// 	if (rawPages) {
+	// 		Object.values(rawPages).forEach(question => {
+	// 			if (question.type !== 'folder' && question.type !== 'page')
+	// 				updatePage(id, question.id, { type: 'page' })
+	// 			if (question.followUpQuestion)
+	// 				updatePage(id, question.id, { followUpPage: question.followUpQuestion })
+	// 			if (question.options && question.options.some(option => option.followUpQuestion)) {
+	// 				updatePage(id, question.id, {
+	// 					options: question.options.map(option => {
+	// 						if (!option.followUpQuestion)
+	// 							return option
+	// 						return { ...option, followUpPage: option.followUpQuestion }
+	// 					})
+	// 				})
+	// 			}
+	// 		})
+	// 	}
+	// 	if (events) {
+	// 		Object.values(events).forEach(event => {
+	// 			if (event.question)
+	// 				updateEvent(id, event.id, { page: event.question })
+	// 		})
+	// 	}
+	// }
+
 	// Assemble the data, depending on the loading status.
 	return useMemo(() => {
-		if (simulation === undefined || rawQuestions === undefined || variables === undefined)
+		if (simulation === undefined || rawPages === undefined || variables === undefined)
 			return undefined // Sign of loading.
-		if (simulation && rawQuestions && variables) {
-			const { questions, questionTree, questionList } = processQuestions(simulation.questionOrder, rawQuestions)
+		if (simulation && rawPages && variables) {
+			const { pages, pageTree, pageList } = processPages(simulation.pageOrder, rawPages)
 			return {
 				...simulation,
-				questions, questionTree, questionList,
+				pages, pageTree, pageList,
 				variables,
 				events,
 			}
 		}
 		return null // Sign of an error.
-	}, [simulation, rawQuestions, variables, events])
+	}, [simulation, rawPages, variables, events])
 }
 
 // useSimulationIdFromUrl takes a simulation URL and returns an ID from it.
@@ -71,34 +113,34 @@ export function useIsOwner(simulation) {
 	return simulation?.owners && simulation.owners.includes(userId)
 }
 
-// processQuestions gets the raw questions out of the database and adds useful utility info. It receives an array of questionIds to process, as well as a dictionary of raw questions.
-function processQuestions(questionOrder = [], rawQuestions = {}, indices = []) {
-	// Process all questions in the questionOrder to get a questionTree.
-	const questionTree = questionOrder.map((questionId, index) => processQuestion(rawQuestions[questionId], rawQuestions, [...indices, index]))
+// processPages gets the raw pages out of the database and adds useful utility info. It receives an array of pageIds to process, as well as a dictionary of raw pages.
+function processPages(pageOrder = [], rawPages = {}, indices = []) {
+	// Process all pages in the pageOrder to get a pageTree.
+	const pageTree = pageOrder.map((pageId, index) => processPage(rawPages[pageId], rawPages, [...indices, index]))
 
 	// Flatten the tree. For now also include folders.
-	const toArray = question => question.type === 'folder' ? [question, ...question.contents.map(question => toArray(question))] : question
-	const questionListFull = questionTree.map(question => toArray(question)).flat(Infinity)
-	const questions = arrayToObject(questionListFull, question => ({ key: question.id, value: question }))
-	const questionList = questionListFull.filter(question => question.type === 'question' || question.type === undefined) // Only keep actual questions.
-	return { questionTree, questionList, questions }
+	const toArray = page => page.type === 'folder' ? [page, ...page.contents.map(page => toArray(page))] : page
+	const pageListFull = pageTree.map(page => toArray(page)).flat(Infinity)
+	const pages = arrayToObject(pageListFull, page => ({ key: page.id, value: page }))
+	const pageList = pageListFull.filter(page => page.type === 'page' || page.type === 'question' || page.type === undefined) // Only keep actual pages. // ToDo transition
+	return { pageTree, pageList, pages }
 }
 
-// processQuestion takes a single (raw) question, possibly a folder with contents, and a list of (raw) questions. It processes the question, turning links to contents into actual links.
-function processQuestion(question, questions, indices) {
-	// On a folder, recursively process subquestions.
-	if (question.type === 'folder') {
+// processPage takes a single (raw) page, possibly a folder with contents, and a list of (raw) pages. It processes the page, turning links to contents into actual links.
+function processPage(page, pages, indices) {
+	// On a folder, recursively process subpages.
+	if (page.type === 'folder') {
 		return {
-			...question,
+			...page,
 			index: indices,
-			contents: (question.contents || []).map((questionId, index) => processQuestion(questions[questionId], questions, [...indices, index])),
+			contents: (page.contents || []).map((pageId, index) => processPage(pages[pageId], pages, [...indices, index])),
 		}
 	}
 
-	// On a question (default case) run basic processing.
-	if (question.type === 'question' || question.type === undefined)
-		return { ...question, index: indices }
+	// On a page run basic processing.
+	if (page.type === 'page' || page.type === 'question' || page.type === undefined) // ToDo transition
+		return { ...page, index: indices }
 
 	// Check for impossible cases.
-	throw new Error(`Invalid question type: received a question of type "${question.type}" but this type is not known.`)
+	throw new Error(`Invalid page type: received a page of type "${page.type}" but this type is not known.`)
 }

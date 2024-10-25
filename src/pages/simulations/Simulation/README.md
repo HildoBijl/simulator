@@ -4,7 +4,7 @@ This is where all the functionalities for running a simulation preside.
 
 ## Simulation logic
 
-The logic for the simulation - what should happen when a user does something - is in the [actions](./actions.js) file. This file returns a set of actions like `start`, `chooseOption`, `goToNextQuestion`. Each action updates the history/state accordingly. This history is important, so let's specify how it works.
+The logic for the simulation - what should happen when a user does something - is in the [actions](./actions.js) file. This file returns a set of actions like `start`, `chooseOption`, `goToNextPage`. Each action updates the history/state accordingly. This history is important, so let's specify how it works.
 
 The idea is that, during the simulation, we track a list of pages. The resulting array has the following form.
 

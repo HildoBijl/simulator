@@ -3,9 +3,9 @@ import Button from '@mui/material/Button'
 
 import { numberToLetter, useClearTags } from 'util'
 import { Page } from 'components'
-import { useIsOwner, questionIndexToString } from 'simulations'
+import { useIsOwner, pageIndexToString } from 'simulations'
 
-import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle } from '../../settings'
+import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle } from '../../settings'
 import { getVariableErrorMessage } from '../../validation'
 
 const components = { // Map the error types to components that can display them.
@@ -15,7 +15,7 @@ const components = { // Map the error types to components that can display them.
 	event: EventError,
 
 	// State errors.
-	question: QuestionError,
+	page: PageError,
 }
 
 export function ErrorPage({ simulation, error, reset }) {
@@ -61,17 +61,17 @@ function VariableError({ error }) {
 function UpdateScriptError({ error }) {
 	// Determine in which update script the error took place.
 	let source
-	const { question, option, optionIndex, error: errorObj } = error
+	const { page, option, optionIndex, error: errorObj } = error
 	const optionTitle = useClearTags(option?.description && option?.description.split('\n')[0] || emptyOption)
 	switch (error.subtype) {
 		case 'general':
 			source = <>Es gibt einen Fehler im allgemeinen Update-Skript, das nach jeder Seite ausgeführt wird.</>
 			break
-		case 'question':
-			source = <>Es gibt einen Fehler im standard Update-Skript von Seite <em>{questionIndexToString(question.index)} {question.title || emptyQuestion}</em></>
+		case 'page':
+			source = <>Es gibt einen Fehler im standard Update-Skript von Seite <em>{pageIndexToString(page.index)} {page.title || emptyPage}</em></>
 			break
 		case 'option':
-			source = <>Es gibt einen Fehler im Update-Skript von Seite <em>{questionIndexToString(question.index)} {question.title || emptyQuestion}</em> Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {optionTitle}</em></>
+			source = <>Es gibt einen Fehler im Update-Skript von Seite <em>{pageIndexToString(page.index)} {page.title || emptyPage}</em> Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {optionTitle}</em></>
 			break
 		default:
 			throw new Error(`Invalid update-script error subtype. Received an error for an update script with subtype "${error.subtype}" but could not process this properly.`)
@@ -92,6 +92,6 @@ function EventError({ error }) {
 	</>
 }
 
-function QuestionError() {
+function PageError() {
 	return <p>Die Seite, bei der Sie waren, scheint aus der Simulation entfernt worden zu sein. Sie können bei einer unbekannten Seite nicht fortfahren.</p>
 }

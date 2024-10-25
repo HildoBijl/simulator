@@ -14,7 +14,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		clearHistory()
 	}, [clearHistory])
 
-	// start will initialize the simulation, setting stuff like questions and variables to their (possibly partly randomized) initial values.
+	// start will initialize the simulation, setting stuff like pages and variables to their (possibly partly randomized) initial values.
 	const start = useCallback((devMode = false) => {
 		// If there are general errors, no simulation can be started yet. Note this.
 		if (getGeneralSimulationError(simulation))
@@ -22,26 +22,26 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 		// Initialize the history by setting up the initial state.
 		setHistory(history => {
-			if (simulation.questionList.length === 0)
+			if (simulation.pageList.length === 0)
 				throw new Error(`Cannot start simulation: it does not contain any pages yet. No first page can be defined.`)
 
 			// When the simulation has already started, don't start it again.
 			if (history && history.length > 0)
 				return history
 
-			// Determine the starting question.
-			const pageId = simulation.startingQuestion || simulation.questionList[0]
-			const initialQuestion = simulation.questions[pageId]
+			// Determine the starting page.
+			const pageId = simulation.startingPage || simulation.pageList[0]
+			const startingPage = simulation.pages[pageId]
 			const state = { pageId }
 
-			// On variables, check the entry initialize them and run the entry script of the initial question (after checking it).
+			// On variables, get their initial variables and already run (after checking it) the entry script of the initial page.
 			if (hasVariables(simulation)) {
 				const initialVariables = getInitialVariables(simulation)
-				if (getScriptError(initialQuestion.entryScript, simulation)) {
+				if (getScriptError(startingPage.entryScript, simulation)) {
 					setError(true)
 					return history
 				}
-				state.variablesBefore = runSimulationUpdateScript(initialQuestion.entryScript, initialVariables, simulation)
+				state.variablesBefore = runSimulationUpdateScript(startingPage.entryScript, initialVariables, simulation)
 			}
 
 			// Return the history as a single state.
@@ -54,7 +54,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 			incrementSimulationField(simulation.id, 'numPlayed')
 	}, [simulation, setHistory, setError])
 
-	// chooseOption will pick an option for the current question.
+	// chooseOption will pick an option for the current page.
 	const chooseOption = useCallback((index) => {
 		// On any errors we cannot do anything.
 		if (getGeneralSimulationError(simulation))
@@ -69,12 +69,12 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				throw new Error(`Invalid option choice: an option has already been chosen.`)
 
 			// Extract required data.
-			const question = simulation.questions[pageId]
-			const options = question.options || []
+			const page = simulation.pages[pageId]
+			const options = page.options || []
 
 			// Check if the given option is valid.
 			if (index !== undefined && (index < 0 || index >= options.length))
-				throw new Error(`Invalid option choice: tried to choose option ${index} of a question, but the question only has ${options.length} options available. (Indices are zero-starting.)`)
+				throw new Error(`Invalid option choice: tried to choose option ${index} of a page, but the page only has ${options.length} options available. (Indices are zero-starting.)`)
 			const option = options[index]
 
 			// Set up the new state.
@@ -85,8 +85,8 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 			// On variables, run all relevant update scripts.
 			if (hasVariables(simulation)) {
-				// Determine the update scripts to be run: first the one of the option (or question default) and then the general simulation update script.
-				const updateScripts = [option.updateScript || question.updateScript, simulation.updateScript]
+				// Determine the update scripts to be run: first the one of the option (or page default) and then the general simulation update script.
+				const updateScripts = [option.updateScript || page.updateScript, simulation.updateScript]
 
 				// If any of the scripts has an error, note this and do not update.
 				if (updateScripts.some(updateScript => getScriptError(updateScript, simulation))) {
@@ -103,22 +103,22 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		})
 	}, [simulation, setHistory, setError])
 
-	// goToNextQuestion will go to the next question depending on the (confirmed) selected question option.
-	const goToNextQuestion = useCallback((devMode = false) => {
+	// goToNextPage will go to the next page depending on the (confirmed) selected page option.
+	const goToNextPage = useCallback((devMode = false) => {
 		setHistory(history => {
 			// Extract the current state and its parameters.
 			const state = getState(history)
 			const { pageId, choice, variablesAfter } = state
-			const question = simulation.questions[pageId]
+			const page = simulation.pages[pageId]
 
-			// If the question has options, but no option has been selected and confirmed, we're not ready yet to move on.
-			const options = question.options || []
+			// If the page has options, but no option has been selected and confirmed, we're not ready yet to move on.
+			const options = page.options || []
 			if (options.length > 0 && choice === undefined)
-				throw new Error(`Invalid nextQuestion request: no option has been selected for the given state yet. Cannot go to the next question.`)
+				throw new Error(`Invalid nextPage request: no option has been selected for the given state yet. Cannot go to the next page.`)
 
-			// Determine the next question: either the follow-up for the chosen option, the follow-up for the given question, the next question in the order, or (if not existing) the end. Apply it to the new state.
+			// Determine the next page: either the follow-up for the chosen option, the follow-up for the given page, the next page in the order, or (if not existing) the end. Apply it to the new state.
 			const newState = {
-				pageId: (options[choice] && options[choice].followUpQuestion) || getFollowUpPage(question, simulation),
+				pageId: (options[choice] && options[choice].followUpPage) || getFollowUpPage(page, simulation),
 			}
 
 			// On variables, we should also check for events.
@@ -142,7 +142,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				if (triggeredEvents.length > 0) {
 					const triggeredEvent = selectRandomly(triggeredEvents)
 
-					// Make sure that afterwards we go to the right question.
+					// Make sure that afterwards we go to the right page.
 					const afterwards = triggeredEvent.afterwards || defaultAfterwards
 					if (afterwards === 'originalFollowUp') {
 						newState.jumpPageId = state.jumpPageId || newState.pageId // Store the original follow-up as jump-back, unless one already existed, then keep that.
@@ -153,7 +153,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 					}
 
 					// Apply the event into the state.
-					newState.pageId = triggeredEvent.question || simulation.questionOrder[0] // Indicated or default, in case not set.
+					newState.pageId = triggeredEvent.page || simulation.pageList[0] // Indicated or default, in case not set.
 					newState.event = triggeredEvent.id // For history display purposes.
 					newState.experiencedEvents = [...experiencedEvents, triggeredEvent.id] // To prevent events from triggering multiple times.
 				} else {
@@ -162,14 +162,14 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 						newState.pageId = state.jumpPageId
 				}
 
-				// Upon entering the new question (if it exists, and is not the end) run its entry script (after checking it).
-				const newQuestion = simulation.questions[newState.pageId]
-				if (newQuestion) {
-					if (getScriptError(newQuestion.entryScript, simulation)) {
+				// Upon entering the new page (if it exists, and is not the end) run its entry script (after checking it).
+				const newPage = simulation.pages[newState.pageId]
+				if (newPage) {
+					if (getScriptError(newPage.entryScript, simulation)) {
 						setError(true)
 						return history
 					}
-					newState.variablesBefore = runSimulationUpdateScript(newQuestion.entryScript, variables, simulation)
+					newState.variablesBefore = runSimulationUpdateScript(newPage.entryScript, variables, simulation)
 				}
 			}
 
@@ -178,7 +178,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				if (newState.pageId === 'end') {
 					incrementSimulationField(simulation.id, 'numFinished')
 				} else {
-					const newPage = simulation.questions[newState.pageId]
+					const newPage = simulation.pages[newState.pageId]
 					if ((newPage.options || []).length === 0 && getFollowUpPage(newPage, simulation) === 'end')
 						incrementSimulationField(simulation.id, 'numFinished')
 				}
@@ -189,40 +189,40 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		})
 	}, [simulation, setHistory, setError])
 
-	// jumpToQuestion is a function that allows to jump to any question. It's used for admin control. It hard-overwrites the pageId, either as the next question if a choice has been made, or as the current question if no choice has been made. It runs the entry script of the given question on jumping.
-	const jumpToQuestion = useCallback((pageId) => {
-		// Retrieve the question to be jumped to.
-		const question = simulation.questions[pageId]
+	// jumpToPage is a function that allows to jump to any page. It's used for admin control. It hard-overwrites the pageId, either as the next page if a choice has been made, or as the current page if no choice has been made. It runs the entry script of the given page on jumping.
+	const jumpToPage = useCallback((pageId) => {
+		// Retrieve the page to be jumped to.
+		const page = simulation.pages[pageId]
 
-		// Update the history to jump to the new question.
+		// Update the history to jump to the new page.
 		setHistory(history => {
 			const state = getState(history)
 
-			// When no choice has been made, overwrite the current question in the history.
+			// When no choice has been made, overwrite the current page in the history.
 			if (state.choice === undefined) {
 				const newState = { ...state, pageId }
 
-				// When there are variables, take them from the previous question (or the initial values if non-existing) and run the entry script on those.
+				// When there are variables, take them from the previous page (or the initial values if non-existing) and run the entry script on those.
 				if (hasVariables(simulation)) {
-					if (getScriptError(question.entryScript, simulation)) {
+					if (getScriptError(page.entryScript, simulation)) {
 						setError(true)
 						return history
 					}
 					const previousVariables = history[history.length - 2]?.variablesAfter || getInitialVariables(simulation)
-					newState.variablesBefore = runSimulationUpdateScript(question.entryScript, previousVariables, simulation)
+					newState.variablesBefore = runSimulationUpdateScript(page.entryScript, previousVariables, simulation)
 				}
 				return [...history.slice(0, -1), newState]
 			}
 
-			// When a choice has been made, create a new state for this upcoming question.
+			// When a choice has been made, create a new state for this upcoming page.
 			const newState = { pageId }
 			if (hasVariables(simulation)) {
 				// Copy necessary parameters into the new state.
 				if (state.experiencedEvents)
 					newState.experiencedEvents = state.experiencedEvents
 
-				// Run the entry script of the question that's jumped to, to set the variables.
-				newState.variablesBefore = runSimulationUpdateScript(question.entryScript, state.variablesAfter, simulation)
+				// Run the entry script of the page that's jumped to, to set the variables.
+				newState.variablesBefore = runSimulationUpdateScript(page.entryScript, state.variablesAfter, simulation)
 			}
 			return [...history, newState]
 		})
@@ -252,7 +252,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 	}, [setHistory])
 
 	// All actions are ready!
-	return { reset, start, chooseOption, goToNextQuestion, jumpToQuestion, undo }
+	return { reset, start, chooseOption, goToNextPage, jumpToPage, undo }
 }
 
 // incrementPlayerPlayCounter tracks on the user's LocalStorage how many times he/she played the given simulation. It increases the counter for the given simulation by one.

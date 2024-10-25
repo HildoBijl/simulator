@@ -1,5 +1,5 @@
 // Strings for display.
-export const emptyQuestion = '[Seitentitel fehlt]'
+export const emptyPage = '[Seitentitel fehlt]'
 export const emptyFolder = '[Ordnertitel fehlt]'
 export const emptyOption = '[Optionsbeschreibung fehlt]'
 export const emptyVariableName = '[Kein Name]'

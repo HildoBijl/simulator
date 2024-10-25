@@ -21,7 +21,7 @@ export function canSimulationHaveErrors(simulation) {
 	return true
 }
 
-// getGeneralSimulationError looks for any error in the simulation that is generally a problem. (Like faulty variables.) It does not check for errors that are specific to certain situations (like entry/update scripts to specific questions or question options). On no errors it gives undefined.
+// getGeneralSimulationError looks for any error in the simulation that is generally a problem. (Like faulty variables.) It does not check for errors that are specific to certain situations (like entry/update scripts to specific pages or page options). On no errors it gives undefined.
 export function getGeneralSimulationError(simulation) {
 	// When the simulation can't have errors, don't run checks: return undefined immediately.
 	if (!canSimulationHaveErrors(simulation))
@@ -96,15 +96,15 @@ export function getVariableErrorMessage(error) {
 
 // getSimulationEntryScriptError checks for a given simulation whether all entry scripts are OK. If so, undefined is given. If not, an error is returned.
 export function getSimulationEntryScriptError(simulation) {
-	// Walk through all questions to check their entry scripts.
-	const questionErrorObj = arrayFind(Object.values(simulation.questions), question => {
-		// Check the question update script.
-		const questionError = getScriptError(question.entrySript, simulation)
-		if (questionError)
-			return { source: 'simulation', type: 'entryScript', subtype: 'question', error: questionError, question }
+	// Walk through all pages to check their entry scripts.
+	const pageErrorObj = arrayFind(Object.values(simulation.pages), page => {
+		// Check the page update script.
+		const pageError = getScriptError(page.entrySript, simulation)
+		if (pageError)
+			return { source: 'simulation', type: 'entryScript', subtype: 'page', error: pageError, page }
 	})
-	if (questionErrorObj)
-		return questionErrorObj.value
+	if (pageErrorObj)
+		return pageErrorObj.value
 }
 
 // getSimulationUpdateScriptError checks for a given simulation whether all update scripts are OK. If so, undefined is given. If not, an error is returned.
@@ -114,26 +114,26 @@ export function getSimulationUpdateScriptError(simulation) {
 	if (generalError)
 		return { source: 'simulation', type: 'updateScript', subtype: 'general', error: generalError }
 
-	// Check the question update scripts, both the main scripts and the ones per option.
-	const questionErrorObj = arrayFind(Object.values(simulation.questions), question => {
-		// Check the question update script.
-		const questionError = getScriptError(question.updateScript, simulation)
-		if (questionError)
-			return { source: 'simulation', type: 'updateScript', subtype: 'question', error: questionError, question }
+	// Check the page update scripts, both the main scripts and the ones per option.
+	const pageErrorObj = arrayFind(Object.values(simulation.pages), page => {
+		// Check the page update script.
+		const pageError = getScriptError(page.updateScript, simulation)
+		if (pageError)
+			return { source: 'simulation', type: 'updateScript', subtype: 'page', error: pageError, page }
 
 		// Check the options update scripts.
-		if (question.options) {
-			const optionErrorObj = arrayFind(question.options, (option, optionIndex) => {
+		if (page.options) {
+			const optionErrorObj = arrayFind(page.options, (option, optionIndex) => {
 				const optionError = getScriptError(option.updateScript, simulation)
 				if (optionError)
-					return { source: 'simulation', type: 'updateScript', subtype: 'option', error: optionError, question, option, optionIndex }
+					return { source: 'simulation', type: 'updateScript', subtype: 'option', error: optionError, page, option, optionIndex }
 			})
 			if (optionErrorObj)
 				return optionErrorObj.value
 		}
 	})
-	if (questionErrorObj)
-		return questionErrorObj.value
+	if (pageErrorObj)
+		return pageErrorObj.value
 }
 
 // getSimulationEventError checks for a given simulation whether the events are OK. If so, undefined is returned. If not, an error is given.
@@ -147,13 +147,13 @@ export function getSimulationEventError(simulation) {
 		return eventErrorObj.value
 }
 
-// getStateError checks, for a given simulation, whether the state is still OK. Stuff like missing variables can be fixed on-the-go, but a questionId that is not known is a fatal error.
+// getStateError checks, for a given simulation, whether the state is still OK. Stuff like missing variables can be fixed on-the-go, but a pageId that is not known is a fatal error.
 export function getStateError(simulation, state) {
 	// When there is no state yet, then there cannot be erroneous data in the state. No error.
 	if (!state)
 		return undefined
 
-	// Check that the question ID from the state exists. (If there is no questionId, then the simulation hasn't started yet; that's fine too.)
-	if (state.pageId !== 'end' && !simulation.questions[state.pageId])
-		return { source: 'state', type: 'question', subtype: 'missing' }
+	// Check that the pageId from the state exists. (If there is no pageId, then the simulation hasn't started yet; that's fine too.)
+	if (state.pageId !== 'end' && !simulation.pages[state.pageId])
+		return { source: 'state', type: 'page', subtype: 'missing' }
 }

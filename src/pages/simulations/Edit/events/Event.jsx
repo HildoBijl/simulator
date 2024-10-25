@@ -15,9 +15,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { deleteField } from 'firebase/firestore'
 
 import { FormPart, TrackedTextField, TrackedCodeField } from 'components'
-import { updateEvent, deleteEvent, questionIndexToString } from 'simulations'
+import { updateEvent, deleteEvent, pageIndexToString } from 'simulations'
 
-import { emptyQuestion, emptyEventTitle, defaultAfterwards, accordionStyle } from '../../settings'
+import { emptyPage, emptyEventTitle, defaultAfterwards, accordionStyle } from '../../settings'
 import { getConditionError } from '../../util'
 
 export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
@@ -35,7 +35,7 @@ export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
 				<TrackedTextField label="Titel (nur zur internen Verwendung)" value={event.title} path={`simulations/${simulation.id}/events`} documentId={event.id} field="title" />
 			</FormPart>
 			<ConditionField simulation={simulation} event={event} />
-			<QuestionDropdown simulation={simulation} event={event} />
+			<PageDropdown simulation={simulation} event={event} />
 			<AfterwardsSetting simulation={simulation} event={event} />
 		</AccordionDetails>
 		<AccordionActions key="actions">
@@ -55,18 +55,18 @@ function ConditionField({ simulation, event }) {
 	</FormPart>
 }
 
-function QuestionDropdown({ simulation, event }) {
-	// Set up a handler to save the question.
-	const setQuestion = (questionId) => updateEvent(simulation.id, event.id, { question: questionId })
+function PageDropdown({ simulation, event }) {
+	// Set up a handler to save the page.
+	const setPage = (pageId) => updateEvent(simulation.id, event.id, { page: pageId })
 
 	// Render the dropdown field.
 	const label = 'Seite, zu der gesprungen werden soll'
-	const value = event.question || simulation.questionList[0].id
+	const value = event.page || simulation.pageList[0].id
 	return <FormPart>
 		<FormControl fullWidth>
 			<InputLabel>{label}</InputLabel>
-			<Select value={value} label={label} onChange={(event) => setQuestion(event.target.value)}>
-				{simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{questionIndexToString(question.index)} {question.title || emptyQuestion}</MenuItem>)}
+			<Select value={value} label={label} onChange={(event) => setPage(event.target.value)}>
+				{simulation.pageList.map(page => <MenuItem key={page.id} value={page.id}>{pageIndexToString(page.index)} {page.title || emptyPage}</MenuItem>)}
 			</Select>
 		</FormControl>
 	</FormPart>

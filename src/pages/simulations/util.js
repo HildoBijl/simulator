@@ -11,9 +11,9 @@ export function hasVariables(simulation) {
 	return simulation?.variables && Object.keys(simulation.variables).length > 0
 }
 
-// getFollowUpPage gets the follow-up page for a given simulation page. If it's set, give the setting. If not, give the ID of the next question. If not available, end the simulation.
+// getFollowUpPage gets the follow-up page for a given simulation page. If it's set, give the setting. If not, give the ID of the next page. If not available, end the simulation.
 export function getFollowUpPage(page, simulation) {
-	return page.followUpQuestion ||	simulation.questionList[simulation.questionList.findIndex(question => question.id === page.id) + 1]?.id || 'end'
+	return page.followUpPage ||	simulation.pageList[simulation.pageList.findIndex(currPage => currPage.id === page.id) + 1]?.id || 'end'
 }
 
 // runSimulationUpdateScript takes a simulation and runs a given update script for that simulation. Variables should be ID-based, since the simulation knows about the IDs. The updateScript given can be an array too, in which case they are run sequentially.

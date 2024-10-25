@@ -7,13 +7,13 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 
 import { numberToLetter, useClearTags } from 'util'
-import { useSimulation, questionIndexToString } from 'simulations'
+import { useSimulation, pageIndexToString } from 'simulations'
 import { Page, FormPart } from 'components'
 
 import { hasVariables } from '../util'
-import { emptyQuestion, emptyOption, emptyVariableName, emptyVariableTitle } from '../settings'
+import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle } from '../settings'
 
-import { QuestionEntryScript, QuestionUpdateScript, OptionUpdateScript } from './questions'
+import { PageEntryScript, PageUpdateScript, OptionUpdateScript } from './questions'
 import { GeneralUpdateScript } from './variables'
 
 const ScriptsPage = ({ children, simulationId }) => <Page title="Simulation Skript Übersicht" backButton={`/create/${simulationId}`}>{children}</Page>
@@ -50,7 +50,7 @@ function ScriptsForSimulation({ simulation }) {
 	return <>
 		<VariableSelector {...{ simulation, variableId, setVariableId }} />
 		<GeneralScripts {...{ variableId, simulation }} />
-		{simulation.questionList.map(question => <ScriptsForQuestion key={question.id} simulation={simulation} question={question} variableId={variableId} />)}
+		{simulation.pageList.map(page => <ScriptsForPage key={page.id} simulation={simulation} page={page} variableId={variableId} />)}
 	</>
 }
 
@@ -82,27 +82,27 @@ function GeneralScripts({ simulation, variableId }) {
 	</>
 }
 
-function ScriptsForQuestion({ simulation, question, variableId }) {
-	// If the question has no entry/update scripts, or none that match the filtering condition, show nothing.
+function ScriptsForPage({ simulation, page, variableId }) {
+	// If the page has no entry/update scripts, or none that match the filtering condition, show nothing.
 	const variableName = variableId && simulation.variables[variableId].name
-	if (!shouldShowScript(question.entryScript, variableName) && !shouldShowScript(question.updateScript, variableName) && (!question.options || !question.options.some(option => shouldShowScript(option.updateScript, variableName))))
+	if (!shouldShowScript(page.entryScript, variableName) && !shouldShowScript(page.updateScript, variableName) && (!page.options || !page.options.some(option => shouldShowScript(option.updateScript, variableName))))
 		return null
 
-	// Render the update scripts for this question.
+	// Render the update scripts for this page.
 	return <>
-		<h4>Seite {questionIndexToString(question.index)} {question.internalTitle || question.title || emptyQuestion}</h4>
-		{shouldShowScript(question.entryScript, variableName) ? <QuestionEntryScript {...{ simulation, question }} /> : null}
-		{shouldShowScript(question.updateScript, variableName) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
-		{(question.options || []).map((option, optionIndex) => shouldShowScript(option.updateScript, variableName) ? <OptionUpdateScriptWithLabel key={optionIndex} {...{ simulation, question, optionIndex }} /> : null)}
+		<h4>Seite {pageIndexToString(page.index)} {page.internalTitle || page.title || emptyPage}</h4>
+		{shouldShowScript(page.entryScript, variableName) ? <PageEntryScript {...{ simulation, page }} /> : null}
+		{shouldShowScript(page.updateScript, variableName) ? <PageUpdateScript {...{ simulation, page }} /> : null}
+		{(page.options || []).map((option, optionIndex) => shouldShowScript(option.updateScript, variableName) ? <OptionUpdateScriptWithLabel key={optionIndex} {...{ simulation, page, optionIndex }} /> : null)}
 	</>
 }
 
-function OptionUpdateScriptWithLabel({ simulation, question, optionIndex }) {
-	const option = question.options[optionIndex]
+function OptionUpdateScriptWithLabel({ simulation, page, optionIndex }) {
+	const option = page.options[optionIndex]
 	const description = option.description || emptyOption
 	const title = useClearTags(description.split('\n')[0] || emptyOption)
 	const label = `${numberToLetter(optionIndex).toUpperCase()}. ${title}`
-	return <OptionUpdateScript {...{ simulation, question, optionIndex, label }} />
+	return <OptionUpdateScript {...{ simulation, page, optionIndex, label }} />
 }
 
 // containsVariable checks if a given script contains a given variable name like 'hp' somewhere.

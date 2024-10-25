@@ -8,56 +8,56 @@ import MenuItem from '@mui/material/MenuItem'
 import { Undo } from '@mui/icons-material'
 
 import { numberToLetter } from 'util'
-import { Page, InputParagraph, MCEContents } from 'components'
-import { useIsOwner, questionIndexToString } from 'simulations'
+import { Page as PageContainer, InputParagraph, MCEContents } from 'components'
+import { useIsOwner, pageIndexToString } from 'simulations'
 
-import { emptyQuestion, emptyOption } from '../../settings'
+import { emptyPage, emptyOption } from '../../settings'
 
 import { VariableOverview } from '../components/VariableOverview'
 
-export function Question({ simulation, history, state, chooseOption, goToNextQuestion, jumpToQuestion, reset, undo }) {
+export function Page({ simulation, history, state, chooseOption, goToNextPage, jumpToPage, reset, undo }) {
 	const isOwner = useIsOwner(simulation)
 	const { pageId, choice } = state
 
-	// Determine the question we're at.
-	const question = simulation.questions[pageId]
-	const options = question.options || []
+	// Determine the page we're at.
+	const page = simulation.pages[pageId]
+	const options = page.options || []
 
-	// If an option has been chosen and there's no feedback, automatically continue to the next question.
+	// If an option has been chosen and there's no feedback, automatically continue to the next page.
 	useEffect(() => {
-		const options = question.options || []
-		if (choice === undefined)
-			return // Question isn't done yet. Can't auto-continue.
-		if (!question.options)
+		const options = page.options || []
+		if (!page.options)
 			return // No options. Never auto-continue, since it's an info-screen.
-		if (options[choice].feedback || question.feedback)
+		if (choice === undefined)
+			return // It's a question but the question hasn't been answered. Can't auto-continue.
+		if (options[choice].feedback || page.feedback)
 			return // There's feedback to show. Don't auto-continue.
-		goToNextQuestion(isOwner) // No reason found not to: let's auto-continue!
-	}, [question, choice, goToNextQuestion, isOwner])
+		goToNextPage(isOwner) // No reason found not to: let's auto-continue!
+	}, [page, choice, goToNextPage, isOwner])
 
 	// Check what kind of button to show.
-	const showRestartButton = options.length === 0 && question.followUpQuestion === 'end'
+	const showRestartButton = options.length === 0 && page.followUpPage === 'end'
 	const showNextButton = !showRestartButton && (options.length === 0 || choice !== undefined)
 
 	// Define what icons to show.
 	const canUndo = history.length > 1 || state.choice !== undefined
 	const icons = simulation.allowUndo && canUndo ? [{ Icon: Undo, onClick: undo }] : []
 
-	// Render the question with description, media, options and buttons.
-	return <Page title={question.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
-		<MCEContents>{question.description}</MCEContents>
+	// Render the page with description, media, options and buttons.
+	return <PageContainer title={page.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
+		<MCEContents>{page.description}</MCEContents>
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
-				{question.options.map((option, index) => choice !== undefined ?
-					<Option key={index} {...{ simulation, question, option, index, disabled: index !== choice, feedback: index === choice && (options[choice].feedback || question.feedback) }} /> :
-					<Option key={index} {...{ simulation, question, option, index, selected: false, select: () => chooseOption(index, isOwner) }} />)}
+				{page.options.map((option, index) => choice !== undefined ?
+					<Option key={index} {...{ simulation, page, option, index, disabled: index !== choice, feedback: index === choice && (options[choice].feedback || page.feedback) }} /> :
+					<Option key={index} {...{ simulation, page, option, index, selected: false, select: () => chooseOption(index, isOwner) }} />)}
 			</div>
 		</>}
 		{showRestartButton ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => reset(isOwner)}>Neu starten</Button> : null}
-		{showNextButton ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextQuestion(isOwner)}>Weiter</Button> : null}
+		{showNextButton ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextPage(isOwner)}>Weiter</Button> : null}
 		<VariableOverview {...{ simulation, state }} />
-		<AdminTool {...{ simulation, state, jumpToQuestion, reset }} />
-	</Page>
+		<AdminTool {...{ simulation, state, jumpToPage, reset }} />
+	</PageContainer>
 }
 
 function Option({ option, index, selected, select, deselect, disabled, feedback }) {
@@ -118,24 +118,24 @@ function Option({ option, index, selected, select, deselect, disabled, feedback 
 	</>
 }
 
-function AdminTool({ simulation, state, jumpToQuestion, reset }) {
+function AdminTool({ simulation, state, jumpToPage, reset }) {
 	const isOwner = useIsOwner(simulation)
 	if (!isOwner)
 		return null // Only show the tool for owners.
 	return <>
 		<h4>Ersteller-Tools</h4>
-		<JumpDropDown {...{ simulation, state, jumpToQuestion }} />
+		<JumpDropDown {...{ simulation, state, jumpToPage }} />
 		<Button variant="contained" sx={{ margin: '1rem 0 0 0' }} onClick={() => reset(isOwner)}>Neu starten</Button>
 	</>
 }
 
-function JumpDropDown({ simulation, state, jumpToQuestion }) {
+function JumpDropDown({ simulation, state, jumpToPage }) {
 	const label = 'Zur Seite springen'
 	const value = state.pageId
 	return <FormControl fullWidth>
 		<InputLabel>{label}</InputLabel>
-		<Select value={value} label={label} onChange={(event) => jumpToQuestion(event.target.value)}>
-			{simulation.questionList.map(question => <MenuItem key={question.id} value={question.id}>{questionIndexToString(question.index)} {question.title || emptyQuestion}</MenuItem>)}
+		<Select value={value} label={label} onChange={(event) => jumpToPage(event.target.value)}>
+			{simulation.pageList.map(page => <MenuItem key={page.id} value={page.id}>{pageIndexToString(page.index)} {page.title || emptyPage}</MenuItem>)}
 			<MenuItem key="end" value="end">Ende: den Durchlauf beenden</MenuItem>
 		</Select>
 	</FormControl>

@@ -14,8 +14,8 @@ export async function getSimulation(simulationId) {
 	return simulationDoc && simulationDoc.exists() ? simulationDoc.data() : undefined
 }
 
-// getQuestions gets all the questions for a simulation with a given simulationId.
-export async function getQuestions(simulationId) {
+// getPages gets all the pages for a simulation with a given simulationId.
+export async function getPages(simulationId) {
 	return await getCollection(`simulations/${simulationId}/questions`)
 }
 
@@ -74,8 +74,8 @@ export async function removeOwnerFromSimulation(userId, simulationId) {
 
 	// When this is the last owner, remove the simulation. First remove the media files.
 	await deleteMediaFile(simulation?.media) // Remove the main media file of the simulation.
-	const questions = await getQuestions(simulationId) // Load questions to access their contents.
-	await Promise.all(Object.values(questions).map(question => deleteMediaFile(question?.media))) // Remove all media files of the questions.
+	const pages = await getPages(simulationId) // Load pages to access their contents.
+	await Promise.all(Object.values(pages).map(page => deleteMediaFile(page?.media))) // Remove all media files of the pages.
 
 	// Then delete the documents.
 	await deleteDocument('simulationInvitesPerSimulation', simulationId) // Remove the simulation invites document.

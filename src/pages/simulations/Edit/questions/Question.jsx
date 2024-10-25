@@ -11,35 +11,35 @@ import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon,
 import { Draggable } from '@hello-pangea/dnd'
 
 import { FormPart, TrackedTextField, TrackedCodeField, MCE } from 'components'
-import { deleteQuestion, updateQuestion, questionIndexToString } from 'simulations'
+import { deletePage, updatePage, pageIndexToString } from 'simulations'
 
-import { emptyQuestion, emptyFolder, accordionStyle } from '../../settings'
+import { emptyPage, emptyFolder, accordionStyle } from '../../settings'
 import { hasVariables, getScriptError } from '../../util'
 
 import { Options } from './Options'
 
-export function QuestionOrFolder(data) {
-	const { question } = data
-	if (question.type === 'folder')
+export function PageOrFolder(data) {
+	const { page } = data
+	if (page.type === 'folder')
 		return <Folder {...data} />
-	if (question.type === 'question' || question.type === undefined)
-		return <Question {...data} />
+	if (page.type === 'page')
+		return <Page {...data} />
 }
 
-export function Question({ simulation, question, dragIndex, listIndex, expanded, isDragging, flipExpand }) {
+export function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, flipExpand }) {
 	const theme = useTheme()
 
-	// Determine the icon for this question.
-	const Icon = question.options ? HelpIcon : InfoIcon
-	const iconColor = question.options ? theme.palette.primary.main : theme.palette.info.main
+	// Determine the icon for this page.
+	const Icon = page.options ? HelpIcon : InfoIcon
+	const iconColor = page.options ? theme.palette.primary.main : theme.palette.info.main
 
 	// Determine the jump-in. Ensure this doesn't change upon dragging.
 	const jumpInRef = useRef()
 	const jumpIn = isDragging ? jumpInRef.current : listIndex.length - 1
 	jumpInRef.current = jumpIn
 
-	// Render the question.
-	return <Draggable key={question.id} index={dragIndex} draggableId={question.id}>
+	// Render the page.
+	return <Draggable key={page.id} index={dragIndex} draggableId={page.id}>
 		{(provided, snapshot) =>
 			<Accordion
 				ref={provided.innerRef}
@@ -57,25 +57,25 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
 					<Icon sx={{ color: iconColor, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
-					<span style={{ marginRight: '0.75rem' }}>{questionIndexToString(question.index)}</span>
-					{question.internalTitle || question.title || emptyQuestion}
+					<span style={{ marginRight: '0.75rem' }}>{pageIndexToString(page.index)}</span>
+					{page.internalTitle || page.title || emptyPage}
 				</AccordionSummary>
 				{expanded ? <>
 					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 						<FormPart>
-							<TrackedTextField label="Titel" value={question.title} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="title" />
+							<TrackedTextField label="Titel" value={page.title} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="title" />
 						</FormPart>
 						<FormPart>
-							<TrackedTextField label="Interner Titel (für Benutzer nicht sichtbar)" value={question.internalTitle} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="internalTitle" />
+							<TrackedTextField label="Interner Titel (für Benutzer nicht sichtbar)" value={page.internalTitle} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="internalTitle" />
 						</FormPart>
 						<FormPart>
-							<MCE label="Beschreibung" height="225" value={question.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="description" />
+							<MCE label="Beschreibung" height="225" value={page.description} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="description" />
 						</FormPart>
-						{hasVariables(simulation) ? <QuestionEntryScript {...{ simulation, question }} /> : null}
-						<Options {...{ simulation, question }} />
+						{hasVariables(simulation) ? <PageEntryScript {...{ simulation, page }} /> : null}
+						<Options {...{ simulation, page }} />
 					</AccordionDetails>
 					<AccordionActions key="actions">
-						<Button sx={{ mt: 2 }} onClick={() => deleteQuestion(simulation, question)}>Seite löschen</Button>
+						<Button sx={{ mt: 2 }} onClick={() => deletePage(simulation, page)}>Seite löschen</Button>
 					</AccordionActions>
 				</> : null}
 			</Accordion>}
@@ -83,13 +83,13 @@ export function Question({ simulation, question, dragIndex, listIndex, expanded,
 }
 
 function Folder(props) {
-	const folder = props.question
+	const folder = props.page
 	if (folder.closer)
 		return <FolderCloser {...props} />
 	return <FolderOpener {...props} />
 }
 
-function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expanded, isDragging, isDestinationFolder, flipExpand }) {
+function FolderOpener({ simulation, page: folder, dragIndex, listIndex, expanded, isDragging, isDestinationFolder, flipExpand }) {
 	const theme = useTheme()
 
 	// Determine the jump-in. Ensure this doesn't change upon dragging.
@@ -101,7 +101,7 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 	const isEmpty = !folder.contents || folder.contents.length === 0
 	const expandIcon = isEmpty ?
 		<Tooltip title="Ordner löschen" arrow enterDelay={500}>
-			<DeleteIcon sx={{ cursor: 'pointer' }} onClick={() => deleteQuestion(simulation, folder)} />
+			<DeleteIcon sx={{ cursor: 'pointer' }} onClick={() => deletePage(simulation, folder)} />
 		</Tooltip> :
 		<ExpandMoreIcon sx={{ transition: 'transform 150ms', ...(expanded ? { transform: 'rotate(180deg)', transition: 'transform 150ms' } : {}) }} />
 
@@ -130,7 +130,7 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
 					<Icon sx={{ color: theme.palette.secondary.main, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
-					<span style={{ marginRight: '0.75rem' }}>{questionIndexToString(folder.index)}</span>
+					<span style={{ marginRight: '0.75rem' }}>{pageIndexToString(folder.index)}</span>
 					<FolderTitle {...{ simulation, folder }} />
 				</AccordionSummary>
 			</Accordion>
@@ -139,7 +139,7 @@ function FolderOpener({ simulation, question: folder, dragIndex, listIndex, expa
 }
 
 // The FolderCloser is an invisible marker with height 0. If an object is dragged above this separator, it will be dropped inside the folder. If it is dragged below this separator, it will be dropped below the folder.
-function FolderCloser({ question: folder, dragIndex }) {
+function FolderCloser({ page: folder, dragIndex }) {
 	return <Draggable key={`${folder.id}-closer`} index={dragIndex} draggableId={`${folder.id}-closer`}>
 		{(provided) => <div ref={provided.innerRef}	{...provided.draggableProps}	{...provided.dragHandleProps}><div style={{ height: 0, background: 'red' }} />
 		</div>}
@@ -159,14 +159,14 @@ function FolderTitle({ simulation, folder }) {
 
 	// When editing, store any edits directly.
 	const updateTitle = async (event) => {
-		await updateQuestion(simulation.id, folder.id, { title: event.target.value })
+		await updatePage(simulation.id, folder.id, { title: event.target.value })
 	}
 	return <input type="text" style={{ marginRight: '1em', width: '100%' }} value={folder.title || ''} onClick={(event) => event.stopPropagation()} onChange={updateTitle} autoFocus={true} onBlur={() => setIsEditing(false)} onKeyDown={event => (event.key === 'Enter' || event.key === 'Escape') && setIsEditing(false)} />
 }
 
-export function QuestionEntryScript({ simulation, question }) {
+export function PageEntryScript({ simulation, page }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart>
-		<TrackedCodeField label="Eintrittsskript (wird beim Laden der Seite ausgeführt)" value={question.entryScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="entryScript" multiline={true} getError={getError} />
+		<TrackedCodeField label="Eintrittsskript (wird beim Laden der Seite ausgeführt)" value={page.entryScript} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="entryScript" multiline={true} getError={getError} />
 	</FormPart>
 }

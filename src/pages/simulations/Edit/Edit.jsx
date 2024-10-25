@@ -8,7 +8,7 @@ import { Page, useTab } from 'components'
 import { hasVariables } from '../util'
 
 import { Settings } from './settings'
-import { Questions } from './questions'
+import { Pages } from './questions'
 import { Variables } from './variables'
 import { Events } from './events'
 
@@ -41,6 +41,6 @@ export function Edit() {
 
 function EditForSimulation({ simulation }) {
 	const tab = useTab()
-	const Component = [Settings, Questions, Variables, Events][tab]
+	const Component = [Settings, Pages, Variables, Events][tab]
 	return <Component simulation={simulation} />
 }

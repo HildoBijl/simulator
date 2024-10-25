@@ -15,16 +15,16 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 import { numberToLetter, useClearTags } from 'util'
 import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'components'
-import { updateQuestion, moveOption, questionIndexToString } from 'simulations'
+import { updatePage, moveOption, pageIndexToString } from 'simulations'
 
-import { emptyQuestion, emptyOption } from '../../settings'
+import { emptyPage, emptyOption } from '../../settings'
 import { hasVariables, getScriptError } from '../../util'
 
-export function Options({ simulation, question }) {
+export function Options({ simulation, page }) {
 	const theme = useTheme()
 
 	// Set up manual expansion controls.
-	const options = question.options || []
+	const options = page.options || []
 	const [defaultsExpanded, setDefaultsExpanded] = useState(false)
 	const [expanded, setExpanded] = useState(options.map(() => false))
 	const flipExpand = (index) => setExpanded(expanded => [...expanded.slice(0, index), !expanded[index], ...expanded.slice(index + 1)])
@@ -35,10 +35,10 @@ export function Options({ simulation, question }) {
 		if (!canAddOption)
 			return
 		setExpanded(expanded => [...expanded, true])
-		await updateQuestion(simulation.id, question.id, { options: arrayUnion({}) })
+		await updatePage(simulation.id, page.id, { options: arrayUnion({}) })
 	}
 	const removeOption = async (index) => {
-		await updateQuestion(simulation.id, question.id, { options: arrayRemove(options[index]) })
+		await updatePage(simulation.id, page.id, { options: arrayRemove(options[index]) })
 		setExpanded(expanded => [...expanded.slice(0, index), ...expanded.slice(index + 1)])
 	}
 
@@ -58,15 +58,15 @@ export function Options({ simulation, question }) {
 		const from = dragData.source.index
 		const to = dragData.destination.index
 		if (from !== to)
-			await moveOption(simulation, question, from, to)
+			await moveOption(simulation, page, from, to)
 	}
 
 	// Render the options through an Accordion. When there are no options, pull out the standard settings.
 	return <>
 		{options.length === 0 ? <>
-			<FollowUpDropdown {...{ simulation, question }} />
+			<FollowUpDropdown {...{ simulation, page }} />
 			{hasVariables(simulation) ? <>
-				<QuestionUpdateScript {...{ simulation, question }} />
+				<PageUpdateScript {...{ simulation, page }} />
 			</> : null}
 		</> : null}
 		<Label>Antwortmöglichtkeiten</Label>
@@ -76,8 +76,8 @@ export function Options({ simulation, question }) {
 					ref={provided.innerRef}
 					{...provided.droppableProps}
 					style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
-					{options.length === 0 ? null : <Defaults {...{ simulation, question, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />}
-					{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, question, option, optionIndex, updatedIndex: applyMoveToIndex(move, optionIndex), expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
+					{options.length === 0 ? null : <Defaults {...{ simulation, page, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />}
+					{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, page, option, optionIndex, updatedIndex: applyMoveToIndex(move, optionIndex), expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
 					{provided.placeholder}
 					{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>
 						<AccordionSummary>
@@ -90,22 +90,22 @@ export function Options({ simulation, question }) {
 	</>
 }
 
-function Defaults({ simulation, question, expanded, flipExpand }) {
+function Defaults({ simulation, page, expanded, flipExpand }) {
 	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 			Standardeinstellungen für alle Antwortmöglichkeiten (sofern nicht weiter eingestellt)
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, mt: -2 }}>
-			<FollowUpDropdown {...{ simulation, question }} />
+			<FollowUpDropdown {...{ simulation, page }} />
 			<FormPart>
-				<TrackedTextField label="Standard Rückmeldung" value={question.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="feedback" multiline={true} />
+				<TrackedTextField label="Standard Rückmeldung" value={page.feedback} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="feedback" multiline={true} />
 			</FormPart>
-			{hasVariables(simulation) ? <QuestionUpdateScript {...{ simulation, question }} /> : null}
+			{hasVariables(simulation) ? <PageUpdateScript {...{ simulation, page }} /> : null}
 		</AccordionDetails>
 	</Accordion>
 }
 
-function Option({ simulation, question, option, optionIndex, updatedIndex, expanded, flipExpand }) {
+function Option({ simulation, page, option, optionIndex, updatedIndex, expanded, flipExpand }) {
 	const theme = useTheme()
 
 	// Determine some derived/default properties.
@@ -146,70 +146,69 @@ function Option({ simulation, question, option, optionIndex, updatedIndex, expan
 				{expanded ? <>
 					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 						<FormPart>
-							<MCE ref={descriptionRef} label="Beschreibung" height="200" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="description" />
+							<MCE ref={descriptionRef} label="Beschreibung" height="200" value={option.description} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="description" />
 						</FormPart>
-						<FollowUpDropdown {...{ simulation, question, optionIndex }} />
+						<FollowUpDropdown {...{ simulation, page, optionIndex }} />
 						<FormPart>
-							<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
+							<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
 						</FormPart>
-						{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, question, optionIndex }} /> : null}
+						{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, page, optionIndex }} /> : null}
 					</AccordionDetails>
 					<AccordionActions key="actions">
-						<Button onClick={() => updateQuestion(simulation.id, question.id, { options: arrayRemove(option) })}>Antwortmöglichkeit Löschen</Button>
+						<Button onClick={() => updatePage(simulation.id, page.id, { options: arrayRemove(option) })}>Antwortmöglichkeit Löschen</Button>
 					</AccordionActions>
 				</> : null}
 			</Accordion>}
 	</Draggable>
 }
 
-function FollowUpDropdown({ simulation, question, optionIndex }) {
-	const forQuestion = (optionIndex === undefined)
-	const forPage = forQuestion && (question.options || []).length === 0
-	const options = question.options || []
+function FollowUpDropdown({ simulation, page, optionIndex }) {
+	const options = page.options || []
 	const option = options[optionIndex]
+	const forPage = (optionIndex === undefined)
 
-	// Set up a handler to save the follow-up question.
-	const setFollowUpQuestion = async (questionId) => {
-		if (forQuestion)
-			return await updateQuestion(simulation.id, question.id, { followUpQuestion: questionId === 'default' ? deleteField() : questionId })
-		const newOption = { ...option, followUpQuestion: questionId }
-		if (questionId === 'default')
-			delete newOption.followUpQuestion
-		return await updateQuestion(simulation.id, question.id, { options: [...options.slice(0, optionIndex), newOption, ...options.slice(optionIndex + 1)] })
+	// Set up a handler to save the follow-up page.
+	const setFollowUpPage = async (pageId) => {
+		if (forPage)
+			return await updatePage(simulation.id, page.id, { followUpPage: pageId === 'default' ? deleteField() : pageId })
+		const newOption = { ...option, followUpPage: pageId }
+		if (pageId === 'default')
+			delete newOption.followUpPage
+		return await updatePage(simulation.id, page.id, { options: [...options.slice(0, optionIndex), newOption, ...options.slice(optionIndex + 1)] })
 	}
 
-	// Determine the next question, which would be the standard option for follow-up.
-	const currQuestionIndex = simulation.questionList.findIndex(currQuestion => currQuestion.id === question.id)
-	const nextQuestion = simulation.questionList[currQuestionIndex + 1]
+	// Determine the next page, which would be the standard option for follow-up.
+	const currPageIndex = simulation.pageList.findIndex(currPage => currPage.id === page.id)
+	const nextPage = simulation.pageList[currPageIndex + 1]
 
 	// Render the dropdown field.
-	const label = `${forQuestion && !forPage ? 'Standard ' : ''}Folgeseite`
-	const value = (forQuestion ? question.followUpQuestion : option.followUpQuestion) || 'default'
+	const label = `${forPage && options.length > 0 ? 'Standard ' : ''}Folgeseite`
+	const value = (forPage ? page.followUpPage : option.followUpPage) || 'default'
 	return <FormPart>
 		<FormControl fullWidth>
 			<InputLabel>{label}</InputLabel>
-			<Select value={value} label={label} onChange={(event) => setFollowUpQuestion(event.target.value)}>
-				<MenuItem key="default" value="default">{forQuestion ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextQuestion ? `Seite ${questionIndexToString(nextQuestion.index)}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung dieser Frage verwenden</>}</MenuItem>
-				{simulation.questionList.map(otherQuestion => <MenuItem key={otherQuestion.id} value={otherQuestion.id}>{questionIndexToString(otherQuestion.index)} {otherQuestion.internalTitle || otherQuestion.title || emptyQuestion}</MenuItem>)}
+			<Select value={value} label={label} onChange={(event) => setFollowUpPage(event.target.value)}>
+				<MenuItem key="default" value="default">{forPage ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextPage ? `Seite ${pageIndexToString(nextPage.index)}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung dieser Frage verwenden</>}</MenuItem>
+				{simulation.pageList.map(otherPage => <MenuItem key={otherPage.id} value={otherPage.id}>{pageIndexToString(otherPage.index)} {otherPage.internalTitle || otherPage.title || emptyPage}</MenuItem>)}
 				<MenuItem key="end" value="end">Ende: Danach wird die Simulation beendet</MenuItem>
 			</Select>
 		</FormControl>
 	</FormPart>
 }
 
-export function QuestionUpdateScript({ simulation, question }) {
+export function PageUpdateScript({ simulation, page }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
-	const label = (question.options || []).length > 0 ? 'Standard Update-Skript (wird bei Auswahl einer Antwortmöglichkeit ohne eigenes Update-Skript ausgeführt)' : 'Update-Skript (wird beim Verlassen der Seite ausgeführt)'
+	const label = (page.options || []).length > 0 ? 'Standard Update-Skript (wird bei Auswahl einer Antwortmöglichkeit ohne eigenes Update-Skript ausgeführt)' : 'Update-Skript (wird beim Verlassen der Seite ausgeführt)'
 	return <FormPart>
-		<TrackedCodeField label={label} value={question.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="updateScript" multiline={true} getError={getError} />
+		<TrackedCodeField label={label} value={page.updateScript} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }
 
-export function OptionUpdateScript({ simulation, question, optionIndex, label = "Update-Skript (wird bei Auswahl dieser Antwortmöglichkeit ausgeführt)" }) {
-	const option = question.options[optionIndex]
+export function OptionUpdateScript({ simulation, page, optionIndex, label = "Update-Skript (wird bei Auswahl dieser Antwortmöglichkeit ausgeführt)" }) {
+	const option = page.options[optionIndex]
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart>
-		<TrackedCodeField label={label} value={option.updateScript} path={`simulations/${simulation.id}/questions`} documentId={question.id} field="options" arrayValue={question.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
+		<TrackedCodeField label={label} value={option.updateScript} path={`simulations/${simulation.id}/questions`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
 	</FormPart>
 }
 

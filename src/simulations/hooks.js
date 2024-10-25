@@ -1,11 +1,10 @@
 import { useMemo, useState, useEffect } from 'react'
-import { doc, setDoc } from 'firebase/firestore'
 
-import { arrayToObject, isLocalhost, deepEquals } from 'util'
-import { db, useUserData, useUserId, useDocument, useCollection } from 'fb'
+import { arrayToObject } from 'util'
+import { useUserData, useUserId, useDocument, useCollection } from 'fb'
 
 import { getSimulationByUrl } from './functions'
-import { useSimulationPages, updatePage } from './questions'
+import { useSimulationPages } from './pages'
 import { useSimulationVariables } from './variables'
 import { useSimulationEvents } from './events'
 

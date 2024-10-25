@@ -8,7 +8,7 @@ import { Page, useTab } from 'components'
 import { hasVariables } from '../util'
 
 import { Settings } from './settings'
-import { Pages } from './questions'
+import { Pages } from './pages'
 import { Variables } from './variables'
 import { Events } from './events'
 

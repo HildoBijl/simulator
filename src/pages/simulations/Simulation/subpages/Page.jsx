@@ -29,7 +29,7 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 		if (!page.options)
 			return // No options. Never auto-continue, since it's an info-screen.
 		if (choice === undefined)
-			return // It's a question but the question hasn't been answered. Can't auto-continue.
+			return // It's a question page but the question hasn't been answered. Can't auto-continue.
 		if (options[choice].feedback || page.feedback)
 			return // There's feedback to show. Don't auto-continue.
 		goToNextPage(isOwner) // No reason found not to: let's auto-continue!

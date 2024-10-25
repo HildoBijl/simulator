@@ -13,7 +13,7 @@ import { Page, FormPart } from 'components'
 import { hasVariables } from '../util'
 import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle } from '../settings'
 
-import { PageEntryScript, PageUpdateScript, OptionUpdateScript } from './questions'
+import { PageEntryScript, PageUpdateScript, OptionUpdateScript } from './pages'
 import { GeneralUpdateScript } from './variables'
 
 const ScriptsPage = ({ children, simulationId }) => <Page title="Simulation Skript Übersicht" backButton={`/create/${simulationId}`}>{children}</Page>

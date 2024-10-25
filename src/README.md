@@ -1,6 +1,6 @@
 # What is this Simulator?
 
-This Simulator is a web app that allows people (for instance teachers) to create small multiple-choice simulations for others (for instance their students). In these simulations, there are no right and wrong questions, but it's more a matter of "What would you do in this situation?" You can [https://simulator-54576.web.app/](try it out yourself)!
+This Simulator is a web app that allows people (for instance teachers) to create small multiple-choice simulations for others (for instance their students). In these simulations, there are no right and wrong answers to questions, but it's more a matter of "What would you do in this situation?" You can [https://simulator-54576.web.app/](try it out yourself)!
 
 
 # Contribute to the Simulator

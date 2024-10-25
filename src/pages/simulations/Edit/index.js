@@ -1,4 +1,4 @@
-export * from './questions'
+export * from './pages'
 export * from './variables'
 export * from './Edit'
 export * from './AllSimulations'

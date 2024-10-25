@@ -17,7 +17,7 @@ import { updateSimulation, getPageRef, movePage, pageIndexToString } from 'simul
 
 import { emptyPage, accordionStyle } from '../../settings'
 
-import { PageOrFolder } from './Question'
+import { PageOrFolder } from './Page'
 
 export function Pages({ simulation }) {
 	const theme = useTheme()

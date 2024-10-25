@@ -1,5 +1,5 @@
 export * from './ErrorPage'
 export * from './EmptySimulation'
 export * from './InitializingPage'
-export * from './Question'
+export * from './Page'
 export * from './EndPage'

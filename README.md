@@ -1,11 +1,11 @@
 # Simulator ReadMe
 
-The Simulator is a tool that allows users to set up small simulations/games, consisting of Multiple Choice questions. Functionalities include:
+The Simulator is a tool that allows users to set up small simulations/games, consisting of pages with Multiple Choice questions. Functionalities include:
 
-- Show the user a series of *multiple choice* questions. These can have a description and an image/video.
-- Per answer option, specify direct feedback, as well as which *follow-up question* should be next.
+- Show the user a series of *multiple choice* questions.
+- Per answer option, specify direct feedback, as well as which *follow-up page* should be next.
 - Add *variables* like "health points" or "food supply" that are updated based on the user's choices.
-- Allow for *events*: when a certain condition is met on the variables, like "hp < 10", then a specific in-between question or alternate path is triggered.
+- Allow for *events*: when a certain condition is met on the variables, like "hp < 10", then a specific in-between page or alternate path is triggered.
 
 This allows for a large variety of games to be made, from simple adventure stories to educational business simulations.
 

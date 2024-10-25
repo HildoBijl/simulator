@@ -13,7 +13,7 @@ function SomeReactComponent({ simulationId }) {
 }
 ```
 
-This gives you the simulation as one big object. Behind the scenes it loads in all relevant data, including questions, variables and events. And if any part of the simulation is changed (like when the creator adjusts it) then the component is immediately rerended. (To prevent this, and only load the simulation once, add `true` as second parameter to `useSimulation(id, true)`. Although usually this live updating is very much desired.)
+This gives you the simulation as one big object. Behind the scenes it loads in all relevant data, including pages, variables and events. And if any part of the simulation is changed (like when the creator adjusts it) then the component is immediately rerended. (To prevent this, and only load the simulation once, add `true` as second parameter to `useSimulation(id, true)`. Although usually this live updating is very much desired.)
 
 ## Internal functionalities
 
@@ -24,4 +24,4 @@ This folder has a large variety of functions and hooks related to simulations.
 
 Hooks sometimes use functions, but functions never use hooks.
 
-This split of code into functions and hooks holds for the fundamental simulation properties (like title, description, etcetera). It separately also is applied to more extended functionalities, like [questions](./questions/), [variables](./variables/) and [events](./events/).
+This split of code into functions and hooks holds for the fundamental simulation properties (like title, description, etcetera). It separately also is applied to more extended functionalities, like [pages](./pages/), [variables](./variables/) and [events](./events/).

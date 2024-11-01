@@ -1,7 +1,7 @@
-import { arrayFind } from 'util'
+import { arrayFind, getBracketPositions } from 'util'
 
 import { hasVariables } from './util'
-import { getScriptError, getConditionError } from './scripts'
+import { getScriptError, getExpressionError } from './scripts'
 
 // isSimulationValid checks if the given simulation has any problems. It returns a boolean.
 export function isSimulationValid(simulation) {
@@ -59,6 +59,11 @@ export function getSimulationError(simulation) {
 	const updateScriptError = getSimulationUpdateScriptError(simulation)
 	if (updateScriptError)
 		return updateScriptError
+
+	// Check variable-display errors.
+	const displayScriptError = getDisplayScriptError(simulation)
+	if (displayScriptError)
+		return displayScriptError
 
 	// Check the conditions for events.
 	const eventError = getSimulationEventError(simulation)
@@ -151,10 +156,67 @@ export function getSimulationUpdateScriptError(simulation) {
 		return pageErrorObj.value
 }
 
+// getDisplayScriptError looks at all scripts inside simulation display texts, like "your life points are {hp}." It checks all these small code snippets to see if they return an appropriate value.
+export function getDisplayScriptError(simulation) {
+	// Walk through the pages.
+	const pageErrorObj = arrayFind(Object.values(simulation.pages), page => {
+		if (page.description) {
+			const descriptionError = evaluateTextWithScripts(page.description, simulation)
+			if (descriptionError)
+				return { source: 'simulation', type: 'displayScript', subtype: 'page', field: 'description', page, ...descriptionError }
+		}
+		if (page.feedback) {
+			const feedbackError = evaluateTextWithScripts(page.feedback, simulation)
+			if (feedbackError)
+				return { source: 'simulation', type: 'displayScript', subtype: 'page', field: 'feedback', page, ...feedbackError }
+		}
+
+		// Within the page, walk through the options.
+		if (page.options) {
+			const optionErrorObj = arrayFind(page.options, (option, optionIndex) => {
+				if (option.description) {
+					const descriptionError = evaluateTextWithScripts(option.description, simulation)
+					if (descriptionError)
+						return { source: 'simulation', type: 'displayScript', subtype: 'option', field: 'description', page, option, optionIndex, ...descriptionError }
+				}
+				if (option.feedback) {
+					const feedbackError = evaluateTextWithScripts(option.feedback, simulation)
+					if (feedbackError)
+						return { source: 'simulation', type: 'displayScript', subtype: 'option', field: 'feedback', page, option, optionIndex, ...feedbackError }
+				}
+			})
+			if (optionErrorObj)
+				return optionErrorObj.value
+		}
+	})
+
+	// Check if an error was found.
+	if (pageErrorObj)
+		return pageErrorObj.value
+}
+
+// evaluateTextWithScripts takes a piece of text, for instance a page description, and checks all display scripts in it. It returns an error object on an error.
+export function evaluateTextWithScripts(text, simulation) {
+	// Get the bracket positions. If they are not properly nested, or simply have no brackets, just return the text.
+	const bracketPositions = getBracketPositions(text)
+	if (!bracketPositions)
+		return { error: { type: 'noNestedBrackets', message: 'Die Klammern sind nicht richtig verschachtelt.' } } // Not properly nested.
+	if (bracketPositions.length === 0)
+		return // No brackets, so all OK.
+
+	// Walk through the brackets to test all expressions.
+	return arrayFind(bracketPositions, bracketSet => {
+		const expression = text.substring(bracketSet[0] + 1, bracketSet[1])
+		const error = getExpressionError(expression, simulation)
+		if (error)
+			return { expression, error }
+	})?.value
+}
+
 // getSimulationEventError checks for a given simulation whether the events are OK. If so, undefined is returned. If not, an error is given.
 export function getSimulationEventError(simulation) {
 	const eventErrorObj = arrayFind(Object.values(simulation.events), (event, eventIndex) => {
-		const conditionError = getConditionError(event.condition, simulation)
+		const conditionError = getExpressionError(event.condition, simulation, true)
 		if (conditionError)
 			return { source: 'simulation', type: 'event', subtype: 'condition', error: conditionError, event, eventIndex }
 	})

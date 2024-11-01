@@ -13,6 +13,7 @@ import { Page as PageContainer, InputParagraph, MCEContents } from 'components'
 import { useIsOwner, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyOption } from '../../settings'
+import { getVariables } from '../../util'
 import { resolveScripts } from '../../scripts'
 
 import { VariableOverview } from '../components/VariableOverview'
@@ -46,14 +47,13 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 	const icons = simulation.allowUndo && canUndo ? [{ Icon: Undo, onClick: undo }] : []
 
 	// Render the page with description, media, options and buttons.
-	const variables = state.variablesAfter || state.variablesBefore
 	return <PageContainer title={page.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
-		<MCEContents>{resolveScripts(page.description, variables, simulation)}</MCEContents>
+		<MCEContents>{resolveScripts(page.description, getVariables(state), simulation)}</MCEContents>
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
 				{page.options.map((option, index) => choice !== undefined ?
-					<Option key={index} {...{ simulation, page, option, index, disabled: index !== choice, feedback: index === choice && (options[choice].feedback || page.feedback) }} /> :
-					<Option key={index} {...{ simulation, page, option, index, selected: false, select: () => chooseOption(index, isOwner) }} />)}
+					<Option key={index} {...{ simulation, state, page, option, index, disabled: index !== choice, feedback: index === choice && (options[choice].feedback || page.feedback) }} /> :
+					<Option key={index} {...{ simulation, state, page, option, index, selected: false, select: () => chooseOption(index, isOwner) }} />)}
 			</div>
 		</>}
 		{atSimulationEnd ? <>
@@ -66,7 +66,7 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 	</PageContainer>
 }
 
-function Option({ option, index, selected, select, deselect, disabled, feedback }) {
+function Option({ option, index, selected, select, deselect, disabled, feedback, simulation, state }) {
 	const [isHovered, setIsHovered] = useState(false)
 	const theme = useTheme()
 	const letter = numberToLetter(index)
@@ -117,10 +117,10 @@ function Option({ option, index, selected, select, deselect, disabled, feedback 
 		<div style={{ alignItems: 'flex-start', display: 'flex', flexFlow: 'row nowrap', margin: '0.25rem 0' }}>
 			<div style={letterStyle} {...handlers}>{letter.toUpperCase()}</div>
 			<div style={descriptionStyle} {...handlers}>
-				<MCEContents>{description}</MCEContents>
+				<MCEContents>{resolveScripts(description, getVariables(state), simulation)}</MCEContents>
 			</div>
 		</div>
-		{feedback ? <div style={feedbackStyle}><InputParagraph>{feedback}</InputParagraph></div> : null}
+		{feedback ? <div style={feedbackStyle}><InputParagraph>{resolveScripts(feedback, getVariables(state), simulation)}</InputParagraph></div> : null}
 	</>
 }
 

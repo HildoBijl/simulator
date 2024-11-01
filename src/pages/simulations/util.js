@@ -20,6 +20,11 @@ export function getState(history) {
 	return history[history.length - 1]
 }
 
+// getVariables obtains the current variables from a state.
+export function getVariables(state) {
+	return state.variablesAfter || state.variablesBefore
+}
+
 // getFollowUpPage gets the follow-up page for a given simulation page. If it's set, give the setting. If not, give the ID of the next page. If not available, end the simulation.
 export function getFollowUpPage(page, simulation) {
 	return page.followUpPage || simulation.pageList[simulation.pageList.findIndex(currPage => currPage.id === page.id) + 1]?.id || 'end'

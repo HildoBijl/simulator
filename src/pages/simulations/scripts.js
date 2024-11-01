@@ -1,5 +1,7 @@
 import { parseScript } from 'esprima'
 
+import { lastOf, getBracketPositions } from 'util'
+
 import { getInitialVariables, getVariableInitialValue, boundVariables } from './util'
 
 // The defaultFunctions are the functions that are included whenever custom script is run.
@@ -75,52 +77,51 @@ export function evaluateExpression(expression, variables, supportingFunctions = 
 		${defaultFunctions}
 		${supportingFunctions}
 		${getVariableDefinitionScript(variables)}
-		return ${expression}\n
+		return ${preprocessScript(expression)}\n
 	`)
 }
 
 // resolveScripts takes a text (possibly with HTML) and resolves any scripts defined within curly braces { ... }.
 export function resolveScripts(text, variables, simulation) {
 	const variablesAsNames = switchVariableNames(variables, simulation)
-	let brackets = getCurlyBracketPositions(text)
-	while (brackets) {
-		const before = text.substring(0, brackets[0])
-		const expression = text.substring(brackets[0] + 1, brackets[1])
-		const after = text.substring(brackets[1] + 1)
 
-		// Evaluate the expression and merge it back in.
+	// Get the bracket positions. If they are not properly nested, or simply have no brackets, just return the text.
+	const bracketPositions = getBracketPositions(text)
+	if (!bracketPositions)
+		return text // Not properly nested.
+	if (bracketPositions.length === 0)
+		return text // No brackets.
+
+	// Walk through the bracket positions to assemble the text.
+	let result = ''
+	bracketPositions.forEach((bracketSet, index) => {
+		result += text.substring(index === 0 ? 0 : bracketPositions[index - 1][1] + 1, bracketSet[0])
+
+		// Try to get the expression evaluation. As fallback show dots.
+		const expression = text.substring(bracketSet[0] + 1, bracketSet[1])
 		let evaluated
 		try {
 			evaluated = evaluateExpression(expression, variablesAsNames, simulation.supportingFunctions)
+			if (evaluated === undefined || evaluated === null)
+				evaluated = '...'
 		} catch (error) {
-			evaluated = '...' // On an error use dots.
+			console.log(error)
+			evaluated = '...'
 		}
-		text = before + evaluated + after
-		brackets = getCurlyBracketPositions(text, (before + evaluated).length)
-	}
-	return text
+		result += evaluated
+	})
+	result += text.substring(lastOf(bracketPositions)[1] + 1)
+	return result
 }
 
-// getCurlyBracketPositions takes a string like ab{cd{ef}g}h and returns the position of the outer nested curly brackets (here [2, 10]) as an array. It returns undefined when there are no outer curly brackets, or the opening brackets doesn't get closed.
-function getCurlyBracketPositions(text, startAt = 0) {
-	let depth = 0
-	let open, close
-	for (let i = startAt; i < text.length && close === undefined; i++) {
-		const char = text[i]
-		if (char === '{') {
-			if (open === undefined)
-				open = i
-			depth++
-		} else if (char === '}') {
-			depth--
-			if (depth === 0)
-				close = i
-		}
-	}
+// preprocessScript takes a user-defined script and preprocesses it.
+export function preprocessScript(script) {
+	// Turn < or > tags from TinyMCE back into comparisons.
+	script = script.replace(/&lt;/g, '<')
+	script = script.replace(/&gt;/g, '>')
 
-	// Return the outcome that has been obtained.
-	if (open !== undefined && close !== undefined)
-		return [open, close]
+	// All done!
+	return script
 }
 
 // getScriptError takes a script and, for a given simulation, evaluates its functioning. On an error it returns it. When everything is OK, undefined is returned.
@@ -146,8 +147,8 @@ export function getScriptError(script, simulation) {
 	}
 }
 
-// getConditionError takes a condition statement and, for a given simulation, evaluates its functioning. On an error it returns it. When everything is OK, undefined is returned.
-export function getConditionError(condition, simulation) {
+// getExpressionError takes an expression and, for a given simulation, evaluates its functioning. On an error it returns it. When everything is OK, undefined is returned.
+export function getExpressionError(condition, simulation, requireBoolean = false) {
 	// Check the input.
 	if (simulation === undefined)
 		throw new Error(`Invalid getScriptError parameters: a simulation also has to be passed for the function to be able to evaluate an update script.`)
@@ -163,8 +164,10 @@ export function getConditionError(condition, simulation) {
 		const result = evaluateExpression(condition, initialVariables, simulation.supportingFunctions)
 
 		// Ensure that we received a boolean.
-		if (typeof result !== 'boolean')
+		if (requireBoolean && typeof result !== 'boolean')
 			throw new Error(`Die Bedingung gibt weder true noch false zurück.`)
+		if (result === undefined || result === null)
+			throw new Error(`Der Ausdruck hat keinen richtigen Wert zurückgegeben.`)
 
 		// No error found, all in order.
 		return undefined

@@ -2,7 +2,7 @@ import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 
 import { numberToLetter, useClearTags } from 'util'
-import { Page } from 'components'
+import { Page, Code } from 'components'
 import { useIsOwner, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle } from '../../settings'
@@ -14,6 +14,7 @@ const components = { // Map the error types to components that can display them.
 	supportingFunctions: SupportingFunctionsError,
 	entryScript: EntryScriptError,
 	updateScript: UpdateScriptError,
+	displayScript: DisplayScriptError,
 	event: EventError,
 
 	// State errors.
@@ -98,6 +99,44 @@ function UpdateScriptError({ error }) {
 	// Set up the error message.
 	return <>
 		<p>{source}</p>
+		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
+	</>
+}
+
+function DisplayScriptError({ error }) {
+	let source
+	console.log(error)
+	const { page, option, optionIndex, error: errorObj, expression } = error
+	const optionTitle = useClearTags(option?.description && option?.description.split('\n')[0] || emptyOption)
+	switch (error.subtype) {
+		case 'page':
+			switch (error.field) {
+				case 'description':
+					source = <>Es gibt einen Fehler in einem Anzeigeskript in der Beschreibung von Seite <em>{pageIndexToString(page.index)} {page.title || emptyPage}</em>.</>
+					break
+				case 'feedback':
+					source = <>Es gibt einen Fehler in einem Anzeigeskript in der Rückmeldung von Seite <em>{pageIndexToString(page.index)} {page.title || emptyPage}</em>.</>
+					break
+			}
+			break
+		case 'option':
+			switch (error.field) {
+				case 'description':
+					source = <>Es gibt einen Fehler in einem Anzeigeskript in der Beschreibung von Seite <em>{pageIndexToString(page.index)} {page.title || emptyPage}</em> Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {optionTitle}</em></>
+					break
+				case 'feedback':
+					source = <>Es gibt einen Fehler in einem Anzeigeskript in der Rückmeldung von Seite <em>{pageIndexToString(page.index)} {page.title || emptyPage}</em> Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {optionTitle}</em></>
+					break
+			}
+			break
+		default:
+			throw new Error(`Invalid display script error subtype. Received an error for a display script with subtype "${error.subtype}" but could not process this properly.`)
+	}
+
+	// Set up the error message.
+	return <>
+		<p>{source}</p>
+		{expression ? <p>Der fehlgeschlagene Ausdruck ist: <Code>{expression}</Code></p> : null}
 		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
 	</>
 }

@@ -105,7 +105,6 @@ function UpdateScriptError({ error }) {
 
 function DisplayScriptError({ error }) {
 	let source
-	console.log(error)
 	const { page, option, optionIndex, error: errorObj, expression } = error
 	const optionTitle = useClearTags(option?.description && option?.description.split('\n')[0] || emptyOption)
 	switch (error.subtype) {

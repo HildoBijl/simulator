@@ -119,6 +119,7 @@ function ExtraOptions({ simulation }) {
 			{!showSupportingFunctions ? <Button variant="contained" onClick={() => setShowSupportingFunctions(true)}>Unterstützende Funktionen für Update-Skripte hinzufügen</Button> : null}
 			{!showGeneralUpdateScript ? <Button variant="contained" onClick={() => setShowGeneralUpdateScript(true)}>Allgemeines Update-Skript hinzufügen</Button> : null}
 			<Button variant="contained" onClick={() => navigate(`/create/${simulation.id}/scripts`)}>Übersicht über alle definierten Skripte anzeigen</Button>
+			<Button variant="contained" onClick={() => navigate(`/create/documentation`)}>Allgemeine Dokumentation anzeigen</Button>
 		</FormPart>
 		{showSupportingFunctions ? <SupportingFunctions {...{ simulation }} /> : null}
 		{showGeneralUpdateScript ? <GeneralUpdateScript {...{ simulation }} /> : null}

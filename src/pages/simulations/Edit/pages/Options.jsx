@@ -199,7 +199,8 @@ function FollowUpDropdown({ simulation, page, optionIndex }) {
 
 export function PageUpdateScript({ simulation, page }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
-	const label = (page.options || []).length > 0 ? 'Standard Update-Skript (wird bei Auswahl einer Antwortmöglichkeit ohne eigenes Update-Skript ausgeführt)' : 'Update-Skript (wird beim Verlassen der Seite ausgeführt)'
+	const optionHasNoScript = (page.options || []).map(option => !option.updateScript)
+	const label = (page.options || []).length > 0 ? `Standard Update-Skript (wird bei Auswahl einer Antwortmöglichkeit ohne eigenes Update-Skript ausgeführt; derzeit ${optionHasNoScript.every(value => value) ? 'alle' : !optionHasNoScript.some(value => value) ? 'keine' : optionHasNoScript.map((value, index) => value && numberToLetter(index).toUpperCase()).filter(value => value).join('/')})` : 'Update-Skript (wird beim Verlassen der Seite ausgeführt)'
 	return <FormPart>
 		<TrackedCodeField label={label} value={page.updateScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart>

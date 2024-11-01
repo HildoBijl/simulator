@@ -7,7 +7,8 @@ This folder contains all scripts related to rendering simulation pages, as well 
 First there are various supporting files that provide useful functionalities, both for editing and running simulations.
 
 - [settings](./settings.js) has general simulation settings. This includes both functionality settings (like default values) as well as style settings.
-- [util](./util.js) has general utility functions for simulations. Think of functions to run update scripts.
+- [util](./util.js) has general utility functions for simulations. Think of initializing functions of variables.
+- [scripts](./scripts.js) has all functionalities for running user-provided scripts.
 - [validation](./validation.js) has scripts that check if parts of a simulation are set up properly. Think of checking whether an update script has no programming errors.
 
 ## Rendering

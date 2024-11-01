@@ -14,7 +14,8 @@ import { FormPart, TrackedTextField, TrackedCodeField, MCE } from 'components'
 import { deletePage, updatePage, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyFolder, accordionStyle } from '../../settings'
-import { hasVariables, getScriptError } from '../../util'
+import { hasVariables } from '../../util'
+import { getScriptError } from '../../scripts'
 
 import { Options } from './Options'
 

@@ -1,7 +1,7 @@
 import { useTheme } from '@mui/material/styles'
 
-export function FormPart({ children }) {
-	return <div style={{ margin: '1.4rem 0' }}>{children}</div>
+export function FormPart({ children, style = {} }) {
+	return <div style={{ margin: '1.4rem 0', ...style }}>{children}</div>
 }
 
 export function FormSubPart({ children }) {
@@ -13,6 +13,6 @@ export function Code({ children }) {
 }
 
 export function Label({ children }) {
-	const theme=  useTheme()
+	const theme = useTheme()
 	return <h5 style={{ color: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)', fontSize: '0.8rem', fontWeight: 400, margin: '-0.5rem 0 0 0.4rem' }}>{children}</h5>
 }

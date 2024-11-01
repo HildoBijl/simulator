@@ -10,7 +10,7 @@ import { numberToLetter, useClearTags } from 'util'
 import { useSimulation, pageIndexToString } from 'simulations'
 import { Page, FormPart } from 'components'
 
-import { hasVariables } from '../util'
+import { hasVariables, hasScripts } from '../util'
 import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle } from '../settings'
 
 import { PageEntryScript, PageUpdateScript, OptionUpdateScript } from './pages'
@@ -47,6 +47,12 @@ export function Scripts() {
 
 function ScriptsForSimulation({ simulation }) {
 	const [variableId, setVariableId] = useState()
+
+	// On no scripts, show a note on this.
+	if (!hasScripts(simulation))
+		return <p>Die Simulation verfügt derzeit über keine Update-Skripte. Sie können Skripte, die beim Betreten/Verlassen einer Seite ausgeführt werden sollen, in den Einstellungen der jeweiligen Seite hinzufügen.</p>
+
+	// Render the page as usual.
 	return <>
 		<VariableSelector {...{ simulation, variableId, setVariableId }} />
 		<GeneralScripts {...{ variableId, simulation }} />

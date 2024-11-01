@@ -9,15 +9,15 @@ import { Label, Code, FormPart, TrackedCodeField } from 'components'
 import { getVariableRef } from 'simulations'
 
 import { accordionStyle } from '../../settings'
-import { getScriptError } from '../../util'
+import { hasVariables } from '../../util'
+import { getScriptError } from '../../scripts'
 
 import { Variable } from './Variable'
 
 export function Variables({ simulation }) {
 	return <>
 		<VariablesList {...{ simulation }} />
-		<LinkToScriptsPage {...{ simulation }} />
-		<GeneralUpdateScript {...{ simulation }} />
+		<ExtraOptions {...{ simulation }} />
 	</>
 }
 
@@ -85,6 +85,7 @@ function VariablesIntroduction({ addVariable }) {
 		<p>Eine Parameter ist eine Zahl, die angepasst wird, während der Benutzer das Spiel spielt. Sie kann eine beliebige Größe sein, wie Geld,  Zufriedenheit oder Lebenspunkte.</p>
 		<p>Um Parameter zu verwenden, müssen sie zunächst hier definiert werden. Dann kann für jede Seite oder Antwortmoglichkeit angegeben werden, wie sie angepasst werden sollen: das Update-Skript.</p>
 		<p>Ein Beispiel für ein Update-Skript für eine Variable <Code>x</Code> könnte lauten &quot;<Code>x = 10</Code>&quot; oder &quot;<Code>x = x - 2</Code>&quot; oder &quot;<Code>x = x + randInt(2, 4)</Code>&quot; oder &quot;<Code>x = x - rand(0.25, 1.75)</Code>&quot;. Die verwendete Sprache ist Javascript, so dass Sie die genauen Formatierungskriterien nach Belieben nachschlagen können.</p>
+		<p>Innerhalb Ihrer Seiten können Sie auch Variablen anzeigen. Verwenden Sie dazu Akkoladen, wie z. B. &quot;Ihr aktueller Geldstand ist &#123;<Code>m</Code>&#125;.&quot; Sie können hier auch Berechnungen hinzufügen, wie &quot;Sie besitzen derzeit &#123;<Code>round(m*100)</Code>&#125; Cent.&quot;</p>
 		<FormPart>
 			<AddVariable addVariable={addVariable} />
 		</FormPart>
@@ -99,28 +100,36 @@ function AddVariable({ addVariable }) {
 	</Accordion>
 }
 
+function ExtraOptions({ simulation }) {
+	const navigate = useNavigate()
+
+	// Allow buttons to activate additional fields.
+	const [showGeneralUpdateScript, setShowGeneralUpdateScript] = useState(!!simulation.updateScript)
+
+	// Don't show extra options if there are no variables.
+	if (!hasVariables(simulation))
+		return null
+
+	// Render the extra options.
+	return <>
+		<h2>Zusätzliche Programmiermöglichkeiten</h2>
+		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem' }}>
+			<Button variant="contained" onClick={() => navigate(`/create/${simulation.id}/scripts`)}>Übersicht über alle definierten Skripte anzeigen</Button>
+			{!showGeneralUpdateScript ? <Button variant="contained" onClick={() => setShowGeneralUpdateScript(true)}>Update-Skript nach jeder Seite hinzufügen</Button> : null}
+		</FormPart>
+		{showGeneralUpdateScript ? <GeneralUpdateScript {...{ simulation }} /> : null}
+	</>
+}
+
 export function GeneralUpdateScript({ simulation }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 
 	// Don't show on no variables.
-	if (Object.keys(simulation.variables).length === 0 && !simulation.updateScript)
+	if (!hasVariables(simulation) && !simulation.updateScript)
 		return null
 
 	// Render the field.
-	return <FormPart>
+	return <FormPart style={{ paddingTop: '0.5rem' }}>
 		<TrackedCodeField label={<>Zusätzliches Update-Skript nach <em>jeder</em> Auswahl einer Antwortmöglichkeit</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />
-	</FormPart>
-}
-
-function LinkToScriptsPage({ simulation }) {
-	const navigate = useNavigate()
-
-	// Don't show on no variables.
-	if (Object.keys(simulation.variables).length === 0)
-		return null
-
-	// Render the button.
-	return <FormPart>
-		<Button variant="contained" onClick={() => navigate(`/create/${simulation.id}/scripts`)}>Alle Simulationsskripte anzeigen</Button>
 	</FormPart>
 }

@@ -1,6 +1,7 @@
 import { arrayFind } from 'util'
 
-import { hasVariables, getScriptError, getConditionError } from './util'
+import { hasVariables } from './util'
+import { getScriptError, getConditionError } from './scripts'
 
 // isSimulationValid checks if the given simulation has any problems. It returns a boolean.
 export function isSimulationValid(simulation) {

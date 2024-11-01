@@ -18,7 +18,8 @@ import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'compon
 import { updatePage, moveOption, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyOption } from '../../settings'
-import { hasVariables, getScriptError } from '../../util'
+import { hasVariables } from '../../util'
+import { getScriptError } from '../../scripts'
 
 export function Options({ simulation, page }) {
 	const theme = useTheme()

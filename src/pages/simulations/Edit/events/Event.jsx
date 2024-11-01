@@ -18,7 +18,7 @@ import { FormPart, TrackedTextField, TrackedCodeField } from 'components'
 import { updateEvent, deleteEvent, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyEventTitle, defaultAfterwards, accordionStyle } from '../../settings'
-import { getConditionError } from '../../util'
+import { getConditionError } from '../../scripts'
 
 export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
 	// On a deleted event, don't display anything.

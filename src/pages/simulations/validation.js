@@ -32,6 +32,11 @@ export function getGeneralSimulationError(simulation) {
 	const faultyVariable = getFaultyVariable(simulation)
 	if (faultyVariable)
 		return faultyVariable
+
+	// Check for faulty supporting functions.
+	const supportingFunctionsError = getSupportingFunctionsError(simulation)
+	if (supportingFunctionsError)
+		return supportingFunctionsError
 }
 
 // getSimulationError looks for any potential error in a simulation. If there are any, it returns the first error found. Otherwise it gives undefined.
@@ -95,12 +100,21 @@ export function getVariableErrorMessage(error) {
 	}[subtype]
 }
 
+// getSupportingFunctionsError checks for a given simulation whether the supporting functions are OK. If so, undefined is given. If not, an error is returned.
+export function getSupportingFunctionsError(simulation) {
+	if (simulation.supportingFunctions) {
+		const error = getScriptError(simulation.supportingFunctions, { ...simulation, supportingFunctions: undefined })
+		if (error)
+			return { source: 'simulation', type: 'supportingFunctions', error }
+	}
+}
+
 // getSimulationEntryScriptError checks for a given simulation whether all entry scripts are OK. If so, undefined is given. If not, an error is returned.
 export function getSimulationEntryScriptError(simulation) {
 	// Walk through all pages to check their entry scripts.
 	const pageErrorObj = arrayFind(Object.values(simulation.pages), page => {
 		// Check the page update script.
-		const pageError = getScriptError(page.entrySript, simulation)
+		const pageError = getScriptError(page.entryScript, simulation)
 		if (pageError)
 			return { source: 'simulation', type: 'entryScript', subtype: 'page', error: pageError, page }
 	})

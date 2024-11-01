@@ -126,7 +126,7 @@ function ExtraOptions({ simulation }) {
 }
 
 export function SupportingFunctions({ simulation }) {
-	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
+	const getError = useCallback((supportingFunctions) => getScriptError(supportingFunctions, { ...simulation, supportingFunctions: undefined }), [simulation]) // Evaluate as regular script, without supporting functions.
 	return <FormPart style={{ paddingTop: '0.5rem' }}>
 		<TrackedCodeField label={<>Unterstützende Funktionen</>} value={simulation.supportingFunctions} path="simulations" documentId={simulation.id} field="supportingFunctions" multiline={true} getError={getError} />
 		{simulation.supportingFunctions ? null : <Alert severity="info" sx={{ my: 2 }}>Sie können hier Ihre eigenen unterstützenden Javascript-Funktionen definieren, die dann in Update-Skripten, Anzeigeskripten auf Seiten und mehr verwendet werden können. Denken Sie zum Beispiel an eine Zahlenformatierungsfunktion:<br /><Code>function formatNumber(num) &#123; return num.replace(&quot;.&quot;, &quot;,&quot;) &#125;</Code><br />Die Möglichkeiten sind natürlich endlos. Jede Funktion, die Sie benötigen, kann hier hinzugefügt werden.</Alert>}

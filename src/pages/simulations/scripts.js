@@ -17,7 +17,7 @@ export function runSimulationUpdateScript(updateScripts, variables, simulation) 
 	// Set the variables to a name-basis, run the scripts, and set them back.
 	let variablesAsNames = switchVariableNames(variables, simulation)
 	updateScripts.forEach(updateScript => {
-		variablesAsNames = runUpdateScript(variablesAsNames, updateScript)
+		variablesAsNames = runUpdateScript(variablesAsNames, updateScript, simulation.supportingFunctions)
 		variablesAsNames = boundVariables(variablesAsNames, simulation.variables)
 	})
 	return switchVariableNames(variablesAsNames, simulation, true)
@@ -55,12 +55,13 @@ export function getExtractVariablesScript(variableNames) {
 }
 
 // runUpdateScript takes a set of variables and an update script and runs the update script, returning the updated variables. Note: the variables must be name-based, so of the form { x: 3, y: 5 }.
-export function runUpdateScript(variables, script) {
+export function runUpdateScript(variables, script, supportingFunctions = '') {
 	if (!script)
 		return variables
 	return runScript(`
-		${getVariableDefinitionScript(variables)}
 		${defaultFunctions}
+		${supportingFunctions}
+		${getVariableDefinitionScript(variables)}
 		${script}\n
 		${getExtractVariablesScript(Object.keys(variables))}`
 	)
@@ -91,7 +92,7 @@ export function getScriptError(script, simulation) {
 
 		// Check for run-time errors, using the initial variables.
 		const initialVariables = switchVariableNames(getInitialVariables(simulation), simulation)
-		runUpdateScript(initialVariables, script)
+		runUpdateScript(initialVariables, script, simulation.supportingFunctions)
 
 		// No error found, all in order.
 		return undefined

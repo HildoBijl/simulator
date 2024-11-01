@@ -11,6 +11,8 @@ import { getVariableErrorMessage } from '../../validation'
 const components = { // Map the error types to components that can display them.
 	// Simulation errors.
 	variable: VariableError,
+	supportingFunctions: SupportingFunctionsError,
+	entryScript: EntryScriptError,
 	updateScript: UpdateScriptError,
 	event: EventError,
 
@@ -56,6 +58,22 @@ function VariableError({ error }) {
 	const { variable } = error
 	const message = getVariableErrorMessage(error)
 	return <p>Es gibt einen Fehler in der Definition des Parameters <em>{variable.name || emptyVariableName}: {variable.title || emptyVariableTitle}</em>. {message}</p>
+}
+
+function SupportingFunctionsError({ error }) {
+	const { error: errorObj } = error
+	return <>
+		<p>Es gibt einen Fehler in den unterstützenden Funktionen der Simulation.</p>
+		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
+		<p>Gehen Sie auf die Registerkarte Parameter, um den Fehler in den unterstützenden Funktionen zu beheben.</p></>
+}
+
+function EntryScriptError({ error }) {
+	const { page, error: errorObj } = error
+	return <>
+		<p>Es gibt einen Fehler im Eintrittsskript von Seite <em>{pageIndexToString(page.index)} {page.title || emptyPage}</em></p>
+		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
+	</>
 }
 
 function UpdateScriptError({ error }) {

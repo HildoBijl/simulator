@@ -48,7 +48,5 @@ export function getDocuments(snapshot, includeId = true) {
 export async function deleteCollection(path) {
 	const collection = await getCollection(path)
 	const documentIds = Object.keys(collection)
-	console.log('Deleting collection ' + path)
-	console.log(documentIds)
 	return await Promise.all(documentIds.map(documentId => deleteDocument(path, documentId)))
 }

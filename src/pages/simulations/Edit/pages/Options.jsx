@@ -92,16 +92,32 @@ export function Options({ simulation, page }) {
 }
 
 function Defaults({ simulation, page, expanded, flipExpand }) {
+	// Determine the extra message to show for the feedback field, giving info on where this will be used.
+	const { options } = page
+	const optionsWithFeedback = options.map(option => !!option.feedback)
+	const allOptionsHaveFeedback = optionsWithFeedback.every(value => value)
+	const noOptionsHaveFeedback = !optionsWithFeedback.some(value => value)
+	const optionsWithoutFeedback = optionsWithFeedback.map((value, index) => !value && numberToLetter(index).toUpperCase()).filter(value => value)
+	const extraMessage = allOptionsHaveFeedback ? 'derzeit nicht verwendet; alle Möglichkeiten haben eine eigene Rückmeldung' : noOptionsHaveFeedback ? 'für alle Möglichkeiten, da keine ihre eigene Rückmeldung hat' : `für die Möglichkeit${optionsWithoutFeedback.length === 1 ? ` (nur ${optionsWithoutFeedback.join('/')})` : `en ${optionsWithoutFeedback.join('/')}`} ohne eigene Rückmeldung`
+
+	// Check if we should show defaults in the first place.
+	const showDefaultFollowUpPage = !options.every(option => option.followUpPage)
+	const showDefaultFeedback = !allOptionsHaveFeedback
+	const showDefaultUpdateScript = !options.every(option => option.updateScript)
+	if (!showDefaultFollowUpPage && !showDefaultFeedback && !showDefaultUpdateScript)
+		return null
+
+	// Show the standard options.
 	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
 		<AccordionSummary key="summary" expandIcon={<ExpandMoreIcon />}>
 			Standardeinstellungen für alle Antwortmöglichkeiten (sofern nicht weiter eingestellt)
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, mt: -2 }}>
-			<FollowUpDropdown {...{ simulation, page }} />
-			<FormPart>
-				<TrackedTextField label="Standard Rückmeldung" value={page.feedback} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="feedback" multiline={true} />
-			</FormPart>
-			{hasVariables(simulation) ? <PageUpdateScript {...{ simulation, page }} /> : null}
+			{showDefaultFollowUpPage ? <FollowUpDropdown {...{ simulation, page }} /> : null}
+			{showDefaultFeedback ? <FormPart>
+				<TrackedTextField label={`Standard Rückmeldung (${extraMessage})`} value={page.feedback} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="feedback" multiline={true} />
+			</FormPart> : null}
+			{hasVariables(simulation) && showDefaultUpdateScript ? <PageUpdateScript {...{ simulation, page }} /> : null}
 		</AccordionDetails>
 	</Accordion>
 }
@@ -182,14 +198,22 @@ function FollowUpDropdown({ simulation, page, optionIndex }) {
 	const currPageIndex = simulation.pageList.findIndex(currPage => currPage.id === page.id)
 	const nextPage = simulation.pageList[currPageIndex + 1]
 
+	// Determine the extra message to show for the field, giving info on where this will be used.
+	const optionsWithFollowUp = (page.options || []).map(option => !!option.followUpPage)
+	const allOptionsHaveFollowUp = optionsWithFollowUp.every(value => value)
+	const noOptionsHaveFollowUp = !optionsWithFollowUp.some(value => value)
+	const optionsWithoutFollowUp = optionsWithFollowUp.map((value, index) => !value && numberToLetter(index).toUpperCase()).filter(value => value)
+	const extraMessage = allOptionsHaveFollowUp ? 'derzeit nicht verwendet; alle Möglichkeiten haben eine eigene Folgeseite' : noOptionsHaveFollowUp ? 'für alle Möglichkeiten, da keine eine eigene Folgeseite hat' : `für die Möglichkeit${optionsWithoutFollowUp.length === 1 ? ` (nur ${optionsWithoutFollowUp.join('/')})` : `en ${optionsWithoutFollowUp.join('/')}`} ohne eigene Folgeseite`
+	const label = forPage && options.length > 0 ? `Standard Folgeseite (${extraMessage})` : 'Folgeseite'
+
 	// Render the dropdown field.
-	const label = `${forPage && options.length > 0 ? 'Standard ' : ''}Folgeseite`
 	const value = (forPage ? page.followUpPage : option.followUpPage) || 'default'
 	return <FormPart>
 		<FormControl fullWidth>
 			<InputLabel>{label}</InputLabel>
 			<Select value={value} label={label} onChange={(event) => setFollowUpPage(event.target.value)}>
-				<MenuItem key="default" value="default">{forPage ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextPage ? `Seite ${pageIndexToString(nextPage.index)}` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung dieser Frage verwenden</>}</MenuItem>
+				<MenuItem key="default" value="default">{forPage ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextPage ? `Seite ${pageIndexToString(nextPage.index)
+					} ` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung dieser Frage verwenden</>}</MenuItem>
 				{simulation.pageList.map(otherPage => <MenuItem key={otherPage.id} value={otherPage.id}>{pageIndexToString(otherPage.index)} {otherPage.internalTitle || otherPage.title || emptyPage}</MenuItem>)}
 				<MenuItem key="end" value="end">Ende: Danach wird die Simulation beendet</MenuItem>
 			</Select>
@@ -199,11 +223,19 @@ function FollowUpDropdown({ simulation, page, optionIndex }) {
 
 export function PageUpdateScript({ simulation, page }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
-	const optionHasNoScript = (page.options || []).map(option => !option.updateScript)
-	const label = (page.options || []).length > 0 ? `Standard Update-Skript (wird bei Auswahl einer Antwortmöglichkeit ohne eigenes Update-Skript ausgeführt; derzeit ${optionHasNoScript.every(value => value) ? 'alle' : !optionHasNoScript.some(value => value) ? 'keine' : optionHasNoScript.map((value, index) => value && numberToLetter(index).toUpperCase()).filter(value => value).join('/')})` : 'Update-Skript (wird beim Verlassen der Seite ausgeführt)'
+
+	// Determine the extra message to show for the field, giving info on where this will be used.
+	const optionsWithScript = (page.options || []).map(option => !!option.updateScript)
+	const allOptionsHaveScript = optionsWithScript.every(value => value)
+	const noOptionsHaveScript = !optionsWithScript.some(value => value)
+	const optionsWithoutScript = optionsWithScript.map((value, index) => !value && numberToLetter(index).toUpperCase()).filter(value => value)
+	const extraMessage = allOptionsHaveScript ? 'derzeit nicht verwendet; alle Möglichkeiten haben ein eigenes Update-Skript' : noOptionsHaveScript ? 'für alle Möglichkeiten, da keine ein eigenes Update-Skript hat' : `für die Möglichkeit${optionsWithoutScript.length === 1 ? ` (nur ${optionsWithoutScript.join('/')})` : `en ${optionsWithoutScript.join('/')}`} ohne eigenes Update-Skript`
+	const label = (page.options || []).length > 0 ? `Standard Update-Skript (${extraMessage})` : 'Update-Skript (wird beim Verlassen der Seite ausgeführt)'
+
+	// Render the code field.
 	return <FormPart>
-		<TrackedCodeField label={label} value={page.updateScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="updateScript" multiline={true} getError={getError} />
-	</FormPart>
+		<TrackedCodeField label={label} value={page.updateScript} path={`simulations / ${simulation.id} /pages`} documentId={page.id} field="updateScript" multiline={true} getError={getError} />
+	</FormPart >
 }
 
 export function OptionUpdateScript({ simulation, page, optionIndex, label = "Update-Skript (wird bei Auswahl dieser Antwortmöglichkeit ausgeführt)" }) {

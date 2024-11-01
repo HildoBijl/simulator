@@ -13,6 +13,7 @@ import { Page as PageContainer, InputParagraph, MCEContents } from 'components'
 import { useIsOwner, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyOption } from '../../settings'
+import { resolveScripts } from '../../scripts'
 
 import { VariableOverview } from '../components/VariableOverview'
 
@@ -45,8 +46,9 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 	const icons = simulation.allowUndo && canUndo ? [{ Icon: Undo, onClick: undo }] : []
 
 	// Render the page with description, media, options and buttons.
+	const variables = state.variablesAfter || state.variablesBefore
 	return <PageContainer title={page.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
-		<MCEContents>{page.description}</MCEContents>
+		<MCEContents>{resolveScripts(page.description, variables, simulation)}</MCEContents>
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
 				{page.options.map((option, index) => choice !== undefined ?

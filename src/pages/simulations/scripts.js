@@ -67,15 +67,60 @@ export function runUpdateScript(variables, script, supportingFunctions = '') {
 	)
 }
 
-// runCondition takes a set of variables and a condition and executes the condition, returning the result (true or false). Note: the variables must be name-based, so of the form { x: 3, y: 5 }.
-export function runCondition(variables, condition) {
-	if (!condition)
-		return false // No condition given? Then it always remains false.
+// evaluateExpression takes a set of variables and a Javascript expression and evaluates the expression, returning the result. Note: the variables must be name-based, so of the form { x: 3, y: 5 }.
+export function evaluateExpression(expression, variables, supportingFunctions = '') {
+	if (!expression)
+		return undefined // No condition given? Then it is undefined.
 	return runScript(`
-		${getVariableDefinitionScript(variables)}
 		${defaultFunctions}
-		return ${condition}\n
+		${supportingFunctions}
+		${getVariableDefinitionScript(variables)}
+		return ${expression}\n
 	`)
+}
+
+// resolveScripts takes a text (possibly with HTML) and resolves any scripts defined within curly braces { ... }.
+export function resolveScripts(text, variables, simulation) {
+	const variablesAsNames = switchVariableNames(variables, simulation)
+	let brackets = getCurlyBracketPositions(text)
+	while (brackets) {
+		const before = text.substring(0, brackets[0])
+		const expression = text.substring(brackets[0] + 1, brackets[1])
+		const after = text.substring(brackets[1] + 1)
+
+		// Evaluate the expression and merge it back in.
+		let evaluated
+		try {
+			evaluated = evaluateExpression(expression, variablesAsNames, simulation.supportingFunctions)
+		} catch (error) {
+			evaluated = '...' // On an error use dots.
+		}
+		text = before + evaluated + after
+		brackets = getCurlyBracketPositions(text, (before + evaluated).length)
+	}
+	return text
+}
+
+// getCurlyBracketPositions takes a string like ab{cd{ef}g}h and returns the position of the outer nested curly brackets (here [2, 10]) as an array. It returns undefined when there are no outer curly brackets, or the opening brackets doesn't get closed.
+function getCurlyBracketPositions(text, startAt = 0) {
+	let depth = 0
+	let open, close
+	for (let i = startAt; i < text.length && close === undefined; i++) {
+		const char = text[i]
+		if (char === '{') {
+			if (open === undefined)
+				open = i
+			depth++
+		} else if (char === '}') {
+			depth--
+			if (depth === 0)
+				close = i
+		}
+	}
+
+	// Return the outcome that has been obtained.
+	if (open !== undefined && close !== undefined)
+		return [open, close]
 }
 
 // getScriptError takes a script and, for a given simulation, evaluates its functioning. On an error it returns it. When everything is OK, undefined is returned.
@@ -115,7 +160,7 @@ export function getConditionError(condition, simulation) {
 
 		// Check for run-time errors, using the initial variables.
 		const initialVariables = switchVariableNames(getInitialVariables(simulation), simulation)
-		const result = runCondition(initialVariables, condition)
+		const result = evaluateExpression(condition, initialVariables, simulation.supportingFunctions)
 
 		// Ensure that we received a boolean.
 		if (typeof result !== 'boolean')

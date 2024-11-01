@@ -5,7 +5,7 @@ import { incrementSimulationField } from 'simulations'
 
 import { defaultAfterwards } from '../settings'
 import { getState, hasVariables, getFollowUpPage, getInitialVariables } from '../util'
-import { runSimulationUpdateScript, switchVariableNames, runCondition, getScriptError } from '../scripts'
+import { runSimulationUpdateScript, switchVariableNames, evaluateExpression, getScriptError } from '../scripts'
 import { getGeneralSimulationError, getSimulationEventError } from '../validation'
 
 // useSimulationActions takes a simulation and a setHistory function, and returns a set of actions (functions) that can be called to adjust the simulation history. It also runs checks on the simulation on required parts (like when a specific update script is needed) and flips an error flag when something is not working properly.
@@ -139,7 +139,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				// Find all events that did not fire/trigger before, but do fire now. On multiple, select one randomly.
 				const experiencedEvents = newState.experiencedEvents || []
 				const variablesAsNames = switchVariableNames(variables, simulation)
-				const triggeredEvents = Object.values(simulation.events).filter(event => !experiencedEvents.includes(event.id) && runCondition(variablesAsNames, event.condition))
+				const triggeredEvents = Object.values(simulation.events).filter(event => !experiencedEvents.includes(event.id) && evaluateExpression(variablesAsNames, event.condition))
 				if (triggeredEvents.length > 0) {
 					const triggeredEvent = selectRandomly(triggeredEvents)
 

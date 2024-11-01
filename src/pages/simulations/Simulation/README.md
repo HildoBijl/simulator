@@ -23,10 +23,7 @@ Whenever a page is rendered, always the last entry of the `history` (known as th
 
 ## General rendering
 
-The [Simulation](./Simulation.jsx) file is the main component that is rendered. It pulls the ID from the URL, loads the simulation and then renders it. To do so, it uses various subpages.
-
-- [Page](./subpages/Page.jsx) when the user is in the normal execution of the simulation.
-- [EndPage](./subpages/EndPage.jsx) at the end, showing the user he/she is done.
+The [Simulation](./Simulation.jsx) file is the main component that is rendered. It pulls the ID from the URL, loads the simulation and then renders it. To do so, it checks in the `state` of the simulation which `pageId` we are at. Then, through the [Page](./subpages/Page.jsx) component, this page is rendered.
 
 ## Further components
 

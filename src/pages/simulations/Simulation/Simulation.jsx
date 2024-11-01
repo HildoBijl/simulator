@@ -11,7 +11,7 @@ import { getState } from '../util'
 import { getSimulationError, getStateError } from '../validation'
 
 import { useSimulationActions } from './actions'
-import { ErrorPage, EmptySimulation, InitializingPage, Page, EndPage } from './subpages'
+import { ErrorPage, EmptySimulation, InitializingPage, Page } from './subpages'
 
 export function Simulation() {
 	const { simulationUrl } = useParams()
@@ -82,8 +82,6 @@ function SimulationWithData({ simulation }) {
 	// Check for special situations that require different renders.
 	if (!state)
 		return <InitializingPage {...{ simulation }} />
-	if (state.pageId === 'end')
-		return <EndPage {...{ simulation, history, reset }} />
 
 	// Render the page as normally.
 	return <Page {...{ simulation, history, state, chooseOption, goToNextPage, jumpToPage, reset, undo }} />

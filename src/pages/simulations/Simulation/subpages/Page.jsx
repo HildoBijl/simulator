@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTheme, darken } from '@mui/material/styles'
+import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
@@ -36,8 +37,8 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 	}, [page, choice, goToNextPage, isOwner])
 
 	// Check what kind of button to show.
-	const showRestartButton = options.length === 0 && page.followUpPage === 'end'
-	const showNextButton = !showRestartButton && (options.length === 0 || choice !== undefined)
+	const atSimulationEnd = page.followUpPage === 'end' && (options.length === 0 || choice !== undefined)
+	const showNextButton = !atSimulationEnd && (options.length === 0 || choice !== undefined)
 
 	// Define what icons to show.
 	const canUndo = history.length > 1 || state.choice !== undefined
@@ -53,7 +54,10 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 					<Option key={index} {...{ simulation, page, option, index, selected: false, select: () => chooseOption(index, isOwner) }} />)}
 			</div>
 		</>}
-		{showRestartButton ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => reset(isOwner)}>Neu starten</Button> : null}
+		{atSimulationEnd ? <>
+			<Alert severity="info" sx={{ my: 2 }}>Sie haben die Simulation beendet. Drücken Sie die Taste unten, um erneut zu beginnen.</Alert>
+			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => reset(isOwner)}>Neu starten</Button>
+		</> : null}
 		{showNextButton ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextPage(isOwner)}>Weiter</Button> : null}
 		<VariableOverview {...{ simulation, state }} />
 		<AdminTool {...{ simulation, state, jumpToPage, reset }} />

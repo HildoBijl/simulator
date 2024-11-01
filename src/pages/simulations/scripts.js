@@ -8,6 +8,8 @@ import { getInitialVariables, getVariableInitialValue, boundVariables } from './
 export const defaultFunctions = `
 function rand(min, max) { return min + (max-min)*Math.random() }
 function randInt(min, max) { return Math.round(rand(min-0.5, max+0.5)) }
+function roundTo(number, decimals = 0) { return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals) }
+function roundToDigits(number, digits) { return number === 0 ? 0 : digits === 0 ? 0 : digits === Infinity ? number : roundTo(number, digits - Math.floor(Math.log10(Math.abs(number))) - 1) }
 `
 
 // runSimulationUpdateScript takes a simulation and runs a given update script for that simulation. Variables should be ID-based, since the simulation knows about the IDs. The updateScript given can be an array too, in which case they are run sequentially.

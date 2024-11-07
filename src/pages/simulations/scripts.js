@@ -85,17 +85,19 @@ export function evaluateExpression(expression, variables, supportingFunctions = 
 
 // resolveScripts takes a text (possibly with HTML) and resolves any scripts defined within curly braces { ... }.
 export function resolveScripts(text, variables, simulation) {
-	const variablesAsNames = switchVariableNames(variables, simulation)
-
+	if (!text)
+		return text
+	
 	// Get the bracket positions. If they are not properly nested, or simply have no brackets, just return the text.
 	const bracketPositions = getBracketPositions(text)
 	if (!bracketPositions)
 		return text // Not properly nested.
 	if (bracketPositions.length === 0)
 		return text // No brackets.
-
+	
 	// Walk through the bracket positions to assemble the text.
 	let result = ''
+	const variablesAsNames = switchVariableNames(variables, simulation)
 	bracketPositions.forEach((bracketSet, index) => {
 		result += text.substring(index === 0 ? 0 : bracketPositions[index - 1][1] + 1, bracketSet[0])
 

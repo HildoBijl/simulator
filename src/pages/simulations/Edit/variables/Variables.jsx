@@ -115,7 +115,7 @@ function ExtraOptions({ simulation }) {
 	// Render the extra options.
 	return <>
 		<h2>Zusätzliche Programmiermöglichkeiten</h2>
-		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem' }}>
+		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', marginTop: '0.6rem' }}>
 			{!showSupportingFunctions ? <Button variant="contained" onClick={() => setShowSupportingFunctions(true)}>Unterstützende Funktionen für Update-Skripte hinzufügen</Button> : null}
 			{!showGeneralUpdateScript ? <Button variant="contained" onClick={() => setShowGeneralUpdateScript(true)}>Allgemeines Update-Skript hinzufügen</Button> : null}
 			<Button variant="contained" onClick={() => navigate(`/create/${simulation.id}/scripts`)}>Übersicht über alle definierten Skripte anzeigen</Button>

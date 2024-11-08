@@ -45,9 +45,9 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 	const [showEntryScript, setShowEntryScript] = useState(allowEntryScript && !!page.entryScript)
 	const allowUpdateScript = hasVariables(simulation) && !hasOptions
 	const [showUpdateScript, setShowUpdateScript] = useState(allowUpdateScript && !!page.updateScript)
-	const allowHeaderSettings = simulation.allowHeaderHiding
+	const allowHeaderSettings = !!simulation.pageHeader && simulation.allowHeaderHiding
 	const [showHeaderSettings, setShowHeaderSettings] = useState(allowHeaderSettings && page.hideHeader)
-	const allowFooterSettings = simulation.allowFooterHiding
+	const allowFooterSettings = !!simulation.pageFooter && simulation.allowFooterHiding
 	const [showFooterSettings, setShowFooterSettings] = useState(allowFooterSettings && page.hideFooter)
 
 	// Determine the icon for this page.

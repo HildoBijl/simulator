@@ -109,7 +109,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 		setHistory(history => {
 			// Extract the current state and its parameters.
 			const state = getState(history)
-			const { pageId, choice, variablesAfter } = state
+			const { pageId, choice, variablesBefore, variablesAfter } = state
 			const page = simulation.pages[pageId]
 
 			// If the page has options, but no option has been selected and confirmed, we're not ready yet to move on.
@@ -119,12 +119,23 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 			// Determine the next page: either the follow-up for the chosen option, the follow-up for the given page, the next page in the order, or (if not existing) the end. Apply it to the new state.
 			const newState = {
-				pageId: (options[choice] && options[choice].followUpPage) || getFollowUpPage(page, simulation),
+				pageId: getFollowUpPage(page, simulation, choice),
 			}
 
 			// On variables, we should also check for events.
 			if (hasVariables(simulation)) {
-				const variables = variablesAfter
+				// When the page has no answer-options, still run the page update script (after checking it) since it hasn't been run yet.
+				let variables
+				if (options.length === 0) {
+					if (getScriptError(page.updateScript, simulation)) {
+						setError(true)
+						return history
+					}
+					variables = runSimulationUpdateScript(page.updateScript, variablesBefore, simulation)
+					history = [...history.slice(0, -1), { ...state, variablesAfter: variables }]
+				} else {
+					variables = variablesAfter
+				}
 
 				// Check all events for possible errors. If there are any, do not update.
 				if (getSimulationEventError(simulation)) {
@@ -139,7 +150,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				// Find all events that did not fire/trigger before, but do fire now. On multiple, select one randomly.
 				const experiencedEvents = newState.experiencedEvents || []
 				const variablesAsNames = switchVariableNames(variables, simulation)
-				const triggeredEvents = Object.values(simulation.events).filter(event => !experiencedEvents.includes(event.id) && evaluateExpression(variablesAsNames, event.condition))
+				const triggeredEvents = Object.values(simulation.events).filter(event => !experiencedEvents.includes(event.id) && evaluateExpression(event.condition, variablesAsNames))
 				if (triggeredEvents.length > 0) {
 					const triggeredEvent = selectRandomly(triggeredEvents)
 

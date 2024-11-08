@@ -4,7 +4,7 @@ import { Page, Code } from 'components'
 
 export function Documentation() {
 	return <Page title="Allgemeine Dokumentation" backButton={`/create`}>
-		<p>Die Werkzeuge zur Erstellung des Simulators wurden so eingerichtet, dass für ihre Verwendung keine Dokumentation erforderlich sein sollte. Wenn Sie dennoch etwas über die Erstellung von Simulationen nachlesen möchten, ist diese Seite genau das Richtige für Sie.</p>
+		<p>Die Werkzeuge zur Erstellung des Simulators wurden so eingerichtet, dass für ihre Verwendung keine Dokumentation erforderlich sein sollte. Neue Funktionen werden immer mit einer kleinen Erklärung angezeigt, wenn sie auftauchen. Wenn Sie dennoch etwas über die Erstellung von Simulationen nachlesen möchten, ist diese Seite genau das Richtige für Sie.</p>
 		<h2>Seiten, Fragen und Verbindungen</h2>
 		<p>Der Grundgedanke des Simulators ist, dass es sich um eine Reihe von miteinander verbundenen Seiten handelt. Jede Seite hat eine Folgeseite, die darauf folgt. So können Sie eine Geschichte erzählen.</p>
 		<p>Sie können eine Seite in eine Frage verwandeln, indem Sie Antwortoptionen hinzufügen. Dann können Sie die Folgeseite für jede Antwortoption festlegen und so eine Verzweigungsstruktur für Ihre Simulation schaffen. Was angezeigt wird, hängt von den Entscheidungen des Benutzers ab.</p>

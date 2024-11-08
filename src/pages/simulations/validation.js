@@ -161,10 +161,10 @@ export function getDisplayScriptError(simulation) {
 	// Check the header/footer.
 	const headerError = evaluateTextWithScripts(simulation.pageHeader, simulation)
 	if (headerError)
-		return { source: 'simulation', type: 'displayScript', subtype: 'header', ... headerError }
+		return { source: 'simulation', type: 'displayScript', subtype: 'header', ...headerError }
 	const footerError = evaluateTextWithScripts(simulation.pageFooter, simulation)
 	if (footerError)
-		return { source: 'simulation', type: 'displayScript', subtype: 'footer', ... footerError }
+		return { source: 'simulation', type: 'displayScript', subtype: 'footer', ...footerError }
 
 	// Walk through the pages.
 	const pageErrorObj = arrayFind(Object.values(simulation.pages), page => {
@@ -205,6 +205,10 @@ export function getDisplayScriptError(simulation) {
 
 // evaluateTextWithScripts takes a piece of text, for instance a page description, and checks all display scripts in it. It returns an error object on an error.
 export function evaluateTextWithScripts(text, simulation) {
+	// No text cannot have any errors.
+	if (!text)
+		return
+
 	// Get the bracket positions. If they are not properly nested, or simply have no brackets, just return the text.
 	const bracketPositions = getBracketPositions(text)
 	if (!bracketPositions)

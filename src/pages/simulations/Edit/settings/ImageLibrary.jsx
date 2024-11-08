@@ -19,7 +19,6 @@ const maxFileSize = 0.5 * 1024 ** 2 // MB to bytes
 const maxLibrarySize = 2 * 1024 ** 2 // MB to bytes
 
 export function ImageLibrary({ simulation }) {
-	console.log(simulation)
 	return <>
 		<h2>Bilddatenbank</h2>
 		{(simulation.images || []).length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Sie können Bilder über ihre URL zu Simulationsseiten hinzufügen. Das Hinzufügen von Bildern, die bereits online sind, ist daher einfach. Ist Ihr Bild noch nicht online? Dann laden Sie es hier in Ihre eigene Bildbibliothek hoch, um eine URL zu erhalten.</Alert> : null}

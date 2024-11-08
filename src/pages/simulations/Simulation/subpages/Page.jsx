@@ -148,7 +148,6 @@ function JumpDropDown({ simulation, state, jumpToPage }) {
 		<InputLabel>{label}</InputLabel>
 		<Select value={value} label={label} onChange={(event) => jumpToPage(event.target.value)}>
 			{simulation.pageList.map(page => <MenuItem key={page.id} value={page.id}>{pageIndexToString(page.index)} {page.title || emptyPage}</MenuItem>)}
-			<MenuItem key="end" value="end">Ende: den Durchlauf beenden</MenuItem>
 		</Select>
 	</FormControl>
 }

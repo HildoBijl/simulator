@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -83,10 +83,12 @@ export function VariablesList({ simulation }) {
 
 function VariablesIntroduction({ addVariable }) {
 	return <>
-		<p>Eine Parameter ist eine Zahl, die angepasst wird, während der Benutzer das Spiel spielt. Sie kann eine beliebige Größe sein, wie Geld,  Zufriedenheit oder Lebenspunkte.</p>
-		<p>Um Parameter zu verwenden, müssen sie zunächst hier definiert werden. Dann kann für jede Seite oder Antwortmoglichkeit angegeben werden, wie sie angepasst werden sollen: das Update-Skript.</p>
-		<p>Ein Beispiel für ein Update-Skript für eine Variable <Code>x</Code> könnte lauten &quot;<Code>x = 10</Code>&quot; oder &quot;<Code>x = x - 2</Code>&quot; oder &quot;<Code>x = x + randInt(2, 4)</Code>&quot; oder &quot;<Code>x = x - rand(0.25, 1.75)</Code>&quot;. Die verwendete Sprache ist Javascript, so dass Sie die genauen Formatierungskriterien nach Belieben nachschlagen können.</p>
-		<p>Innerhalb Ihrer Seiten können Sie auch Variablen anzeigen. Verwenden Sie dazu Akkoladen, wie z. B. &quot;Ihr aktueller Geldstand ist &#123;<Code>m</Code>&#125;.&quot; Sie können hier auch Berechnungen hinzufügen, wie &quot;Sie besitzen derzeit &#123;<Code>round(m*100)</Code>&#125; Cent.&quot;</p>
+		<Alert severity="info" sx={{ my: 2 }}>
+			<p style={{ marginTop: 0 }}>Eine Parameter ist eine Zahl, die angepasst wird, während der Benutzer das Spiel spielt. Sie kann eine beliebige Größe sein, wie Geld,  Zufriedenheit oder Lebenspunkte.</p>
+			<p>Um Parameter zu verwenden, müssen sie zunächst hier definiert werden. Dann kann für jede Seite oder Antwortmoglichkeit angegeben werden, wie sie angepasst werden sollen: das Update-Skript. Es gibt Skripte, die beim Betreten einer Seite ausgeführt werden, und Skripte, die beim Verlassen einer Seite oder bei der Auswahl einer bestimmten Antwortoption ausgeführt werden.</p>
+			<p>Ein Beispiel für ein Update-Skript für eine Variable <Code>x</Code> könnte lauten &quot;<Code>x = 10</Code>&quot; oder &quot;<Code>x = x - 2</Code>&quot; oder &quot;<Code>x = x + randInt(2, 4)</Code>&quot; oder &quot;<Code>x = x - rand(0.25, 1.75)</Code>&quot;. Die verwendete Sprache ist Javascript, so dass Sie die genauen Formatierungskriterien nach Belieben nachschlagen können. Sie können auch jederzeit in der <Link to="/create/documentation" target="_blank">allgemeinen Dokumentation</Link> nachlesen, wie man Variablen verwenden kann.</p>
+			<p style={{ marginBottom: 0 }}>Innerhalb Ihrer Seiten können Sie auch Variablen anzeigen. Verwenden Sie dazu Akkoladen, wie z. B. &quot;Ihr aktueller Geldstand ist &#123;<Code>m</Code>&#125;.&quot; Sie können hier auch Berechnungen hinzufügen, wie &quot;Die Distanz beträgt &#123;<Code>roundTo(l/1000, 2)</Code>&#125; km.&quot;</p>
+		</Alert>
 		<FormPart>
 			<AddVariable addVariable={addVariable} />
 		</FormPart>

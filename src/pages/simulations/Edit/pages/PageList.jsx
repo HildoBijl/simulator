@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import Tooltip from '@mui/material/Tooltip'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
+import Alert from '@mui/material/Alert'
 import { Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, UnfoldLess as CloseIcon, UnfoldMore as OpenIcon } from '@mui/icons-material'
 import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
@@ -82,9 +83,10 @@ export function PageList({ simulation }) {
 		})
 		return indices
 	}, [simulation, moveData, draggableStructure])
-
+	console.log(simulation)
 	// Render the pages through an Accordion.
 	return <FormPart>
+		{simulation.pageList.length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Klicken Sie auf die Schaltfläche unten, um Ihre erste Info- oder Frageseite hinzuzufügen. Wenn Sie später zu viele Fragen bekommen, können Sie auch Ordner hinzufügen, um sie zu strukturieren.</Alert> : null}
 		<Label>Seiten</Label>
 		<ExpandButtons {...{ simulation, expandedMap, setExpandedMap }} />
 		<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>

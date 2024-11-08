@@ -5,6 +5,7 @@ import Snackbar from '@mui/material/Snackbar'
 import Fab from '@mui/material/Fab'
 import Tooltip from '@mui/material/Tooltip'
 import Button from '@mui/material/Button'
+import Alert from '@mui/material/Alert'
 import { ContentCopy, Delete } from '@mui/icons-material'
 import { arrayRemove, arrayUnion } from 'firebase/firestore'
 import { ref, uploadBytesResumable } from 'firebase/storage'
@@ -18,9 +19,10 @@ const maxFileSize = 0.5 * 1024 ** 2 // MB to bytes
 const maxLibrarySize = 2 * 1024 ** 2 // MB to bytes
 
 export function ImageLibrary({ simulation }) {
+	console.log(simulation)
 	return <>
 		<h2>Bilddatenbank</h2>
-		<p>Sie können Bilder über ihre URL zu Simulationsseiten hinzufügen. Das Hinzufügen von Bildern, die bereits online sind, ist daher einfach. Ist Ihr Bild noch nicht online? Dann laden Sie es hier in Ihre eigene Bildbibliothek hoch, um eine URL zu erhalten.</p>
+		{(simulation.images || []).length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Sie können Bilder über ihre URL zu Simulationsseiten hinzufügen. Das Hinzufügen von Bildern, die bereits online sind, ist daher einfach. Ist Ihr Bild noch nicht online? Dann laden Sie es hier in Ihre eigene Bildbibliothek hoch, um eine URL zu erhalten.</Alert> : null}
 		<CurrentImages {...{ simulation }} />
 		<ImageUploader {...{ simulation }} />
 	</>
@@ -30,6 +32,9 @@ function CurrentImages({ simulation }) {
 	const { images } = simulation
 	const imagesSorted = useMemo(() => (images || []).sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0), [images]) // Sort alphabetically by filename.
 	const totalSize = imagesSorted.reduce((total, image) => total + image.size, 0)
+
+	if (imagesSorted.length === 0)
+		return null
 	return <>
 		<div style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'flex-start', alignItems: 'stretch', gap: '6px' }}>
 			{imagesSorted.map(image => <Image key={image.name} {...{ simulation, image }} />)}

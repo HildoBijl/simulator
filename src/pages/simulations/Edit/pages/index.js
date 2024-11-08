@@ -1,3 +1,3 @@
 export * from './Pages'
-export * from './Page'
+export * from './PageOrFolder'
 export * from './Options'

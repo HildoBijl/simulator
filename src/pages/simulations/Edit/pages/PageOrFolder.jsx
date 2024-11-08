@@ -27,7 +27,7 @@ export function PageOrFolder(data) {
 		return <Page {...data} />
 }
 
-export function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, flipExpand }) {
+function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, flipExpand }) {
 	const theme = useTheme()
 
 	// Determine the icon for this page.

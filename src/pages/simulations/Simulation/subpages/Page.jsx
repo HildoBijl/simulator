@@ -46,8 +46,13 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 	const canUndo = history.length > 1 || state.choice !== undefined
 	const icons = simulation.allowUndo && canUndo ? [{ Icon: Undo, onClick: undo }] : []
 
+	// Check for headers/footers.
+	const showHeader = !!simulation.pageHeader
+	const showFooter = !!simulation.pageFooter
+
 	// Render the page with description, media, options and buttons.
 	return <PageContainer title={page.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
+		{showHeader ? <MCEContents>{resolveScripts(simulation.pageHeader, getVariables(state), simulation)}</MCEContents> : null}
 		<MCEContents>{resolveScripts(page.description, getVariables(state), simulation)}</MCEContents>
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
@@ -61,6 +66,7 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 			<Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => reset(isOwner)}>Neu starten</Button>
 		</> : null}
 		{showNextButton ? <Button variant="contained" sx={{ margin: '0 0 1rem 0' }} onClick={() => goToNextPage(isOwner)}>Weiter</Button> : null}
+		{showFooter ? <MCEContents>{resolveScripts(simulation.pageFooter, getVariables(state), simulation)}</MCEContents> : null}
 		<VariableOverview {...{ simulation, state }} />
 		<AdminTool {...{ simulation, state, jumpToPage, reset }} />
 	</PageContainer>

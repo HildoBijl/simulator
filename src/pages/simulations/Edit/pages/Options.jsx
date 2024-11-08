@@ -63,7 +63,7 @@ export function Options({ simulation, page }) {
 	}
 
 	// Render the options through an Accordion. When there are no options, pull out the standard settings.
-	return <>
+	return <FormPart>
 		{options.length === 0 ? <>
 			<FollowUpDropdown {...{ simulation, page }} />
 			{hasVariables(simulation) ? <>
@@ -92,7 +92,7 @@ export function Options({ simulation, page }) {
 				</div>
 			)}</Droppable>
 		</DragDropContext>
-	</>
+	</FormPart>
 }
 
 function Defaults({ simulation, page, expanded, flipExpand }) {

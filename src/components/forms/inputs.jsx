@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { useTheme } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
+import Alert from '@mui/material/Alert'
 import { deleteField } from 'firebase/firestore'
 
 import { useTrackedState } from 'util'
@@ -38,9 +38,8 @@ export function TrackedCodeField({ getError, ...options }) {
 	const error = useMemo(() => getError(value), [value, getError])
 
 	// Render the field, with a potential error message.
-	const theme = useTheme()
 	return <>
 		<TrackedTextField {...options} code={true} />
-		{error ? <p style={{ color: theme.palette.error.main, fontWeight: 500 }}>Fehler im Skript{error.lineNumber !== undefined && error.column !== undefined ? <> in Zeile {error.lineNumber}, Zeichen {error.column}</> : null}: <em>{error.description || error.message}</em></p> : null}
+		{error ? <Alert severity="error" sx={{ my: 1 }}>Fehler im Skript{error.lineNumber !== undefined && error.column !== undefined ? <> in Zeile {error.lineNumber}, Zeichen {error.column}</> : null}: <em>{error.description || error.message}</em></Alert> : null}
 	</>
 }

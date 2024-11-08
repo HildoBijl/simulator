@@ -109,7 +109,6 @@ export function resolveScripts(text, variables, simulation) {
 			if (evaluated === undefined || evaluated === null)
 				evaluated = '...'
 		} catch (error) {
-			console.log(error)
 			evaluated = '...'
 		}
 		result += evaluated

@@ -115,14 +115,14 @@ function ExtraOptions({ simulation }) {
 	// Render the extra options.
 	return <>
 		<h2>Zusätzliche Programmiermöglichkeiten</h2>
-		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', marginTop: '0.6rem' }}>
-			{!showSupportingFunctions ? <Button variant="contained" onClick={() => setShowSupportingFunctions(true)}>Unterstützende Funktionen für Update-Skripte hinzufügen</Button> : null}
-			{!showGeneralUpdateScript ? <Button variant="contained" onClick={() => setShowGeneralUpdateScript(true)}>Allgemeines Update-Skript hinzufügen</Button> : null}
-			<Link to={`/create/${simulation.id}/scripts`}><Button variant="contained">Übersicht über alle definierten Skripte anzeigen</Button></Link>
-			<Link to="/create/documentation" target="_blank"><Button variant="contained">Allgemeine Dokumentation anzeigen</Button></Link>
-		</FormPart>
 		{showSupportingFunctions ? <SupportingFunctions {...{ simulation }} /> : null}
 		{showGeneralUpdateScript ? <GeneralUpdateScript {...{ simulation }} /> : null}
+		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', alignItems: 'stretch', marginTop: '0.6rem' }}>
+			{!showSupportingFunctions ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowSupportingFunctions(true)}>Unterstützende Funktionen für Update-Skripte hinzufügen</Button> : null}
+			{!showGeneralUpdateScript ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowGeneralUpdateScript(true)}>Allgemeines Update-Skript hinzufügen</Button> : null}
+			<Link to={`/create/${simulation.id}/scripts`} style={{ flexGrow: 1 }}><Button variant="contained" style={{ width: '100%' }}>Übersicht über alle definierten Skripte anzeigen</Button></Link>
+			<Link to="/create/documentation" target="_blank" style={{ flexGrow: 1 }}><Button variant="contained" style={{ width: '100%' }}>Allgemeine Dokumentation anzeigen</Button></Link>
+		</FormPart>
 	</>
 }
 

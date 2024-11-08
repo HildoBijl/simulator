@@ -17,9 +17,9 @@ export function OtherOptions({ simulation }) {
 		<h2>Weitere Seitenoptionen</h2>
 		{showHeader ? <Header {...{ simulation }} /> : null}
 		{showFooter ? <Footer {...{ simulation }} /> : null}
-		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', marginTop: '0.6rem' }}>
-			{!showHeader ? <Button variant="contained" onClick={() => setShowHeader(true)}>Seitenkopf einstellen</Button> : null}
-			{!showFooter ? <Button variant="contained" onClick={() => setShowFooter(true)}>Seitenfuß einstellen</Button> : null}
+		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', alignItems: 'stretch', marginTop: '0.6rem' }}>
+			{!showHeader ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowHeader(true)}>Seitenkopf einstellen</Button> : null}
+			{!showFooter ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowFooter(true)}>Seitenfuß einstellen</Button> : null}
 		</FormPart>
 	</>
 }

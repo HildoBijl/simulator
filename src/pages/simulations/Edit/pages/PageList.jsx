@@ -83,7 +83,7 @@ export function PageList({ simulation }) {
 		})
 		return indices
 	}, [simulation, moveData, draggableStructure])
-	console.log(simulation)
+	
 	// Render the pages through an Accordion.
 	return <FormPart>
 		{simulation.pageList.length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Klicken Sie auf die Schaltfläche unten, um Ihre erste Info- oder Frageseite hinzuzufügen. Wenn Sie später zu viele Fragen bekommen, können Sie auch Ordner hinzufügen, um sie zu strukturieren.</Alert> : null}

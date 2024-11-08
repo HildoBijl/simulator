@@ -37,6 +37,12 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 
 	// Determine what to show inside the form.
 	const [showInternalTitle, setShowInternalTitle] = useState(!!page.internalTitle)
+	const allowEntryScript = hasVariables(simulation)
+	const [showEntryScript, setShowEntryScript] = useState(allowEntryScript && !!page.entryScript)
+	const allowHeaderSettings = simulation.allowHeaderHiding
+	const [showHeaderSettings, setShowHeaderSettings] = useState(allowHeaderSettings && page.hideHeader)
+	const allowFooterSettings = simulation.allowFooterHiding
+	const [showFooterSettings, setShowFooterSettings] = useState(allowFooterSettings && page.hideFooter)
 
 	// Determine the icon for this page.
 	const Icon = page.options ? HelpIcon : InfoIcon
@@ -74,18 +80,33 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 						<FormPart>
 							<TrackedTextField label="Titel" value={page.title} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="title" />
 						</FormPart>
+
 						{showInternalTitle ? <FormPart>
 							<TrackedTextField label="Interner Titel" value={page.internalTitle} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="internalTitle" />
 							{page.internalTitle ? null : <Alert severity="info" sx={{ my: 2 }}>Der interne Titel wird den Benutzern nie angezeigt. Er erscheint nur auf dieser Seitenübersicht, damit Sie Ihre Seiten leichter strukturieren können. Der obige &quot;Titel&quot; ist der Titel der Seite, der den Benutzern angezeigt wird.</Alert>}
 						</FormPart> : null}
+
 						<FormPart>
 							<MCE label="Beschreibung" height="225" value={page.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="description" />
 						</FormPart>
-						<HeaderSettings {...{ simulation, page }} />
-						<FooterSettings {...{ simulation, page }} />
-						{hasVariables(simulation) ? <PageEntryScript {...{ simulation, page }} /> : null}
+
+						{showHeaderSettings ? <HeaderSettings {...{ simulation, page }} /> : null}
+						{showFooterSettings ? <FooterSettings {...{ simulation, page }} /> : null}
+						{showEntryScript ? <PageEntryScript {...{ simulation, page }} /> : null}
 						<Options {...{ simulation, page }} />
-						{showInternalTitle ? null : <Button variant="contained" onClick={() => setShowInternalTitle(true)}>Internen Titel hinzufügen</Button>}
+
+						<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', alignItems: 'stretch', justifyContent: 'stretch', marginTop: '0.6rem' }}>
+							{!showInternalTitle ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowInternalTitle(true)}>Internen Titel hinzufügen</Button> : null}
+							{(allowEntryScript && !showEntryScript) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowEntryScript(true)}>Eintrittsskript hinzufügen</Button> : null}
+							{(allowHeaderSettings && !showHeaderSettings) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => {
+								updatePage(simulation.id, page.id, { hideHeader: true })
+								setShowHeaderSettings(true)
+							}}>Seitenkopf ausblenden</Button> : null}
+							{(allowFooterSettings && !showFooterSettings) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => {
+								updatePage(simulation.id, page.id, { hideFooter: true })
+								setShowFooterSettings(true)
+							}}>Seitenfuß ausblenden</Button> : null}
+						</FormPart>
 					</AccordionDetails>
 					<AccordionActions key="actions">
 						<Button sx={{ mt: 2 }} onClick={() => deletePage(simulation, page)}>Seite löschen</Button>
@@ -180,7 +201,8 @@ function FolderTitle({ simulation, folder }) {
 export function PageEntryScript({ simulation, page }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart>
-		<TrackedCodeField label="Eintrittsskript (wird beim Laden der Seite ausgeführt)" value={page.entryScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="entryScript" multiline={true} getError={getError} />
+		<TrackedCodeField label="Eintrittsskript" value={page.entryScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="entryScript" multiline={true} getError={getError} />
+		{page.entryScript ? null : <Alert severity="info" sx={{ my: 2 }}>Das Eintrittsskript wird immer dann ausgeführt, wenn der Benutzer auf diese Seite weitergeleitet wird. Es kann nützlich sein, um Variablen auf bestimmte Werte zu setzen.</Alert>}
 	</FormPart>
 }
 

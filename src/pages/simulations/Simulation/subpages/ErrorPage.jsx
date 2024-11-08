@@ -108,6 +108,12 @@ function DisplayScriptError({ error }) {
 	const { page, option, optionIndex, error: errorObj, expression } = error
 	const optionTitle = useClearTags(option?.description && option?.description.split('\n')[0] || emptyOption)
 	switch (error.subtype) {
+		case 'header':
+			source = <>Es gibt einen Fehler in einem Anzeigeskript des Seitenkopfes.</>
+			break
+		case 'footer':
+			source = <>Es gibt einen Fehler in einem Anzeigeskript des Seitenfußes.</>
+			break
 		case 'page':
 			switch (error.field) {
 				case 'description':

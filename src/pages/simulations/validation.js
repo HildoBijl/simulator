@@ -60,7 +60,7 @@ export function getSimulationError(simulation) {
 	if (updateScriptError)
 		return updateScriptError
 
-	// Check variable-display errors.
+	// Check display-script errors.
 	const displayScriptError = getDisplayScriptError(simulation)
 	if (displayScriptError)
 		return displayScriptError
@@ -158,6 +158,14 @@ export function getSimulationUpdateScriptError(simulation) {
 
 // getDisplayScriptError looks at all scripts inside simulation display texts, like "your life points are {hp}." It checks all these small code snippets to see if they return an appropriate value.
 export function getDisplayScriptError(simulation) {
+	// Check the header/footer.
+	const headerError = evaluateTextWithScripts(simulation.pageHeader, simulation)
+	if (headerError)
+		return { source: 'simulation', type: 'displayScript', subtype: 'header', ... headerError }
+	const footerError = evaluateTextWithScripts(simulation.pageFooter, simulation)
+	if (footerError)
+		return { source: 'simulation', type: 'displayScript', subtype: 'footer', ... footerError }
+
 	// Walk through the pages.
 	const pageErrorObj = arrayFind(Object.values(simulation.pages), page => {
 		if (page.description) {

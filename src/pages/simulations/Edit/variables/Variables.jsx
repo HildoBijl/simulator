@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -104,8 +104,6 @@ function AddVariable({ addVariable }) {
 }
 
 function ExtraOptions({ simulation }) {
-	const navigate = useNavigate()
-
 	// Allow buttons to activate additional fields.
 	const [showSupportingFunctions, setShowSupportingFunctions] = useState(!!simulation.supportingFunctions)
 	const [showGeneralUpdateScript, setShowGeneralUpdateScript] = useState(!!simulation.updateScript)
@@ -120,8 +118,8 @@ function ExtraOptions({ simulation }) {
 		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', marginTop: '0.6rem' }}>
 			{!showSupportingFunctions ? <Button variant="contained" onClick={() => setShowSupportingFunctions(true)}>Unterstützende Funktionen für Update-Skripte hinzufügen</Button> : null}
 			{!showGeneralUpdateScript ? <Button variant="contained" onClick={() => setShowGeneralUpdateScript(true)}>Allgemeines Update-Skript hinzufügen</Button> : null}
-			<Button variant="contained" onClick={() => navigate(`/create/${simulation.id}/scripts`)}>Übersicht über alle definierten Skripte anzeigen</Button>
-			<Button variant="contained" onClick={() => navigate(`/create/documentation`)}>Allgemeine Dokumentation anzeigen</Button>
+			<Link to={`/create/${simulation.id}/scripts`}><Button variant="contained">Übersicht über alle definierten Skripte anzeigen</Button></Link>
+			<Link to="/create/documentation" target="_blank"><Button variant="contained">Allgemeine Dokumentation anzeigen</Button></Link>
 		</FormPart>
 		{showSupportingFunctions ? <SupportingFunctions {...{ simulation }} /> : null}
 		{showGeneralUpdateScript ? <GeneralUpdateScript {...{ simulation }} /> : null}
@@ -132,7 +130,7 @@ export function SupportingFunctions({ simulation }) {
 	const getError = useCallback((supportingFunctions) => getScriptError(supportingFunctions, { ...simulation, supportingFunctions: undefined }), [simulation]) // Evaluate as regular script, without supporting functions.
 	return <FormPart style={{ paddingTop: '0.5rem' }}>
 		<TrackedCodeField label={<>Unterstützende Funktionen</>} value={simulation.supportingFunctions} path="simulations" documentId={simulation.id} field="supportingFunctions" multiline={true} getError={getError} />
-		{simulation.supportingFunctions ? null : <Alert severity="info" sx={{ my: 2 }}>Sie können hier Ihre eigenen unterstützenden Javascript-Funktionen definieren, die dann in Update-Skripten, Anzeigeskripten auf Seiten und mehr verwendet werden können. Denken Sie zum Beispiel an eine Zahlenformatierungsfunktion:<br /><Code>function formatNumber(num) &#123; return num.replace(&quot;.&quot;, &quot;,&quot;) &#125;</Code><br />Die Möglichkeiten sind natürlich endlos. Jede Funktion, die Sie benötigen, kann hier hinzugefügt werden.</Alert>}
+		{simulation.supportingFunctions ? null : <Alert severity="info" sx={{ my: 2 }}>Sie können hier Ihre eigenen unterstützenden Javascript-Funktionen definieren, die dann in Update-Skripten, Anzeigeskripten auf Seiten und mehr verwendet werden können. Denken Sie zum Beispiel an eine Zahlenformatierungsfunktion:<br /><Code>function formatNumber(num) &#123; return roundToDigits(num, 3).toString().replace(&quot;.&quot;, &quot;,&quot;) &#125;</Code><br />Die Möglichkeiten sind natürlich endlos. Jede Funktion, die Sie benötigen, kann hier hinzugefügt werden.</Alert>}
 	</FormPart>
 }
 
@@ -140,6 +138,6 @@ export function GeneralUpdateScript({ simulation }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 	return <FormPart style={{ paddingTop: '0.5rem' }}>
 		<TrackedCodeField label={<>Allgemeines Update-Skript</>} value={simulation.updateScript} path="simulations" documentId={simulation.id} field="updateScript" multiline={true} getError={getError} />
-		{simulation.updateScript ? null : <Alert severity="info" sx={{ my: 2 }}>Dieses Update-Skript wird immer dann ausgeführt, wenn ein Benutzer eine Antwortoption auf einer Seite auswählt. Es wird unmittelbar nach dem Aktualisierungsskript der jeweiligen Antwortoption (oder Seite) angewendet.</Alert>}
+		{simulation.updateScript ? null : <Alert severity="info" sx={{ my: 2 }}>Dieses Update-Skript wird immer dann ausgeführt, wenn ein Benutzer eine Antwortoption auf einer Seite auswählt. Es wird unmittelbar nach dem Aktualisierungsskript der jeweiligen Antwortoption (oder Seite) angewendet. Sie wird nicht beim Betreten einer Seite oder beim Verlassen einer Infoseite (ohne Antwortmöglichkeiten) verwendet.</Alert>}
 	</FormPart>
 }

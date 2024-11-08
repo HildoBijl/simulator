@@ -5,9 +5,13 @@ import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
+import FormGroup from '@mui/material/FormGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, FolderOpen as FolderEmptyIcon, Delete as DeleteIcon } from '@mui/icons-material'
+import { deleteField } from 'firebase/firestore'
 import { Draggable } from '@hello-pangea/dnd'
 
 import { FormPart, TrackedTextField, TrackedCodeField, MCE } from 'components'
@@ -72,6 +76,8 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 						<FormPart>
 							<MCE label="Beschreibung" height="225" value={page.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="description" />
 						</FormPart>
+						<HeaderSettings {...{ simulation, page }} />
+						<FooterSettings {...{ simulation, page }} />
 						{hasVariables(simulation) ? <PageEntryScript {...{ simulation, page }} /> : null}
 						<Options {...{ simulation, page }} />
 					</AccordionDetails>
@@ -170,4 +176,20 @@ export function PageEntryScript({ simulation, page }) {
 	return <FormPart>
 		<TrackedCodeField label="Eintrittsskript (wird beim Laden der Seite ausgeführt)" value={page.entryScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="entryScript" multiline={true} getError={getError} />
 	</FormPart>
+}
+
+function HeaderSettings({ simulation, page }) {
+	if (!simulation.pageHeader || !simulation.allowHeaderHiding)
+		return null
+	return <FormGroup sx={{ px: '0.5rem' }}>
+		<FormControlLabel control={<Switch checked={!page.hideHeader || false} onChange={event => updatePage(simulation.id, page.id, { hideHeader: !event.target.checked || deleteField() })} />} label="Den Seitenkopf auf dieser Seite anzeigen." />
+	</FormGroup>
+}
+
+function FooterSettings({ simulation, page }) {
+	if (!simulation.pageFooter || !simulation.allowFooterHiding)
+		return null
+	return <FormGroup sx={{ px: '0.5rem' }}>
+		<FormControlLabel control={<Switch checked={!page.hideFooter || false} onChange={event => updatePage(simulation.id, page.id, { hideFooter: !event.target.checked || deleteField() })} />} label="Den Seitenfuß auf dieser Seite anzeigen." />
+	</FormGroup>
 }

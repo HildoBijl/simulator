@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material/styles'
 export function FormPart({ children, style = {} }) {
 	if (!children || (Array.isArray(children) && children.filter(value => value).length === 0))
 		return null // On empty contents don't render it.
-	return <div style={{ margin: '1.4rem 0', ...style }}>{children}</div>
+	return <div style={{ margin: '1.2rem 0', ...style }}>{children}</div>
 }
 
 export function FormSubPart({ children }) {

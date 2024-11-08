@@ -47,8 +47,8 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 	const icons = simulation.allowUndo && canUndo ? [{ Icon: Undo, onClick: undo }] : []
 
 	// Check for headers/footers.
-	const showHeader = !!simulation.pageHeader
-	const showFooter = !!simulation.pageFooter
+	const showHeader = !!simulation.pageHeader && (!simulation.allowHeaderHiding || !page.hideHeader)
+	const showFooter = !!simulation.pageFooter && (!simulation.allowFooterHiding || !page.hideFooter)
 
 	// Render the page with description, media, options and buttons.
 	return <PageContainer title={page.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>

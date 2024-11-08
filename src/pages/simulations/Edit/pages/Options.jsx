@@ -76,7 +76,11 @@ export function Options({ simulation, page }) {
 				<div
 					ref={provided.innerRef}
 					{...provided.droppableProps}
-					style={{ ...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {}) }}>
+					style={{
+						margin: '0 0 1rem',
+						...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {})
+					}}
+				>
 					{options.length === 0 ? null : <Defaults {...{ simulation, page, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />}
 					{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, page, option, optionIndex, updatedIndex: applyMoveToIndex(move, optionIndex), expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
 					{provided.placeholder}

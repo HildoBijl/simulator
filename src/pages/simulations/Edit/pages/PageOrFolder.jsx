@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useTheme, alpha } from '@mui/material/styles'
 import Tooltip from '@mui/material/Tooltip'
+import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -33,6 +34,9 @@ export function PageOrFolder(data) {
 
 function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, flipExpand }) {
 	const theme = useTheme()
+
+	// Determine what to show inside the form.
+	const [showInternalTitle, setShowInternalTitle] = useState(!!page.internalTitle)
 
 	// Determine the icon for this page.
 	const Icon = page.options ? HelpIcon : InfoIcon
@@ -70,9 +74,10 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 						<FormPart>
 							<TrackedTextField label="Titel" value={page.title} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="title" />
 						</FormPart>
-						<FormPart>
-							<TrackedTextField label="Interner Titel (für Benutzer nicht sichtbar)" value={page.internalTitle} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="internalTitle" />
-						</FormPart>
+						{showInternalTitle ? <FormPart>
+							<TrackedTextField label="Interner Titel" value={page.internalTitle} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="internalTitle" />
+							{page.internalTitle ? null : <Alert severity="info" sx={{ my: 2 }}>Der interne Titel wird den Benutzern nie angezeigt. Er erscheint nur auf dieser Seitenübersicht, damit Sie Ihre Seiten leichter strukturieren können. Der obige &quot;Titel&quot; ist der Titel der Seite, der den Benutzern angezeigt wird.</Alert>}
+						</FormPart> : null}
 						<FormPart>
 							<MCE label="Beschreibung" height="225" value={page.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="description" />
 						</FormPart>
@@ -80,6 +85,7 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 						<FooterSettings {...{ simulation, page }} />
 						{hasVariables(simulation) ? <PageEntryScript {...{ simulation, page }} /> : null}
 						<Options {...{ simulation, page }} />
+						{showInternalTitle ? null : <Button variant="contained" onClick={() => setShowInternalTitle(true)}>Internen Titel hinzufügen</Button>}
 					</AccordionDetails>
 					<AccordionActions key="actions">
 						<Button sx={{ mt: 2 }} onClick={() => deletePage(simulation, page)}>Seite löschen</Button>

@@ -243,6 +243,6 @@ export function getStateError(simulation, state) {
 		return undefined
 
 	// Check that the pageId from the state exists. (If there is no pageId, then the simulation hasn't started yet; that's fine too.)
-	if (state.pageId !== 'end' && !simulation.pages[state.pageId])
+	if (!simulation.pages[state.pageId])
 		return { source: 'state', type: 'page', subtype: 'missing' }
 }

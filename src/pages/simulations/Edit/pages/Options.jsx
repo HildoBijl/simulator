@@ -64,12 +64,6 @@ export function Options({ simulation, page }) {
 
 	// Render the options through an Accordion. When there are no options, pull out the standard settings.
 	return <FormPart>
-		{options.length === 0 ? <>
-			<FollowUpDropdown {...{ simulation, page }} />
-			{hasVariables(simulation) ? <>
-				<PageUpdateScript {...{ simulation, page }} />
-			</> : null}
-		</> : null}
 		<Label>Antwortmöglichtkeiten</Label>
 		<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
 			<Droppable droppableId="options">{(provided, snapshot) => (
@@ -167,7 +161,7 @@ function Option({ simulation, page, option, optionIndex, updatedIndex, expanded,
 				{expanded ? <>
 					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 						<FormPart>
-							<MCE ref={descriptionRef} label="Beschreibung" height="200" value={option.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="description" />
+							<MCE ref={descriptionRef} label="Beschreibung" height="170" value={option.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="description" />
 						</FormPart>
 						<FollowUpDropdown {...{ simulation, page, optionIndex }} />
 						<FormPart>
@@ -183,7 +177,7 @@ function Option({ simulation, page, option, optionIndex, updatedIndex, expanded,
 	</Draggable>
 }
 
-function FollowUpDropdown({ simulation, page, optionIndex }) {
+export function FollowUpDropdown({ simulation, page, optionIndex }) {
 	const options = page.options || []
 	const option = options[optionIndex]
 	const forPage = (optionIndex === undefined)
@@ -238,7 +232,7 @@ export function PageUpdateScript({ simulation, page }) {
 
 	// Render the code field.
 	return <FormPart>
-		<TrackedCodeField label={label} value={page.updateScript} path={`simulations / ${simulation.id} /pages`} documentId={page.id} field="updateScript" multiline={true} getError={getError} />
+		<TrackedCodeField label={label} value={page.updateScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="updateScript" multiline={true} getError={getError} />
 	</FormPart >
 }
 

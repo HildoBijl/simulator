@@ -26,8 +26,18 @@ export function getVariables(state) {
 }
 
 // getFollowUpPage gets the follow-up page for a given simulation page. If it's set, give the setting. If not, give the ID of the next page. If not available, end the simulation.
-export function getFollowUpPage(page, simulation) {
-	return page.followUpPage || simulation.pageList[simulation.pageList.findIndex(currPage => currPage.id === page.id) + 1]?.id || 'end'
+export function getFollowUpPage(page, simulation, choice) {
+	// When no choice is given, go for the page default.
+	if (choice === undefined) {
+		if (page.followUpPage)
+			return page.followUpPage
+		const nextInList = simulation.pageList[simulation.pageList.findIndex(currPage => currPage.id === page.id) + 1]?.id
+		return nextInList || 'end'
+	}
+
+	// When a choice is given, check the option, and otherwise go for the page default.
+	const option = (page.options || [])[choice]
+	return option?.followUpPage || getFollowUpPage(page, simulation)
 }
 
 // getInitialVariables receives a simulation and sets up the initial value of variables.

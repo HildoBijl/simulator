@@ -15,8 +15,6 @@ export function TrackedTextField({ path, documentId, field, label, value: givenV
 		const newValue = process ? process(event.target.value) : event.target.value
 		setValue(newValue)
 		let saveValue = processSaveValue ? processSaveValue(newValue) : newValue
-		if (saveValue === undefined)
-			saveValue = deleteField()
 		if (arrayIndex !== undefined) { // Do we change a part of an array?
 			if (arrayField) { // The array contains objects and we need to change an element in the array.
 				updateDocument(path, documentId, { [field]: [...arrayValue.slice(0, arrayIndex), { ...arrayValue[arrayIndex], [arrayField]: saveValue }, ...arrayValue.slice(arrayIndex + 1)] })
@@ -24,6 +22,8 @@ export function TrackedTextField({ path, documentId, field, label, value: givenV
 				updateDocument(path, documentId, { [field]: [...arrayValue.slice(0, arrayIndex), saveValue, ...arrayValue.slice(arrayIndex + 1)] })
 			}
 		} else { // We change a regular field.
+			if (saveValue === undefined || saveValue === '')
+				saveValue = deleteField()
 			updateDocument(path, documentId, { [field]: saveValue })
 		}
 	}

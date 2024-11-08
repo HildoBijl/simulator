@@ -2,7 +2,7 @@ import { parseScript } from 'esprima'
 
 import { lastOf, getBracketPositions } from 'util'
 
-import { getInitialVariables, getVariableInitialValue, boundVariables } from './util'
+import { hasVariables, getInitialVariables, getVariableInitialValue, boundVariables } from './util'
 
 // The defaultFunctions are the functions that are included whenever custom script is run.
 export const defaultFunctions = `
@@ -85,6 +85,8 @@ export function evaluateExpression(expression, variables, supportingFunctions = 
 
 // resolveScripts takes a text (possibly with HTML) and resolves any scripts defined within curly braces { ... }.
 export function resolveScripts(text, variables, simulation) {
+	if (!hasVariables(simulation))
+		return text
 	if (!text)
 		return text
 	

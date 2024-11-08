@@ -22,7 +22,7 @@ import { emptyPage, emptyFolder, accordionStyle } from '../../settings'
 import { hasVariables } from '../../util'
 import { getScriptError } from '../../scripts'
 
-import { Options } from './Options'
+import { Options, FollowUpDropdown, PageUpdateScript } from './Options'
 
 export function PageOrFolder(data) {
 	const { page } = data
@@ -37,16 +37,22 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 
 	// Determine what to show inside the form.
 	const [showInternalTitle, setShowInternalTitle] = useState(!!page.internalTitle)
+	const hasOptions = (page.options || []).length !== 0
+	const [showOptions, setShowOptions] = useState(hasOptions)
+	const allowFollowUpPage = !hasOptions
+	const [showFollowUpPage, setShowFollowUpPage] = useState(allowFollowUpPage && !!page.followUpPage)
 	const allowEntryScript = hasVariables(simulation)
 	const [showEntryScript, setShowEntryScript] = useState(allowEntryScript && !!page.entryScript)
+	const allowUpdateScript = hasVariables(simulation) && !hasOptions
+	const [showUpdateScript, setShowUpdateScript] = useState(allowUpdateScript && !!page.updateScript)
 	const allowHeaderSettings = simulation.allowHeaderHiding
 	const [showHeaderSettings, setShowHeaderSettings] = useState(allowHeaderSettings && page.hideHeader)
 	const allowFooterSettings = simulation.allowFooterHiding
 	const [showFooterSettings, setShowFooterSettings] = useState(allowFooterSettings && page.hideFooter)
 
 	// Determine the icon for this page.
-	const Icon = page.options ? HelpIcon : InfoIcon
-	const iconColor = page.options ? theme.palette.primary.main : theme.palette.info.main
+	const Icon = hasOptions ? HelpIcon : InfoIcon
+	const iconColor = hasOptions ? theme.palette.primary.main : theme.palette.info.main
 
 	// Determine the jump-in. Ensure this doesn't change upon dragging.
 	const jumpInRef = useRef()
@@ -90,14 +96,21 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 							<MCE label="Beschreibung" height="225" value={page.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="description" />
 						</FormPart>
 
-						{showHeaderSettings ? <HeaderSettings {...{ simulation, page }} /> : null}
-						{showFooterSettings ? <FooterSettings {...{ simulation, page }} /> : null}
-						{showEntryScript ? <PageEntryScript {...{ simulation, page }} /> : null}
-						<Options {...{ simulation, page }} />
+						{/* Other components. */}
+						{(allowHeaderSettings && showHeaderSettings) ? <HeaderSettings {...{ simulation, page }} /> : null}
+						{(allowFooterSettings && showFooterSettings) ? <FooterSettings {...{ simulation, page }} /> : null}
+						{(allowEntryScript && showEntryScript) ? <PageEntryScript {...{ simulation, page }} /> : null}
+						{(allowFollowUpPage && showFollowUpPage) ? <FollowUpDropdown {...{ simulation, page }} /> : null}
+						{(allowUpdateScript && showUpdateScript) ? <PageUpdateScript {...{ simulation, page }} /> : null}
+						{showOptions ? <Options {...{ simulation, page }} /> : null}
 
+						{/* Buttons to activate settings. */}
 						<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', alignItems: 'stretch', justifyContent: 'stretch', marginTop: '0.6rem' }}>
+							{!showOptions ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowOptions(true)}>Antwortmöglichkeiten hinzufügen</Button> : null}
+							{(allowFollowUpPage && !showFollowUpPage) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowFollowUpPage(true)}>Folgeseite einstellen</Button> : null}
 							{!showInternalTitle ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowInternalTitle(true)}>Internen Titel hinzufügen</Button> : null}
 							{(allowEntryScript && !showEntryScript) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowEntryScript(true)}>Eintrittsskript hinzufügen</Button> : null}
+							{(allowUpdateScript && !showUpdateScript) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowUpdateScript(true)}>Update-Skript hinzufügen</Button> : null}
 							{(allowHeaderSettings && !showHeaderSettings) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => {
 								updatePage(simulation.id, page.id, { hideHeader: true })
 								setShowHeaderSettings(true)
@@ -108,6 +121,7 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 							}}>Seitenfuß ausblenden</Button> : null}
 						</FormPart>
 					</AccordionDetails>
+
 					<AccordionActions key="actions">
 						<Button sx={{ mt: 2 }} onClick={() => deletePage(simulation, page)}>Seite löschen</Button>
 					</AccordionActions>

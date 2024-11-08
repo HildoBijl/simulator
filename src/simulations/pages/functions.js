@@ -37,7 +37,7 @@ export async function deletePage(simulation, pageToRemove) {
 		if (page.type === 'page') {
 			if (page.followUpPage === pageToRemove.id)
 				update.followUpPage = deleteField()
-			if (page.options && page.options.some(option => option.followUpPage === pageToRemove.id))
+			if ((page.options || []).some(option => option.followUpPage === pageToRemove.id))
 				update.options = page.options.map(option => option.followUpPage === pageToRemove.id ? removeKeys(option, 'followUpPage') : option)
 		}
 

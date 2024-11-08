@@ -13,7 +13,7 @@ import { Page as PageContainer, InputParagraph, MCEContents } from 'components'
 import { useIsOwner, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyOption } from '../../settings'
-import { getVariables } from '../../util'
+import { getVariables, getFollowUpPage } from '../../util'
 import { resolveScripts } from '../../scripts'
 
 import { VariableOverview } from '../components/VariableOverview'
@@ -26,7 +26,7 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 	const page = simulation.pages[pageId]
 	const options = page.options || []
 
-	// If an option has been chosen and there's no feedback, automatically continue to the next page.
+	// If an option has been chosen and there's no feedback, automatically continue to the next page (if it exists).
 	useEffect(() => {
 		const options = page.options || []
 		if (!page.options)
@@ -35,11 +35,13 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 			return // It's a question page but the question hasn't been answered. Can't auto-continue.
 		if (options[choice].feedback || page.feedback)
 			return // There's feedback to show. Don't auto-continue.
+		if (getFollowUpPage(page, simulation, choice) === 'end')
+			return // After this the simulation is over. Don't auto-continue into nothingness.
 		goToNextPage(isOwner) // No reason found not to: let's auto-continue!
-	}, [page, choice, goToNextPage, isOwner])
+	}, [page, simulation, choice, goToNextPage, isOwner])
 
 	// Check what kind of button to show.
-	const atSimulationEnd = page.followUpPage === 'end' && (options.length === 0 || choice !== undefined)
+	const atSimulationEnd = (options.length === 0 || choice !== undefined) && getFollowUpPage(page, simulation, choice) === 'end'
 	const showNextButton = !atSimulationEnd && (options.length === 0 || choice !== undefined)
 
 	// Define what icons to show.
@@ -107,7 +109,11 @@ function Option({ option, index, selected, select, deselect, disabled, feedback,
 	const descriptionStyle = {
 		...commonStyle,
 		flex: '1 1 auto',
+		minHeight: '3rem',
 		padding: '0 1rem',
+		display: 'flex',
+		flexFlow: 'column nowrap',
+		justifyContent: 'center',
 	}
 	const feedbackStyle = {
 		background: theme.palette.secondary.main,

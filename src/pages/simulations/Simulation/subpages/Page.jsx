@@ -70,7 +70,7 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 		{showFooter ? <MCEContents>{resolveScripts(simulation.pageFooter, getVariables(state), simulation)}</MCEContents> : null}
 		<VariableOverview {...{ simulation, state }} />
 		{atSimulationEnd ? <>
-			<Alert severity="info" sx={{ my: 2 }}>Sie haben die Simulation beendet. Drücken Sie die Taste unten, um erneut zu beginnen.</Alert>
+			<Alert severity="info" sx={{ mt: 2 }}>Sie haben die Simulation beendet. Drücken Sie die Taste unten, um erneut zu beginnen.</Alert>
 			<Button variant="contained" sx={{ my: 2 }} onClick={() => reset(isOwner)}>Neu starten</Button>
 		</> : null}
 		{showNextButton ? <Button variant="contained" sx={{ my: 2 }} onClick={() => goToNextPage(isOwner)}>Weiter</Button> : null}

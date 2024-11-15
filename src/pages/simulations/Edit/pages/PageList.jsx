@@ -5,7 +5,7 @@ import Tooltip from '@mui/material/Tooltip'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import Alert from '@mui/material/Alert'
-import { Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, UnfoldLess as CloseIcon, UnfoldMore as OpenIcon } from '@mui/icons-material'
+import { Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, UnfoldLess as CloseIcon, UnfoldMore as OpenIcon, UnfoldLessDouble as CloseAllIcon, UnfoldMoreDouble as OpenAllIcon } from '@mui/icons-material'
 import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
 import { nestedListToIndices, insertIntoArray } from 'util'
@@ -83,9 +83,9 @@ export function PageList({ simulation }) {
 		})
 		return indices
 	}, [simulation, moveData, draggableStructure])
-	
+
 	// Render the pages through an Accordion.
-	return <FormPart>
+	return <FormPart style={{ marginTop: '1.6rem' }}>
 		{simulation.pageList.length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Klicken Sie auf die Schaltfläche unten, um Ihre erste Info- oder Frageseite hinzuzufügen. Wenn Sie später zu viele Fragen bekommen, können Sie auch Ordner hinzufügen, um sie zu strukturieren.</Alert> : null}
 		<Label>Seiten</Label>
 		<ExpandButtons {...{ simulation, expandedMap, setExpandedMap }} />
@@ -116,8 +116,17 @@ export function PageList({ simulation }) {
 }
 
 function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
-	// Define handlers to open and close all folders. (openAll opens all folders, leaving pages unchanged. closeAll closes everything, both folders and pages.)
-	const openAll = () => {
+	// Define handlers to open and close all folders and possibly questions.
+	const openAllFoldersAndQuestions = () => {
+		setExpandedMap(expandedMap => {
+			expandedMap = { ...expandedMap }
+			Object.values(simulation.pages).forEach(page => {
+				expandedMap[page.id] = true
+			})
+			return expandedMap
+		})
+	}
+	const openAllFolders = () => {
 		setExpandedMap(expandedMap => {
 			expandedMap = { ...expandedMap }
 			Object.values(simulation.pages).forEach(page => {
@@ -127,12 +136,24 @@ function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
 			return expandedMap
 		})
 	}
-	const closeAll = () => setExpandedMap({})
+	const closeAllFolders = () => {
+		setExpandedMap(expandedMap => {
+			expandedMap = { ...expandedMap }
+			Object.values(simulation.pages).forEach(page => {
+				if (page.type === 'folder')
+					delete expandedMap[page.id]
+			})
+			return expandedMap
+		})
+	}
+	const closeAllFoldersAndQuestions = () => setExpandedMap({})
 
 	// Check if the buttons are available.
 	const isEmptyFolder = page => page.type === 'folder' && (!page.contents || page.contents.length === 0)
-	const allClosed = Object.keys(expandedMap).every(pageId => !expandedMap[pageId] || !simulation.pages[pageId] || isEmptyFolder(simulation.pages[pageId])) // There are no open pages/folders: all open items are either non-existing, or empty folders.
+	const allFoldersAndQuestionsClosed = Object.keys(expandedMap).every(pageId => !expandedMap[pageId] || !simulation.pages[pageId] || isEmptyFolder(simulation.pages[pageId])) // There are no open pages/folders: all open items are either non-existing, or empty folders.
+	const allFoldersClosed = Object.keys(expandedMap).every(pageId => !expandedMap[pageId] || !simulation.pages[pageId] || simulation.pages[pageId].type !== 'folder' || isEmptyFolder(simulation.pages[pageId])) // There are no open folders: all open items are either non-existing, not folders, or empty folders.
 	const allFoldersOpen = Object.values(simulation.pages).every(page => page.type !== 'folder' || isEmptyFolder(page) || expandedMap[page.id]) // All folders are either empty or expanded.
+	const allFoldersAndQuestionsOpen = Object.values(simulation.pages).every(page => isEmptyFolder(page) || expandedMap[page.id]) // All folders and questions are either empty or expanded.
 
 	// Render the buttons, using an outer container with no height and an inner container for the buttons.
 	const buttonStyle = {
@@ -146,11 +167,17 @@ function ExpandButtons({ simulation, expandedMap, setExpandedMap }) {
 	}
 	return <div style={{ width: '100%', height: 0, position: 'relative' }}>
 		<div style={{ position: 'absolute', right: 0, bottom: 0, display: 'flex', flexFlow: 'row nowrap' }}>
+			<Tooltip title="Alle Ordner und Fragen aufklappen" arrow enterDelay={500}>
+				<OpenAllIcon onClick={openAllFoldersAndQuestions} sx={allFoldersAndQuestionsOpen ? buttonStyleInactive : buttonStyle} />
+			</Tooltip>
 			<Tooltip title="Alle Ordner aufklappen" arrow enterDelay={500}>
-				<OpenIcon onClick={openAll} sx={allFoldersOpen ? buttonStyleInactive : buttonStyle} />
+				<OpenIcon onClick={openAllFolders} sx={allFoldersOpen ? buttonStyleInactive : buttonStyle} />
+			</Tooltip>
+			<Tooltip title="Alle Ordner schließen" arrow enterDelay={500}>
+				<CloseIcon onClick={closeAllFolders} sx={allFoldersClosed ? buttonStyleInactive : buttonStyle} />
 			</Tooltip>
 			<Tooltip title="Alle Fragen und Ordner schließen" arrow enterDelay={500}>
-				<CloseIcon onClick={closeAll} sx={allClosed ? buttonStyleInactive : buttonStyle} />
+				<CloseAllIcon onClick={closeAllFoldersAndQuestions} sx={allFoldersAndQuestionsClosed ? buttonStyleInactive : buttonStyle} />
 			</Tooltip>
 		</div>
 	</div>

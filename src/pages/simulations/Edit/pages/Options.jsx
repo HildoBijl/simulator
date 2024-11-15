@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Tooltip from '@mui/material/Tooltip'
+import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -264,16 +265,18 @@ export function PageUpdateScript({ simulation, page }) {
 	const getError = useCallback((script) => getScriptError(script, simulation), [simulation])
 
 	// Determine the extra message to show for the field, giving info on where this will be used.
-	const optionsWithScript = (page.options || []).map(option => !!option.updateScript)
+	const options = page.options || []
+	const optionsWithScript = options.map(option => !!option.updateScript)
 	const allOptionsHaveScript = optionsWithScript.every(value => value)
 	const noOptionsHaveScript = !optionsWithScript.some(value => value)
 	const optionsWithoutScript = optionsWithScript.map((value, index) => !value && numberToLetter(index).toUpperCase()).filter(value => value)
 	const extraMessage = allOptionsHaveScript ? 'derzeit nicht verwendet; alle Möglichkeiten haben ein eigenes Update-Skript' : noOptionsHaveScript ? 'für alle Möglichkeiten, da keine ein eigenes Update-Skript hat' : `für die Möglichkeit${optionsWithoutScript.length === 1 ? ` (nur ${optionsWithoutScript.join('/')})` : `en ${optionsWithoutScript.join('/')}`} ohne eigenes Update-Skript`
-	const label = (page.options || []).length > 0 ? `Standard Update-Skript (${extraMessage})` : 'Update-Skript (wird beim Verlassen der Seite ausgeführt)'
+	const label = options.length > 0 ? `Standard Update-Skript (${extraMessage})` : 'Update-Skript'
 
 	// Render the code field.
 	return <FormPart>
 		<TrackedCodeField label={label} value={page.updateScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="updateScript" multiline={true} getError={getError} />
+		{page.updateScript ? null : <Alert severity="info" sx={{ my: 2 }}>{options.length > 0 ? <>Das Update-Skript wird bei Auswahl einer Antwortmöglichkeit ausgeführt. Sie können es verwenden, um die Auswirkungen der Wahl dieser Option durch den Benutzer auf die Parameter der Simulation zu implementieren.</> : <>Das Update-Skript wird beim Verlassen der Seite ausgeführt. Sie können damit die Werte bestimmter Parameter anpassen, falls gewünscht.</>}</Alert>}
 	</FormPart >
 }
 

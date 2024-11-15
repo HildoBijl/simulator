@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTheme } from '@mui/material/styles'
+import Tooltip from '@mui/material/Tooltip'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -9,7 +10,7 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
-import { DragIndicator as DragIndicatorIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
+import { DragIndicator as DragIndicatorIcon, ExpandMore as ExpandMoreIcon, UnfoldLess as CloseIcon, UnfoldMore as OpenIcon } from '@mui/icons-material'
 import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
@@ -62,9 +63,16 @@ export function Options({ simulation, page }) {
 			await moveOption(simulation, page, from, to)
 	}
 
+	// Determine whether or not to show defaults. Do so when it has at least one useful field.
+	const showDefaultFollowUpPage = !options.every(option => option.followUpPage)
+	const showDefaultFeedback = !options.every(option => option.feedback)
+	const showDefaultUpdateScript = !options.every(option => option.updateScript)
+	const showDefaults = options.length > 0 && (showDefaultFollowUpPage || showDefaultFeedback || showDefaultUpdateScript)
+
 	// Render the options through an Accordion. When there are no options, pull out the standard settings.
-	return <FormPart>
+	return <FormPart style={{ marginTop: '1.6rem' }}>
 		<Label>Antwortmöglichtkeiten</Label>
+		{options.length === 0 ? null : <ExpandButtons {...{ expanded, setExpanded, showDefaults, defaultsExpanded, setDefaultsExpanded }} />}
 		<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
 			<Droppable droppableId="options">{(provided, snapshot) => (
 				<div
@@ -75,7 +83,7 @@ export function Options({ simulation, page }) {
 						...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#eee' : '#222' } : {})
 					}}
 				>
-					{options.length === 0 ? null : <Defaults {...{ simulation, page, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} />}
+					{showDefaults ? <Defaults {...{ simulation, page, expanded: defaultsExpanded, flipExpand: () => setDefaultsExpanded(value => !value) }} /> : null}
 					{options.map((option, optionIndex) => <Option key={optionIndex} {...{ simulation, page, option, optionIndex, updatedIndex: applyMoveToIndex(move, optionIndex), expanded: !!expanded[optionIndex], flipExpand: () => flipExpand(optionIndex), removeOption: () => removeOption(optionIndex) }} />)}
 					{provided.placeholder}
 					{canAddOption ? <Accordion onClick={() => addOption()} expanded={false}>
@@ -89,6 +97,41 @@ export function Options({ simulation, page }) {
 	</FormPart>
 }
 
+function ExpandButtons({ expanded, setExpanded, showDefaults, defaultsExpanded, setDefaultsExpanded }) {
+	// Define handlers to open and close all options.
+	const openAll = () => {
+		setExpanded(expanded => expanded.map(() => true))
+		setDefaultsExpanded(true)
+	}
+	const closeAll = () => {
+		setExpanded(expanded => expanded.map(() => false))
+		setDefaultsExpanded(false)
+	}
+	const allOpen = (!showDefaults || defaultsExpanded) && expanded.every(value => value)
+	const allClosed = (!showDefaults || !defaultsExpanded) && !expanded.some(value => value)
+
+	// Render the buttons, using an outer container with no height and an inner container for the buttons.
+	const buttonStyle = {
+		cursor: 'pointer',
+		padding: '3px',
+	}
+	const buttonStyleInactive = {
+		...buttonStyle,
+		opacity: 0.5,
+		cursor: 'default',
+	}
+	return <div style={{ width: '100%', height: 0, position: 'relative' }}>
+		<div style={{ position: 'absolute', right: 0, bottom: 0, display: 'flex', flexFlow: 'row nowrap' }}>
+			<Tooltip title="Alle Antwortmöglichkeiten aufklappen" arrow enterDelay={500}>
+				<OpenIcon onClick={openAll} sx={allOpen ? buttonStyleInactive : buttonStyle} />
+			</Tooltip>
+			<Tooltip title="Alle Antwortmöglichkeiten schließen" arrow enterDelay={500}>
+				<CloseIcon onClick={closeAll} sx={allClosed ? buttonStyleInactive : buttonStyle} />
+			</Tooltip>
+		</div>
+	</div>
+}
+
 function Defaults({ simulation, page, expanded, flipExpand }) {
 	// Determine the extra message to show for the feedback field, giving info on where this will be used.
 	const { options } = page
@@ -98,12 +141,10 @@ function Defaults({ simulation, page, expanded, flipExpand }) {
 	const optionsWithoutFeedback = optionsWithFeedback.map((value, index) => !value && numberToLetter(index).toUpperCase()).filter(value => value)
 	const extraMessage = allOptionsHaveFeedback ? 'derzeit nicht verwendet; alle Möglichkeiten haben eine eigene Rückmeldung' : noOptionsHaveFeedback ? 'für alle Möglichkeiten, da keine ihre eigene Rückmeldung hat' : `für die Möglichkeit${optionsWithoutFeedback.length === 1 ? ` (nur ${optionsWithoutFeedback.join('/')})` : `en ${optionsWithoutFeedback.join('/')}`} ohne eigene Rückmeldung`
 
-	// Check if we should show defaults in the first place.
+	// Check which fields should be shown.
 	const showDefaultFollowUpPage = !options.every(option => option.followUpPage)
 	const showDefaultFeedback = !allOptionsHaveFeedback
 	const showDefaultUpdateScript = !options.every(option => option.updateScript)
-	if (!showDefaultFollowUpPage && !showDefaultFeedback && !showDefaultUpdateScript)
-		return null
 
 	// Show the standard options.
 	return <Accordion expanded={expanded} onChange={() => flipExpand()}>
@@ -120,7 +161,7 @@ function Defaults({ simulation, page, expanded, flipExpand }) {
 	</Accordion>
 }
 
-function Option({ simulation, page, option, optionIndex, updatedIndex, expanded, flipExpand }) {
+function Option({ simulation, page, option, optionIndex, updatedIndex, expanded, flipExpand, removeOption }) {
 	const theme = useTheme()
 
 	// Determine some derived/default properties.
@@ -170,7 +211,7 @@ function Option({ simulation, page, option, optionIndex, updatedIndex, expanded,
 						{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, page, optionIndex }} /> : null}
 					</AccordionDetails>
 					<AccordionActions key="actions">
-						<Button onClick={() => updatePage(simulation.id, page.id, { options: arrayRemove(option) })}>Antwortmöglichkeit Löschen</Button>
+						<Button onClick={() => removeOption()}>Antwortmöglichkeit Löschen</Button>
 					</AccordionActions>
 				</> : null}
 			</Accordion>}

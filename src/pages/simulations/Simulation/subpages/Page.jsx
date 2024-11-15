@@ -13,7 +13,7 @@ import { Page as PageContainer, InputParagraph, MCEContents } from 'components'
 import { useIsOwner, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyOption } from '../../settings'
-import { getVariables, getFollowUpPage } from '../../util'
+import { getVariables, getFollowUpPage, applyAutoplay } from '../../util'
 import { resolveScripts } from '../../scripts'
 
 import { VariableOverview } from '../components/VariableOverview'
@@ -25,11 +25,15 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 	// Determine the page we're at.
 	const page = simulation.pages[pageId]
 	const options = page.options || []
+	let { title, description, feedback, hideHeader, hideFooter } = page
+	if (page.autoplay)
+		description = applyAutoplay(description)
+	description = resolveScripts(description, getVariables(state), simulation)
 
 	// If an option has been chosen and there's no feedback, automatically continue to the next page (if it exists).
 	useEffect(() => {
 		const options = page.options || []
-		if (!page.options)
+		if (options.length === 0)
 			return // No options. Never auto-continue, since it's an info-screen.
 		if (choice === undefined)
 			return // It's a question page but the question hasn't been answered. Can't auto-continue.
@@ -49,17 +53,17 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 	const icons = simulation.allowUndo && canUndo ? [{ Icon: Undo, onClick: undo }] : []
 
 	// Check for headers/footers.
-	const showHeader = !!simulation.pageHeader && (!simulation.allowHeaderHiding || !page.hideHeader)
-	const showFooter = !!simulation.pageFooter && (!simulation.allowFooterHiding || !page.hideFooter)
+	const showHeader = !!simulation.pageHeader && (!simulation.allowHeaderHiding || !hideHeader)
+	const showFooter = !!simulation.pageFooter && (!simulation.allowFooterHiding || !hideFooter)
 
 	// Render the page with description, media, options and buttons.
-	return <PageContainer title={page.title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
+	return <PageContainer title={title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
 		{showHeader ? <MCEContents>{resolveScripts(simulation.pageHeader, getVariables(state), simulation)}</MCEContents> : null}
-		<MCEContents>{resolveScripts(page.description, getVariables(state), simulation)}</MCEContents>
+		<MCEContents>{description}</MCEContents>
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
-				{page.options.map((option, index) => choice !== undefined ?
-					<Option key={index} {...{ simulation, state, page, option, index, disabled: index !== choice, feedback: index === choice && (options[choice].feedback || page.feedback) }} /> :
+				{options.map((option, index) => choice !== undefined ?
+					<Option key={index} {...{ simulation, state, page, option, index, disabled: index !== choice, feedback: index === choice && (options[choice].feedback || feedback) }} /> :
 					<Option key={index} {...{ simulation, state, page, option, index, selected: false, select: () => chooseOption(index, isOwner) }} />)}
 			</div>
 		</>}

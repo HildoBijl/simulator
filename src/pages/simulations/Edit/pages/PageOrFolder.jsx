@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import { useTheme, alpha } from '@mui/material/styles'
 import Tooltip from '@mui/material/Tooltip'
 import Alert from '@mui/material/Alert'
@@ -19,7 +19,7 @@ import { FormPart, TrackedTextField, TrackedCodeField, MCE } from 'components'
 import { deletePage, updatePage, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyFolder, accordionStyle } from '../../settings'
-import { hasVariables } from '../../util'
+import { hasVariables, hasVideo } from '../../util'
 import { getScriptError } from '../../scripts'
 
 import { Options, FollowUpDropdown, PageUpdateScript } from './Options'
@@ -34,10 +34,11 @@ export function PageOrFolder(data) {
 
 function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, flipExpand }) {
 	const theme = useTheme()
+	const { id, index, title, internalTitle, description, options } = page
 
 	// Determine what to show inside the form.
 	const [showInternalTitle, setShowInternalTitle] = useState(!!page.internalTitle)
-	const hasOptions = (page.options || []).length !== 0
+	const hasOptions = (options || []).length !== 0
 	const [showOptions, setShowOptions] = useState(hasOptions)
 	const allowFollowUpPage = !hasOptions
 	const [showFollowUpPage, setShowFollowUpPage] = useState(allowFollowUpPage && !!page.followUpPage)
@@ -49,6 +50,8 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 	const [showHeaderSettings, setShowHeaderSettings] = useState(allowHeaderSettings && page.hideHeader)
 	const allowFooterSettings = !!simulation.pageFooter && simulation.allowFooterHiding
 	const [showFooterSettings, setShowFooterSettings] = useState(allowFooterSettings && page.hideFooter)
+	const allowAutoplay = useMemo(() => hasVideo(description), [description])
+	const [showAutoplay, setShowAutoplay] = useState(allowAutoplay && page.autoplay)
 
 	// Determine the icon for this page.
 	const Icon = hasOptions ? HelpIcon : InfoIcon
@@ -60,7 +63,7 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 	jumpInRef.current = jumpIn
 
 	// Render the page.
-	return <Draggable key={page.id} index={dragIndex} draggableId={page.id}>
+	return <Draggable key={id} index={dragIndex} draggableId={id}>
 		{(provided, snapshot) =>
 			<Accordion
 				ref={provided.innerRef}
@@ -78,27 +81,28 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 						<DragIndicatorIcon sx={{ ml: -1, mr: 1 }} />
 					</span>
 					<Icon sx={{ color: iconColor, ml: -0.2, mr: 0.6, transform: 'scale(0.75) translateY(1px)' }} />
-					<span style={{ marginRight: '0.75rem' }}>{pageIndexToString(page.index)}</span>
-					{page.internalTitle || page.title || emptyPage}
+					<span style={{ marginRight: '0.75rem' }}>{pageIndexToString(index)}</span>
+					{internalTitle || title || emptyPage}
 				</AccordionSummary>
 				{expanded ? <>
 					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 						<FormPart>
-							<TrackedTextField label="Titel" value={page.title} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="title" />
+							<TrackedTextField label="Titel" value={title} path={`simulations/${simulation.id}/pages`} documentId={id} field="title" />
 						</FormPart>
 
 						{showInternalTitle ? <FormPart>
-							<TrackedTextField label="Interner Titel" value={page.internalTitle} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="internalTitle" />
-							{page.internalTitle ? null : <Alert severity="info" sx={{ my: 2 }}>Der interne Titel wird den Benutzern nie angezeigt. Er erscheint nur auf dieser Seitenübersicht, damit Sie Ihre Seiten leichter strukturieren können. Der obige &quot;Titel&quot; ist der Titel der Seite, der den Benutzern angezeigt wird.</Alert>}
+							<TrackedTextField label="Interner Titel" value={internalTitle} path={`simulations/${simulation.id}/pages`} documentId={id} field="internalTitle" />
+							{internalTitle ? null : <Alert severity="info" sx={{ my: 2 }}>Der interne Titel wird den Benutzern nie angezeigt. Er erscheint nur auf dieser Seitenübersicht, damit Sie Ihre Seiten leichter strukturieren können. Der obige &quot;Titel&quot; ist der Titel der Seite, der den Benutzern angezeigt wird.</Alert>}
 						</FormPart> : null}
 
 						<FormPart>
-							<MCE label="Beschreibung" height="225" value={page.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="description" />
+							<MCE label="Beschreibung" height="225" value={description} path={`simulations/${simulation.id}/pages`} documentId={id} field="description" />
 						</FormPart>
 
 						{/* Other components. */}
 						{(allowHeaderSettings && showHeaderSettings) ? <HeaderSettings {...{ simulation, page }} /> : null}
 						{(allowFooterSettings && showFooterSettings) ? <FooterSettings {...{ simulation, page }} /> : null}
+						{(allowAutoplay && showAutoplay) ? <AutoplaySettings {...{ simulation, page }} /> : null}
 						{(allowEntryScript && showEntryScript) ? <PageEntryScript {...{ simulation, page }} /> : null}
 						{(allowFollowUpPage && showFollowUpPage) ? <FollowUpDropdown {...{ simulation, page }} /> : null}
 						{(allowUpdateScript && showUpdateScript) ? <PageUpdateScript {...{ simulation, page }} /> : null}
@@ -112,13 +116,17 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 							{(allowEntryScript && !showEntryScript) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowEntryScript(true)}>Eintrittsskript hinzufügen</Button> : null}
 							{(allowUpdateScript && !showUpdateScript) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowUpdateScript(true)}>Update-Skript hinzufügen</Button> : null}
 							{(allowHeaderSettings && !showHeaderSettings) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => {
-								updatePage(simulation.id, page.id, { hideHeader: true })
+								updatePage(simulation.id, id, { hideHeader: true })
 								setShowHeaderSettings(true)
 							}}>Seitenkopf ausblenden</Button> : null}
 							{(allowFooterSettings && !showFooterSettings) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => {
-								updatePage(simulation.id, page.id, { hideFooter: true })
+								updatePage(simulation.id, id, { hideFooter: true })
 								setShowFooterSettings(true)
 							}}>Seitenfuß ausblenden</Button> : null}
+							{(allowAutoplay && !showAutoplay) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => {
+								updatePage(simulation.id, id, { autoplay: true })
+								setShowAutoplay(true)
+							}}>Video direkt starten</Button> : null}
 						</FormPart>
 					</AccordionDetails>
 
@@ -233,5 +241,11 @@ function FooterSettings({ simulation, page }) {
 		return null
 	return <FormGroup sx={{ px: '0.5rem' }}>
 		<FormControlLabel control={<Switch checked={!page.hideFooter || false} onChange={event => updatePage(simulation.id, page.id, { hideFooter: !event.target.checked || deleteField() })} />} label="Den Seitenfuß auf dieser Seite anzeigen." />
+	</FormGroup>
+}
+
+function AutoplaySettings({ simulation, page }) {
+	return <FormGroup sx={{ px: '0.5rem' }}>
+		<FormControlLabel control={<Switch checked={page.autoplay || false} onChange={event => updatePage(simulation.id, page.id, { autoplay: event.target.checked || deleteField() })} />} label="Das (erste) Video auf dieser Seite direkt abspielen (autoplay)." />
 	</FormGroup>
 }

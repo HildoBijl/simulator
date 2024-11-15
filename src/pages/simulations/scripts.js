@@ -137,7 +137,7 @@ export function getOutsideTags(text) {
 	const after = matchAfter[1]
 
 	// Gather the remaining text.
-	const inner = text.slice(before.length, -after.length)
+	const inner = after.length === 0 ? text.slice(before.length) : text.slice(before.length, -after.length)
 	return { before, inner, after }
 }
 

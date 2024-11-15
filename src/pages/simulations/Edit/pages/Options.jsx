@@ -165,6 +165,12 @@ function Defaults({ simulation, page, expanded, flipExpand }) {
 function Option({ simulation, page, option, optionIndex, updatedIndex, expanded, flipExpand, removeOption }) {
 	const theme = useTheme()
 
+	// Determine what to show inside the form.
+	const [showFollowUpPage, setShowFollowUpPage] = useState(!!option.followUpPage)
+	const [showFeedback, setShowFeedback] = useState(!!option.feedback)
+	const allowUpdateScript = hasVariables(simulation)
+	const [showUpdateScript, setShowUpdateScript] = useState(allowUpdateScript && !!option.updateScript)
+
 	// Determine some derived/default properties.
 	const description = option.description || emptyOption
 	const title = useClearTags(description.split('\n')[0] || emptyOption) // Get first line.
@@ -205,11 +211,18 @@ function Option({ simulation, page, option, optionIndex, updatedIndex, expanded,
 						<FormPart>
 							<MCE ref={descriptionRef} label="Beschreibung" height="170" value={option.description} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="description" />
 						</FormPart>
-						<FollowUpDropdown {...{ simulation, page, optionIndex }} />
-						<FormPart>
-							<TrackedTextField label="Rückmeldung" value={option.feedback} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
+						{showFollowUpPage ? <FollowUpDropdown {...{ simulation, page, optionIndex }} /> : null}
+						{showFeedback ? <FormPart>
+							<TrackedTextField label="Rückmeldung (wird bei Auswahl dieser Option angezeigt)" value={option.feedback} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="feedback" multiline={true} />
+						</FormPart> : null}
+						{allowUpdateScript && showUpdateScript ? <OptionUpdateScript {...{ simulation, page, optionIndex }} /> : null}
+
+						{/* Buttons to activate settings. */}
+						<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', alignItems: 'stretch', justifyContent: 'stretch', marginTop: '0.6rem' }}>
+							{!showFollowUpPage ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowFollowUpPage(true)}>Folgeseite einstellen</Button> : null}
+							{!showFeedback ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowFeedback(true)}>Rückmeldung hinzufügen</Button> : null}
+							{(allowUpdateScript && !showUpdateScript) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowUpdateScript(true)}>Update-Skript hinzufügen</Button> : null}
 						</FormPart>
-						{hasVariables(simulation) ? <OptionUpdateScript {...{ simulation, page, optionIndex }} /> : null}
 					</AccordionDetails>
 					<AccordionActions key="actions">
 						<Button onClick={() => removeOption()}>Antwortmöglichkeit Löschen</Button>

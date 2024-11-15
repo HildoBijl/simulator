@@ -246,6 +246,6 @@ function FooterSettings({ simulation, page }) {
 
 function AutoplaySettings({ simulation, page }) {
 	return <FormGroup sx={{ px: '0.5rem' }}>
-		<FormControlLabel control={<Switch checked={page.autoplay || false} onChange={event => updatePage(simulation.id, page.id, { autoplay: event.target.checked || deleteField() })} />} label="Das (erste) Video auf dieser Seite direkt abspielen (autoplay)." />
+		<FormControlLabel control={<Switch checked={page.autoplay || false} onChange={event => updatePage(simulation.id, page.id, { autoplay: event.target.checked || deleteField() })} />} label="Das Video auf dieser Seite direkt abspielen (autoplay)." />
 	</FormGroup>
 }

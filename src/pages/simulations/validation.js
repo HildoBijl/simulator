@@ -1,7 +1,7 @@
 import { arrayFind, getBracketPositions } from 'util'
 
 import { hasVariables } from './util'
-import { getScriptError, getExpressionError } from './scripts'
+import { getScriptError, getExpressionError, clearTags } from './scripts'
 
 // isSimulationValid checks if the given simulation has any problems. It returns a boolean.
 export function isSimulationValid(simulation) {
@@ -218,7 +218,8 @@ export function evaluateTextWithScripts(text, simulation) {
 
 	// Walk through the brackets to test all expressions.
 	return arrayFind(bracketPositions, bracketSet => {
-		const expression = text.substring(bracketSet[0] + 1, bracketSet[1])
+		let expression = text.substring(bracketSet[0] + 1, bracketSet[1])
+		expression = clearTags(expression)
 		const error = getExpressionError(expression, simulation)
 		if (error)
 			return { expression, error }

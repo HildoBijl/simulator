@@ -89,22 +89,28 @@ export function resolveScripts(text, variables, simulation) {
 		return text
 	if (!text)
 		return text
-	
+
 	// Get the bracket positions. If they are not properly nested, or simply have no brackets, just return the text.
 	const bracketPositions = getBracketPositions(text)
 	if (!bracketPositions)
 		return text // Not properly nested.
 	if (bracketPositions.length === 0)
 		return text // No brackets.
-	
+
 	// Walk through the bracket positions to assemble the text.
 	let result = ''
 	const variablesAsNames = switchVariableNames(variables, simulation)
 	bracketPositions.forEach((bracketSet, index) => {
+		// Add the part prior to the opening bracket.
 		result += text.substring(index === 0 ? 0 : bracketPositions[index - 1][1] + 1, bracketSet[0])
+		let expression = text.substring(bracketSet[0] + 1, bracketSet[1])
+
+		// If there are HTML tags inside the expression, then throw them out. Stuff on the edges is still incorporated into the result though. So for <strong>a<br/>x</strong> we keep the strongs but throw out the break to evaluate "ax".
+		let outsideTags = getOutsideTags(expression)
+		result += outsideTags.before
+		expression = clearTags(outsideTags.inner)
 
 		// Try to get the expression evaluation. As fallback show dots.
-		const expression = text.substring(bracketSet[0] + 1, bracketSet[1])
 		let evaluated
 		try {
 			evaluated = evaluateExpression(expression, variablesAsNames, simulation.supportingFunctions)
@@ -114,9 +120,30 @@ export function resolveScripts(text, variables, simulation) {
 			evaluated = '...'
 		}
 		result += evaluated
+		result += outsideTags.after
 	})
 	result += text.substring(lastOf(bracketPositions)[1] + 1)
 	return result
+}
+
+// getOutside takes a piece of text like "<strong>something</strong>" or "end of line<br/>" and returns an object of the form { left: '<strong>', inner: 'something', right: '</strong>' } or similarly { left: '', inner: 'end of line', right: '<br/>' }. It does so recursively: on multiple tags on the outside, it bundles them together. It returns undefined when there is no HTML tag on the outer end of the string.
+export function getOutsideTags(text) {
+	// Check for tags at the start.
+	const matchBefore = text.match(/^((<\/?[a-zA-Z -="]+\/?>)*)/)
+	const before = matchBefore[1]
+
+	// Check for tags at the end.
+	const matchAfter = text.match(/((<\/?[a-zA-Z -="]+\/?>)*)$/)
+	const after = matchAfter[1]
+
+	// Gather the remaining text.
+	const inner = text.slice(before.length, -after.length)
+	return { before, inner, after }
+}
+
+// clearTags deletes all HMTL tags inside a piece of text.
+export function clearTags(text) {
+	return text.replace(/<\/?[a-zA-Z -="]+\/?>/g, '')
 }
 
 // preprocessScript takes a user-defined script and preprocesses it.

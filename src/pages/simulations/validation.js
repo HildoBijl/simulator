@@ -228,7 +228,7 @@ export function evaluateTextWithScripts(text, simulation) {
 
 // getSimulationEventError checks for a given simulation whether the events are OK. If so, undefined is returned. If not, an error is given.
 export function getSimulationEventError(simulation) {
-	const eventErrorObj = arrayFind(Object.values(simulation.events), (event, eventIndex) => {
+	const eventErrorObj = arrayFind(Object.values(simulation.events || {}), (event, eventIndex) => {
 		const conditionError = getExpressionError(event.condition, simulation, true)
 		if (conditionError)
 			return { source: 'simulation', type: 'event', subtype: 'condition', error: conditionError, event, eventIndex }

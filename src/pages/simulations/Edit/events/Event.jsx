@@ -32,7 +32,7 @@ export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
 		</AccordionSummary>
 		<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 			<FormPart>
-				<TrackedTextField label="Titel (nur zur internen Verwendung)" value={event.title} path={`simulations/${simulation.id}/events`} documentId={event.id} field="title" />
+				<TrackedTextField label={`Titel${event.title ? '' : ' (nur zur internen Verwendung)'}`} value={event.title} path={`simulations/${simulation.id}/events`} documentId={event.id} field="title" />
 			</FormPart>
 			<ConditionField simulation={simulation} event={event} />
 			<PageDropdown simulation={simulation} event={event} />
@@ -42,7 +42,7 @@ export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
 			<Button onClick={duplicate}>Duplizieren</Button>
 			<Button onClick={() => deleteEvent(simulation, event)}>Löschen</Button>
 		</AccordionActions>
-	</Accordion >
+	</Accordion>
 }
 
 function ConditionField({ simulation, event }) {
@@ -51,7 +51,7 @@ function ConditionField({ simulation, event }) {
 
 	// Render the field.
 	return <FormPart>
-		<TrackedCodeField label="Bedingung (z. B. 'leben < 0 || geld >= 20')" value={event.condition} path={`simulations/${simulation.id}/events`} documentId={event.id} field="condition" getError={getError} />
+		<TrackedCodeField label={`Bedingung${event.condition ? '' : ' (z. B. "leben < 0 || geld >= 20")'}`} value={event.condition} path={`simulations/${simulation.id}/events`} documentId={event.id} field="condition" getError={getError} />
 	</FormPart>
 }
 

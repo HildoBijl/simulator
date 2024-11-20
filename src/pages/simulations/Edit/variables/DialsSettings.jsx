@@ -1,27 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTheme } from '@mui/material/styles'
-import Tooltip from '@mui/material/Tooltip'
 import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
-import { DragIndicator as DragIndicatorIcon, ExpandMore as ExpandMoreIcon, UnfoldLess as CloseIcon, UnfoldMore as OpenIcon } from '@mui/icons-material'
-import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
+import { DragIndicator as DragIndicatorIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
+import { arrayUnion, arrayRemove } from 'firebase/firestore'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
-import { numberToLetter, useClearTags } from 'util'
-import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'components'
+import { FormPart, Label, TrackedTextField, TrackedCodeField } from 'components'
 import { updateSimulation, moveDial } from 'simulations'
 
-import { emptyPage, emptyOption, emptyDialTitle } from '../../settings'
-import { hasVariables } from '../../util'
-import { getScriptError } from '../../scripts'
+import { emptyDialTitle } from '../../settings'
+import { getExpressionError } from '../../scripts'
 
 export function DialsSettings({ simulation }) {
 	const theme = useTheme()
@@ -95,6 +88,9 @@ function DialSettings({ simulation, dial, dialIndex, expanded, flipExpand, remov
 		}
 	}, [expanded])
 
+	// Set up checking for fields.
+	const getError = useCallback((value) => value && getExpressionError(value, simulation), [simulation])
+
 	// Render the dial form.
 	return <Draggable key={dialIndex} index={dialIndex} draggableId={dialIndex.toString()}>
 		{(provided, snapshot) =>
@@ -118,6 +114,19 @@ function DialSettings({ simulation, dial, dialIndex, expanded, flipExpand, remov
 					<AccordionDetails key="details" sx={{ py: 0, my: -2 }}>
 						<FormPart>
 							<TrackedTextField label={`Titel${dial.title ? '' : ' (zur Anzeige, z.B. "Geld")'}`} value={dial.title} path={`simulations`} documentId={simulation.id} field="dials" arrayValue={simulation.dials} arrayIndex={dialIndex} arrayField="title" />
+						</FormPart>
+						<FormPart>
+							<TrackedCodeField label={`Zahlenwert${dial.value ? '' : ' (als Wert/Berechnung, z. B. "x" oder "roundTo(x/100,1)"'}`} value={dial.value} path={`simulations`} documentId={simulation.id} field="dials" arrayValue={simulation.dials} arrayIndex={dialIndex} arrayField="value" getError={getError} />
+						</FormPart>
+						<FormPart>
+							<div style={{ display: 'flex', flexFlow: 'row nowrap', gap: '1rem' }}>
+								<div style={{ width: '50%' }}>
+									<TrackedCodeField label="Minimum" value={dial.min} path={`simulations`} documentId={simulation.id} field="dials" arrayValue={simulation.dials} arrayIndex={dialIndex} arrayField="min" getError={getError} />
+								</div>
+								<div style={{ width: '50%' }}>
+									<TrackedCodeField label="Maximum" value={dial.max} path={`simulations`} documentId={simulation.id} field="dials" arrayValue={simulation.dials} arrayIndex={dialIndex} arrayField="max" getError={getError} />
+								</div>
+							</div>
 						</FormPart>
 					</AccordionDetails>
 					<AccordionActions key="actions">

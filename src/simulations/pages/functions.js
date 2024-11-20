@@ -98,7 +98,16 @@ export async function movePage(simulation, pageToMove, originFolder, destination
 export async function moveOption(simulation, page, from, to) {
 	if (from === to)
 		return
-	return updatePage(simulation.id, page.id, {
+	return await updatePage(simulation.id, page.id, {
 		options: moveArrayElement(page.options, from, to)
+	})
+}
+
+// moveDial will switch the order of the dials within a simulation.
+export async function moveDial(simulation, from, to) {
+	if (from === to)
+		return
+	return await updatePage(simulation.id, {
+		options: moveArrayElement(simulation.dials, from, to)
 	})
 }

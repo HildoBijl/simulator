@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTheme, alpha } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 import { bound, roundToDigits, getTickSize, range, usePrevious, useTransitionedValue, useAnimation, easeShift } from 'util'
 
@@ -52,6 +53,9 @@ const alphaEase = easeShift
 // Dial handles the display of a single Dial.
 function Dial({ value, min, max, title }) {
 	const theme = useTheme()
+	const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+	const isMedium = useMediaQuery(theme.breakpoints.down('md'))
+	const scale = isSmall ? 0.8 : isMedium ? 0.9 : 1
 
 	// Note changes in value to be able to determine differences to display.
 	const transitionedValue = useTransitionedValue(value, timeToFade)
@@ -93,15 +97,15 @@ function Dial({ value, min, max, title }) {
 
 	return <div style={{
 		alignItems: 'center', display: 'flex', flexFlow: 'column nowrap', // Positioning.
-		margin: '0.5rem 0.5rem', padding: '0.8rem 0.4rem 0.5rem', width: '12rem', // Sizing.
-		background: alpha(theme.palette.primary.main, 0.1), borderRadius: '1rem', // Coloring.
+		margin: '0.5rem 0.5rem', padding: '0.8rem 0.4rem 0.5rem', width: `${11 * scale}rem`, // Sizing.
+		background: alpha(theme.palette.primary.main, 0.1), borderRadius: `${1 * scale}rem`, // Coloring.
 	}}>
-		<div style={{ display: 'block', height: `${size}rem`, width: `${size}rem` }}>
+		<div style={{ display: 'block', height: `${size * scale}rem`, width: `${size * scale}rem` }}>
 
 			{/* Circle and markers. */}
 			<svg style={{
 				position: 'absolute', zIndex: 1,
-				width: `${size}rem`, height: `${size}rem`
+				width: `${size * scale}rem`, height: `${size * scale}rem`
 			}} viewBox="-50 -50 100 100">
 				<circle cx="0" cy="0" r={radius - (showMarkers ? thickness : 0)} style={{ fill: theme.palette.primary.main }} />
 				{showMarkers ? <>
@@ -114,30 +118,32 @@ function Dial({ value, min, max, title }) {
 
 			{/* Main number. */}
 			<div style={{
-				height: `${size}rem`, width: `${size}rem`, // Sizing.
+				height: `${size * scale}rem`, width: `${size * scale}rem`, // Sizing.
 				position: 'absolute', zIndex: 2, // Positioning.
 				color: theme.palette.primary.contrastText, // Coloring.
 				display: 'flex', alignItems: 'center', justifyContent: 'center', // Content positioning.
-				fontSize: '2rem', fontWeight: '500', // Content styling.
+				fontSize: `${2 * scale}rem`, fontWeight: '500', // Content styling.
 			}}>
 				{roundToDigits(transitionedValue, 3, true, 2).toString().replace('.', ',')}
 			</div>
 
 			{/* Change value. */}
 			{changeValue && changeAlpha !== 0 ? <div style={{
-				height: `${0.55 * size}rem`, width: `${size}rem`, // Sizing.
+				height: `${0.55 * size * scale}rem`, width: `${size * scale}rem`, // Sizing.
 				position: 'absolute', zIndex: 3, // Positioning.
 				color: theme.palette.primary.contrastText, // Coloring.
 				display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'translateX(-2px)', // Content positioning.
-				fontSize: '0.8rem', fontWeight: '500', // Content styling.
+				fontSize: `${0.8 * scale}rem`, fontWeight: '500', // Content styling.
 				opacity: changeAlpha,
 			}}>
 				{changeValue < 0 ? '' : '+'}{roundToDigits(changeValue, 3, true, 2).toString().replace('.', ',').replace('-', '−')}
 			</div> : null}
 		</div>
+
+		{/* Title. */}
 		<div style={{
 			marginTop: '0.2rem', width: '100%', // Sizing.
-			fontSize: '1.2rem', fontWeight: '500', textAlign: 'center', // Text formatting.
+			fontSize: `${1 * scale}rem`, fontWeight: '500', textAlign: 'center', // Text formatting.
 		}}>
 			{title}
 		</div>

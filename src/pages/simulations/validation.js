@@ -65,6 +65,11 @@ export function getSimulationError(simulation) {
 	if (displayScriptError)
 		return displayScriptError
 
+	// Check dial errors.
+	const dialError = getDialError(simulation)
+	if (dialError)
+		return dialError
+
 	// Check the conditions for events.
 	const eventError = getSimulationEventError(simulation)
 	if (eventError)
@@ -201,6 +206,19 @@ export function getDisplayScriptError(simulation) {
 	// Check if an error was found.
 	if (pageErrorObj)
 		return pageErrorObj.value
+}
+
+// getDialError looks at the expressions inside the dials that have been defined. It checks the value, min and max.
+export function getDialError(simulation) {
+	const dialError = arrayFind((simulation.dials || []), dial => {
+		const fieldError = arrayFind(['value', 'min', 'max'], field => {
+			const error = getExpressionError(dial.value, simulation)
+			if (error)
+				return { source: 'simulation', type: 'dial', field, error, dial }
+		})
+		return fieldError?.value
+	})
+	return dialError?.value
 }
 
 // evaluateTextWithScripts takes a piece of text, for instance a page description, and checks all display scripts in it. It returns an error object on an error.

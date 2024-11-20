@@ -5,7 +5,7 @@ import { numberToLetter, useClearTags } from 'util'
 import { Page, Code } from 'components'
 import { useIsOwner, pageIndexToString } from 'simulations'
 
-import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle } from '../../settings'
+import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle, emptyDialTitle } from '../../settings'
 import { getVariableErrorMessage } from '../../validation'
 
 const components = { // Map the error types to components that can display them.
@@ -15,6 +15,7 @@ const components = { // Map the error types to components that can display them.
 	entryScript: EntryScriptError,
 	updateScript: UpdateScriptError,
 	displayScript: DisplayScriptError,
+	dial: DialError,
 	event: EventError,
 
 	// State errors.
@@ -142,6 +143,14 @@ function DisplayScriptError({ error }) {
 	return <>
 		<p>{source}</p>
 		{expression ? <p>Der fehlgeschlagene Ausdruck ist: <Code>{expression}</Code></p> : null}
+		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
+	</>
+}
+
+function DialError({ error }) {
+	const { dial, field, error: errorObj } = error
+	return <>
+		<p>Es gibt einen Fehler im <em>{{ value: 'Zahlenwert', min: 'Minimum', max: 'Maximum' }[field]}</em>-Feld des Zahlenindikators <em>{dial.title || emptyDialTitle}</em>.</p>
 		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
 	</>
 }

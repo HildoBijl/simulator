@@ -107,7 +107,7 @@ export async function moveOption(simulation, page, from, to) {
 export async function moveDial(simulation, from, to) {
 	if (from === to)
 		return
-	return await updatePage(simulation.id, {
-		options: moveArrayElement(simulation.dials, from, to)
+	return await updateSimulation(simulation.id, {
+		dials: moveArrayElement(simulation.dials, from, to)
 	})
 }

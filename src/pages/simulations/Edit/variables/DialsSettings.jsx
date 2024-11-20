@@ -42,16 +42,7 @@ export function DialsSettings({ simulation }) {
 	}
 
 	// Set up handlers for dragging answer options.
-	const [move, setMove] = useState()
-	const onDragStart = (dragData) => {
-		setMove([dragData.source.index, dragData.source.index])
-	}
-	const onDragUpdate = (dragData) => {
-		if (isDragDataValid(dragData))
-			setMove([dragData.source.index, dragData.destination.index])
-	}
 	const onDragEnd = async (dragData) => {
-		setMove()
 		if (!isDragDataValid(dragData))
 			return
 		const from = dragData.source.index
@@ -64,7 +55,7 @@ export function DialsSettings({ simulation }) {
 	return <>
 		<FormPart style={{ marginTop: '1.6rem' }}>
 			<Label>Zahlenindikatoren</Label>
-			<DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
+			<DragDropContext onDragEnd={onDragEnd}>
 				<Droppable droppableId="dials">{(provided, snapshot) => (
 					<div
 						ref={provided.innerRef}
@@ -85,7 +76,7 @@ export function DialsSettings({ simulation }) {
 				)}</Droppable>
 			</DragDropContext>
 		</FormPart>
-		<Alert severity="info" sx={{ my: 2 }}>Ein Zahlenindikator ist eine eingebaute Methode zur Anzeige numerischer Variablen auf Ihren Seiten. Er sieht ein bisschen aus wie eine Geschwindigkeitsanzeige. Sie können so viele Indikatoren hinzufügen, wie Sie möchten. Versuchen Sie, eine hinzuzufügen, um zu sehen, wie es aussieht.</Alert>
+		{dials.length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Ein Zahlenindikator ist eine eingebaute Methode zur Anzeige numerischer Variablen auf Ihren Seiten. Er sieht ein bisschen aus wie eine Geschwindigkeitsanzeige. Sie können so viele Indikatoren hinzufügen, wie Sie möchten. Versuchen Sie, eine hinzuzufügen, um zu sehen, wie es funktioniert.</Alert> : null}
 	</>
 }
 

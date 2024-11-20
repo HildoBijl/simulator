@@ -13,10 +13,12 @@ export function Dials({ simulation, page, state }) {
 	if (!hasVariables(simulation) || dials.length === 0)
 		return null
 
-	// Show the dials.
-	if (page.hideDials === 'all')
+	// When all dials are hidden, show nothing.
+	if (simulation.allowDialHiding && page.hideDials === 'all')
 		return null
-	const shouldShowDial = dial => !(Array.isArray(page.hideDials) && page.hideDials.includes(dial.id))
+
+	// Show the dials, checking whether or not we should show each one.
+	const shouldShowDial = dial => !(simulation.allowDialHiding && Array.isArray(page.hideDials) && page.hideDials.includes(dial.id))
 	return <div style={{ display: 'flex', flexFlow: 'row wrap', margin: '1rem 0' }}>
 		{dials.map((dial, index) => shouldShowDial(dial) ? <DialWrapper key={index} {...{ dial, simulation, state }} /> : null)}
 	</div>

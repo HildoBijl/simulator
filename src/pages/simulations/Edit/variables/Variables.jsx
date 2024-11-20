@@ -14,6 +14,7 @@ import { hasVariables } from '../../util'
 import { getScriptError } from '../../scripts'
 
 import { Variable } from './Variable'
+import { DialsSettings } from './DialsSettings'
 
 export function Variables({ simulation }) {
 	return <>
@@ -107,6 +108,7 @@ function ExtraOptions({ simulation }) {
 	// Allow buttons to activate additional fields.
 	const [showSupportingFunctions, setShowSupportingFunctions] = useState(!!simulation.supportingFunctions)
 	const [showGeneralUpdateScript, setShowGeneralUpdateScript] = useState(!!simulation.updateScript)
+	const [showDials, setShowDials] = useState((simulation.dials || []).length > 0)
 
 	// Don't show extra options if there are no variables.
 	if (!hasVariables(simulation))
@@ -114,10 +116,12 @@ function ExtraOptions({ simulation }) {
 
 	// Render the extra options.
 	return <>
+		{showDials ? <DialsSettings {...{ simulation }} /> : null}
 		<h2>Zusätzliche Programmiermöglichkeiten</h2>
 		{showSupportingFunctions ? <SupportingFunctions {...{ simulation }} /> : null}
 		{showGeneralUpdateScript ? <GeneralUpdateScript {...{ simulation }} /> : null}
 		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', alignItems: 'stretch', marginTop: '0.6rem' }}>
+			{!showDials ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowDials(true)}>Zahlenindikatoren hinzufügen</Button> : null}
 			{!showSupportingFunctions ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowSupportingFunctions(true)}>Unterstützende Funktionen für Update-Skripte hinzufügen</Button> : null}
 			{!showGeneralUpdateScript ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowGeneralUpdateScript(true)}>Allgemeines Update-Skript hinzufügen</Button> : null}
 			<Link to={`/create/${simulation.id}/scripts`} style={{ flexGrow: 1 }}><Button variant="contained" style={{ width: '100%' }}>Übersicht über alle definierten Skripte anzeigen</Button></Link>

@@ -29,7 +29,7 @@ The [Simulation](./Simulation.jsx) file is the main component that is rendered. 
 
 The above subpages make use of various general components that may be useful to include on a variety of pages. These include the following.
 
-- [VariableOverview](./components/VariableOverview.jsx) is an overview of variables present in a simulation. It can be specified whether to show all variables (useful for the end page), or only the non-hidden ones (useful during the simulation, on regular pages).
+- [Dials](./components/Dials.jsx) is a way of displaying variables. When the user turns this on, a few speed-indicator-like dials appear to show indicated numerical values.
 
 ## Error handling
 

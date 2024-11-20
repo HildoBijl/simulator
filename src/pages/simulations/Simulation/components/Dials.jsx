@@ -1,49 +1,59 @@
 import { useState, useEffect } from 'react'
 import { useTheme, alpha } from '@mui/material/styles'
 
-import { bound, roundToDigits, getTickSize, range, applyMapping, usePrevious, useTransitionedValue, useAnimation, easeShift } from 'util'
+import { bound, roundToDigits, getTickSize, range, usePrevious, useTransitionedValue, useAnimation, easeShift } from 'util'
 
-import { getVariableInitialValue } from '../../util'
+import { hasVariables } from '../../util'
+import { switchVariableNames, evaluateExpression } from '../../scripts'
 
-export function VariableOverview({ simulation, state, showHidden = false }) {
-	// Determine the variables to show and their values.
-	const variables = applyMapping(simulation.variables, variable => (variable.hidden && !showHidden) ? undefined : variable)
-
-	// On no variables, do not show anything.
-	if (!Object.keys(variables).length === 0)
+export function Dials({ simulation, state }) {
+	// Check if the Dials have to be shown.
+	const dials = simulation.dials || []
+	if (!hasVariables(simulation) || dials.length === 0)
 		return null
 
-	// Show the variables.
-	const variableValues = state.variablesAfter || state.variablesBefore || {}
+	// Show the dials.
 	return <div style={{ display: 'flex', flexFlow: 'row wrap' }}>
-		{Object.values(variables)
-			.sort((a, b) => a.title < b.title ? -1 : 1)
-			.map(variable => <Variable key={variable.id} variable={variable} value={variableValues[variable.id]} />)}
+		{dials.map((dial, index) => <DialWrapper key={index} {...{ dial, simulation, state }} />)}
 	</div>
 }
 
-// Set up a few settings.
+// DialWrapper takes a lot of data about the dial and the simulation, and calculates which values have to be shown.
+function DialWrapper({ dial, simulation, state }) {
+	const { title } = dial
+
+	// Calculate the value, the minimum and the maximum. (Note that min and max can also be expressions.)
+	const variables = state.variablesAfter || state.variablesBefore || {}
+	const variablesAsNames = switchVariableNames(variables, simulation)
+	let value, min, max
+	try { value = dial.value && evaluateExpression(dial.value, variablesAsNames, simulation.supportingFunctions) } catch (error) { value = undefined }
+	try { min = dial.min && evaluateExpression(dial.min, variablesAsNames, simulation.supportingFunctions) } catch (error) { min = undefined }
+	try { max = dial.max && evaluateExpression(dial.max, variablesAsNames, simulation.supportingFunctions) } catch (error) { max = undefined }
+
+	// Given all the data, render the dial.
+	if (typeof value !== 'number')
+		return null
+	return <Dial {...{ value, min, max, title }} />
+}
+
+// Set up a few display settings.
 const size = 7 // rem
 const radius = 50 // pixels in SVG, for the outer radius
 const thickness = 10 // pixels in SVG
 const tickLength = thickness // pixels in SVG
 const split = 0.2 // The part of the circle in the bottom, that's unused.
 
-// Settings for the change display.
+// Add some settings used on changes in dial values.
 const timeToFade = 2000
 const fadeTime = 4000
 const maxAlpha = 0.9
 const alphaEase = easeShift
 
-function Variable({ variable, value }) {
-	const { title, min, max } = variable
+// Dial handles the display of a single Dial.
+function Dial({ value, min, max, title }) {
 	const theme = useTheme()
 
-	// On no value, use the initial value. A real value will be defined as soon as an update happens.
-	if (value === undefined)
-		value = getVariableInitialValue(variable)
-
-	// Note changes in value to be able to determine differences.
+	// Note changes in value to be able to determine differences to display.
 	const transitionedValue = useTransitionedValue(value, timeToFade)
 	const previousValue = usePrevious(value)
 	const [changeData, setChangeData] = useState()
@@ -68,7 +78,7 @@ function Variable({ variable, value }) {
 	})
 
 	// Determine whether to show the markers or not.
-	const showMarkers = (min !== undefined && max !== undefined && min < max && min <= transitionedValue && transitionedValue <= max)
+	const showMarkers = (min !== undefined && max !== undefined && typeof min === 'number' && typeof max === 'number' && min !== max)
 
 	// On markers, calculate relevant quantities.
 	let part, dash1, dash2, ticks
@@ -87,6 +97,8 @@ function Variable({ variable, value }) {
 		background: alpha(theme.palette.primary.main, 0.1), borderRadius: '1rem', // Coloring.
 	}}>
 		<div style={{ display: 'block', height: `${size}rem`, width: `${size}rem` }}>
+
+			{/* Circle and markers. */}
 			<svg style={{
 				position: 'absolute', zIndex: 1,
 				width: `${size}rem`, height: `${size}rem`
@@ -99,6 +111,8 @@ function Variable({ variable, value }) {
 					{ticks.map((tick, index) => <RadialLine key={index} part={split / 2 + (tick - min) / (max - min) * (1 - split)} startRadius={radius - thickness} endRadius={radius - thickness + tickLength} />)}
 				</> : null}
 			</svg>
+
+			{/* Main number. */}
 			<div style={{
 				height: `${size}rem`, width: `${size}rem`, // Sizing.
 				position: 'absolute', zIndex: 2, // Positioning.
@@ -108,6 +122,8 @@ function Variable({ variable, value }) {
 			}}>
 				{roundToDigits(transitionedValue, 3, true, 2).toString().replace('.', ',')}
 			</div>
+
+			{/* Change value. */}
 			{changeValue && changeAlpha !== 0 ? <div style={{
 				height: `${0.55 * size}rem`, width: `${size}rem`, // Sizing.
 				position: 'absolute', zIndex: 3, // Positioning.

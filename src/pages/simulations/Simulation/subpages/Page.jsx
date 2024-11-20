@@ -16,7 +16,7 @@ import { emptyPage, emptyOption } from '../../settings'
 import { getVariables, getFollowUpPage, applyAutoplay } from '../../util'
 import { resolveScripts } from '../../scripts'
 
-import { VariableOverview } from '../components/VariableOverview'
+import { Dials } from '../components/Dials'
 
 export function Page({ simulation, history, state, chooseOption, goToNextPage, jumpToPage, reset, undo }) {
 	const isOwner = useIsOwner(simulation)
@@ -68,7 +68,7 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 			</div>
 		</>}
 		{showFooter ? <MCEContents>{resolveScripts(simulation.pageFooter, getVariables(state), simulation)}</MCEContents> : null}
-		<VariableOverview {...{ simulation, state }} />
+		<Dials {...{ simulation, state }} />
 		{atSimulationEnd ? <>
 			<Alert severity="info" sx={{ mt: 2 }}>Sie haben die Simulation beendet. Drücken Sie die Taste unten, um erneut zu beginnen.</Alert>
 			<Button variant="contained" sx={{ my: 2 }} onClick={() => reset(isOwner)}>Neu starten</Button>

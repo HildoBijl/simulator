@@ -1,1 +1,1 @@
-export * from './VariableOverview'
+export * from './Dials'

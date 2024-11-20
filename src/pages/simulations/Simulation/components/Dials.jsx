@@ -7,15 +7,18 @@ import { bound, roundToDigits, getTickSize, range, usePrevious, useTransitionedV
 import { hasVariables } from '../../util'
 import { switchVariableNames, evaluateExpression } from '../../scripts'
 
-export function Dials({ simulation, state }) {
+export function Dials({ simulation, page, state }) {
 	// Check if the Dials have to be shown.
 	const dials = simulation.dials || []
 	if (!hasVariables(simulation) || dials.length === 0)
 		return null
 
 	// Show the dials.
+	if (page.hideDials === 'all')
+		return null
+	const shouldShowDial = dial => !(Array.isArray(page.hideDials) && page.hideDials.includes(dial.id))
 	return <div style={{ display: 'flex', flexFlow: 'row wrap', margin: '1rem 0' }}>
-		{dials.map((dial, index) => <DialWrapper key={index} {...{ dial, simulation, state }} />)}
+		{dials.map((dial, index) => shouldShowDial(dial) ? <DialWrapper key={index} {...{ dial, simulation, state }} /> : null)}
 	</div>
 }
 

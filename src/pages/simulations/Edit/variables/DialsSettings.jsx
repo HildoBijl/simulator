@@ -5,15 +5,19 @@ import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
+import FormGroup from '@mui/material/FormGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import { DragIndicator as DragIndicatorIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
-import { arrayUnion, arrayRemove } from 'firebase/firestore'
+import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
+import { getId } from 'fb'
 import { FormPart, Label, TrackedTextField, TrackedCodeField } from 'components'
 import { updateSimulation, moveDial } from 'simulations'
 
@@ -31,7 +35,7 @@ export function DialsSettings({ simulation }) {
 	// Set up an addDial handler that opens a new dial upon entry.
 	const addDial = async () => {
 		setExpanded(expanded => [...expanded, true])
-		await updateSimulation(simulation.id, { dials: arrayUnion({}) })
+		await updateSimulation(simulation.id, { dials: arrayUnion({ id: getId() }) })
 	}
 	const removeDial = async (index) => {
 		await updateSimulation(simulation.id, { dials: arrayRemove(dials[index]) })
@@ -50,7 +54,8 @@ export function DialsSettings({ simulation }) {
 
 	// Render the dials through an Accordian.
 	return <>
-		<FormPart style={{ marginTop: '1.6rem' }}>
+		<h2>Zahlenindikatoren</h2>
+		<FormPart style={{ marginTop: '0.8rem' }}>
 			<Label>Zahlenindikatoren</Label>
 			<DragDropContext onDragEnd={onDragEnd}>
 				<Droppable droppableId="dials">{(provided, snapshot) => (
@@ -75,7 +80,10 @@ export function DialsSettings({ simulation }) {
 		</FormPart>
 		{dials.length === 0 ?
 			<Alert severity="info" sx={{ my: 2 }}>Ein Zahlenindikator ist eine eingebaute Methode zur Anzeige numerischer Variablen auf Ihren Seiten. Er sieht ein bisschen aus wie eine Geschwindigkeitsanzeige. Sie können so viele Indikatoren hinzufügen, wie Sie möchten. Versuchen Sie, eine hinzuzufügen, um zu sehen, wie es funktioniert.</Alert> :
-			<DialsPosition {...{ simulation }} />}
+			<>
+				<DialsPosition {...{ simulation }} />
+				<AllowDialHidingSetting {...{ simulation }} />
+			</>}
 	</>
 }
 
@@ -170,6 +178,12 @@ function DialsPosition({ simulation }) {
 			<MenuItem value="belowButton">Unterhalb der Weiter-Taste</MenuItem>
 		</Select>
 	</FormControl>
+}
+
+function AllowDialHidingSetting({ simulation }) {
+	return <FormGroup sx={{ my: 1, px: 1 }}>
+		<FormControlLabel control={<Switch checked={simulation.allowDialHiding || false} onChange={event => updateSimulation(simulation.id, { allowDialHiding: event.target.checked || deleteField() })} />} label="Seiten können individuell festlegen, ob und welche Zahlenindikatoren angezeigt werden sollen oder nicht." />
+	</FormGroup>
 }
 
 function isDragDataValid(dragData) {

@@ -2,6 +2,11 @@ import { collection, doc, addDoc, getDoc, getDocs, setDoc, updateDoc, deleteDoc 
 
 import { db } from './initialization'
 
+// getId returns a random ID string.
+export function getId() {
+	return getDocumentRef('temp').id
+}
+
 // getDocumentRef returns a reference to a potentially new document.
 export function getDocumentRef(path) {
 	return doc(collection(db, path))

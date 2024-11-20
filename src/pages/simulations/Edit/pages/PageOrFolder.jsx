@@ -9,16 +9,20 @@ import AccordionSummary from '@mui/material/AccordionSummary'
 import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { DragIndicator as DragIndicatorIcon, Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, FolderOpen as FolderEmptyIcon, Delete as DeleteIcon } from '@mui/icons-material'
-import { deleteField } from 'firebase/firestore'
+import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 import { Draggable } from '@hello-pangea/dnd'
 
 import { FormPart, TrackedTextField, TrackedCodeField, MCE } from 'components'
 import { deletePage, updatePage, pageIndexToString } from 'simulations'
 
-import { emptyPage, emptyFolder, accordionStyle } from '../../settings'
+import { emptyPage, emptyFolder, emptyDialTitle, accordionStyle } from '../../settings'
 import { hasVariables, hasVideo } from '../../util'
 import { getScriptError } from '../../scripts'
 
@@ -50,6 +54,8 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 	const [showHeaderSettings, setShowHeaderSettings] = useState(allowHeaderSettings && page.hideHeader)
 	const allowFooterSettings = !!simulation.pageFooter && simulation.allowFooterHiding
 	const [showFooterSettings, setShowFooterSettings] = useState(allowFooterSettings && page.hideFooter)
+	const allowDialHiding = (simulation.dials || []).length > 0 && !!simulation.allowDialHiding
+	const [showDialHiding, setShowDialHiding] = useState(allowDialHiding && !!page.hideDials)
 	const allowAutoplay = useMemo(() => hasVideo(description), [description])
 	const [showAutoplay, setShowAutoplay] = useState(allowAutoplay && page.autoplay)
 
@@ -102,6 +108,7 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 						{/* Other components. */}
 						{(allowHeaderSettings && showHeaderSettings) ? <HeaderSettings {...{ simulation, page }} /> : null}
 						{(allowFooterSettings && showFooterSettings) ? <FooterSettings {...{ simulation, page }} /> : null}
+						{(allowDialHiding && showDialHiding) ? <DialHidingSettings {...{ simulation, page }} /> : null}
 						{(allowAutoplay && showAutoplay) ? <AutoplaySettings {...{ simulation, page }} /> : null}
 						{(allowEntryScript && showEntryScript) ? <PageEntryScript {...{ simulation, page }} /> : null}
 						{(allowFollowUpPage && showFollowUpPage) ? <FollowUpDropdown {...{ simulation, page }} /> : null}
@@ -123,6 +130,10 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 								updatePage(simulation.id, id, { hideFooter: true })
 								setShowFooterSettings(true)
 							}}>Seitenfuß ausblenden</Button> : null}
+							{(allowDialHiding && !showDialHiding) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => {
+								updatePage(simulation.id, id, { hideDials: 'all' })
+								setShowDialHiding(true)
+							}}>Zahlenindikatoren ausblenden</Button> : null}
 							{(allowAutoplay && !showAutoplay) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => {
 								updatePage(simulation.id, id, { autoplay: true })
 								setShowAutoplay(true)
@@ -242,6 +253,42 @@ function FooterSettings({ simulation, page }) {
 	return <FormGroup sx={{ px: '0.5rem' }}>
 		<FormControlLabel control={<Switch checked={!page.hideFooter || false} onChange={event => updatePage(simulation.id, page.id, { hideFooter: !event.target.checked || deleteField() })} />} label="Den Seitenfuß auf dieser Seite anzeigen." />
 	</FormGroup>
+}
+
+function DialHidingSettings({ simulation, page }) {
+	// Set up a handler to change the setting whether or not to hide dials.
+	const setPosition = hideDials => {
+		if (hideDials === 'none')
+			hideDials = deleteField()
+		if (hideDials === 'specific')
+			hideDials = Array.isArray(page.hideDials) ? page.hideDials : []
+		updatePage(simulation.id, page.id, { hideDials })
+	}
+
+	// Determine the current value.
+	let value = 'none'
+	if (page.hideDials === 'all')
+		value = 'all'
+	if (Array.isArray(page.hideDials))
+		value = 'specific'
+
+	// Render the drop-down menu, including optionally the sliders per dial below it.
+	const label = 'Zahlenindikatoren auf dieser Seite anzeigen'
+	return <>
+		<FormControl fullWidth>
+			<InputLabel>{label}</InputLabel>
+			<Select value={value} label={label} onChange={(event) => setPosition(event.target.value)}>
+				<MenuItem value="none">Alle Zahlenindikatoren anzeigen</MenuItem>
+				<MenuItem value="all">Alle Zahlenindikatoren ausblenden</MenuItem>
+				<MenuItem value="specific">Angeben, welche Zahlenindikatoren angezeigt werden sollen</MenuItem>
+			</Select>
+		</FormControl>
+		{value === 'specific' ? simulation.dials.map(dial => {
+			return <FormGroup key={dial.id} sx={{ px: 1 }}>
+				<FormControlLabel control={<Switch checked={!page.hideDials.includes(dial.id)} onChange={event => updatePage(simulation.id, page.id, { hideDials: (event.target.checked ? arrayRemove : arrayUnion)(dial.id) })} />} label={`${dial.title || emptyDialTitle} anzeigen`} />
+			</FormGroup>
+		}) : null}
+	</>
 }
 
 function AutoplaySettings({ simulation, page }) {

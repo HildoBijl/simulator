@@ -59,11 +59,11 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 
 	// Render the page with description, media, options and buttons.
 	return <PageContainer title={title || simulation.title || '[Simulationstitel fehlt]'} showLogo="right" icons={icons}>
-		{dialsPosition === 'top' ? <Dials {...{ simulation, state }} /> : null}
+		{dialsPosition === 'top' ? <Dials {...{ simulation, page, state }} /> : null}
 		{showHeader ? <MCEContents>{resolveScripts(simulation.pageHeader, getVariables(state), simulation)}</MCEContents> : null}
-		{dialsPosition === 'belowHeader' ? <Dials {...{ simulation, state }} /> : null}
+		{dialsPosition === 'belowHeader' ? <Dials {...{ simulation, page, state }} /> : null}
 		<MCEContents>{description}</MCEContents>
-		{dialsPosition === 'belowDescription' ? <Dials {...{ simulation, state }} /> : null}
+		{dialsPosition === 'belowDescription' ? <Dials {...{ simulation, page, state }} /> : null}
 		{options.length === 0 ? null : <>
 			<div style={{ alignItems: 'stretch', display: 'flex', flexFlow: 'column nowrap', margin: '1rem 0' }}>
 				{options.map((option, index) => choice !== undefined ?
@@ -71,15 +71,15 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 					<Option key={index} {...{ simulation, state, page, option, index, selected: false, select: () => chooseOption(index, isOwner) }} />)}
 			</div>
 		</>}
-		{dialsPosition === 'belowOptions' ? <Dials {...{ simulation, state }} /> : null}
+		{dialsPosition === 'belowOptions' ? <Dials {...{ simulation, page, state }} /> : null}
 		{showFooter ? <MCEContents>{resolveScripts(simulation.pageFooter, getVariables(state), simulation)}</MCEContents> : null}
-		{(dialsPosition === 'belowFooter' || dialsPosition === undefined) ? <Dials {...{ simulation, state }} /> : null}
+		{(dialsPosition === 'belowFooter' || dialsPosition === undefined) ? <Dials {...{ simulation, page, state }} /> : null}
 		{atSimulationEnd ? <>
 			<Alert severity="info" sx={{ mt: 2 }}>Sie haben die Simulation beendet. Drücken Sie die Taste unten, um erneut zu beginnen.</Alert>
 			<Button variant="contained" sx={{ my: 2 }} onClick={() => reset(isOwner)}>Neu starten</Button>
 		</> : null}
 		{showNextButton ? <Button variant="contained" sx={{ my: 2 }} onClick={() => goToNextPage(isOwner)}>Weiter</Button> : null}
-		{dialsPosition === 'belowButton' ? <Dials {...{ simulation, state }} /> : null}
+		{dialsPosition === 'belowButton' ? <Dials {...{ simulation, page, state }} /> : null}
 		<AdminTool {...{ simulation, state, jumpToPage, reset }} />
 	</PageContainer>
 }

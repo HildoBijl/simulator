@@ -14,7 +14,7 @@ export function Dials({ simulation, state }) {
 		return null
 
 	// Show the dials.
-	return <div style={{ display: 'flex', flexFlow: 'row wrap' }}>
+	return <div style={{ display: 'flex', flexFlow: 'row wrap', margin: '1rem 0' }}>
 		{dials.map((dial, index) => <DialWrapper key={index} {...{ dial, simulation, state }} />)}
 	</div>
 }

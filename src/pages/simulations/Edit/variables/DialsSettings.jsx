@@ -5,6 +5,10 @@ import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import { DragIndicator as DragIndicatorIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
 import { arrayUnion, arrayRemove } from 'firebase/firestore'
@@ -69,7 +73,9 @@ export function DialsSettings({ simulation }) {
 				)}</Droppable>
 			</DragDropContext>
 		</FormPart>
-		{dials.length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Ein Zahlenindikator ist eine eingebaute Methode zur Anzeige numerischer Variablen auf Ihren Seiten. Er sieht ein bisschen aus wie eine Geschwindigkeitsanzeige. Sie können so viele Indikatoren hinzufügen, wie Sie möchten. Versuchen Sie, eine hinzuzufügen, um zu sehen, wie es funktioniert.</Alert> : null}
+		{dials.length === 0 ?
+			<Alert severity="info" sx={{ my: 2 }}>Ein Zahlenindikator ist eine eingebaute Methode zur Anzeige numerischer Variablen auf Ihren Seiten. Er sieht ein bisschen aus wie eine Geschwindigkeitsanzeige. Sie können so viele Indikatoren hinzufügen, wie Sie möchten. Versuchen Sie, eine hinzuzufügen, um zu sehen, wie es funktioniert.</Alert> :
+			<DialsPosition {...{ simulation }} />}
 	</>
 }
 
@@ -135,6 +141,35 @@ function DialSettings({ simulation, dial, dialIndex, expanded, flipExpand, remov
 				</> : null}
 			</Accordion>}
 	</Draggable>
+}
+
+function DialsPosition({ simulation }) {
+	// Set up a handler to change the position.
+	const setPosition = dialsPosition => updateSimulation(simulation.id, { dialsPosition })
+
+	// If there is no header or footer, remove that option and adjust the value if needed.
+	let value = simulation.dialsPosition
+	const hasHeader = !!simulation.pageHeader
+	if (!hasHeader && value === 'belowHeader')
+		value = 'top'
+	const hasFooter = !!simulation.pageFooter
+	if (!hasFooter && value === 'belowFooter')
+		value = 'belowOptions'
+
+	// Render the drop-down menu.
+	const defaultValue = 'belowFooter'
+	const label = 'Position der Zahlenindikatoren auf der Seite'
+	return <FormControl fullWidth>
+		<InputLabel>{label}</InputLabel>
+		<Select value={value || defaultValue} label={label} onChange={(event) => setPosition(event.target.value)}>
+			<MenuItem value="top">Oben auf der Seite</MenuItem>
+			{hasHeader ? <MenuItem value="belowHeader">Unterhalb des Seitenkopfes</MenuItem> : null}
+			<MenuItem value="belowDescription">Unterhalb der Seitenbeschreibung</MenuItem>
+			<MenuItem value="belowOptions">Unterhalb der Antwortmöglichkeiten</MenuItem>
+			{hasFooter ? <MenuItem value="belowFooter">Unterhalb des Seitenfußes</MenuItem> : null}
+			<MenuItem value="belowButton">Unterhalb der Weiter-Taste</MenuItem>
+		</Select>
+	</FormControl>
 }
 
 function isDragDataValid(dragData) {

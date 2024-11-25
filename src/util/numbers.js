@@ -5,6 +5,8 @@ export function bound(value, min = 0, max = 1) {
 
 // range will give an array of numbers. So range(2, 5) will give [2, 3, 4, 5]. Bounds are inclusive.
 export function range(min, max) {
+	if (max < min)
+		return range(max, min).reverse()
 	return new Array(max - min + 1).fill(0).map((_, index) => index + min)
 }
 

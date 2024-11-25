@@ -86,7 +86,15 @@ function Dial({ value, min, max, title }) {
 	})
 
 	// Determine whether to show the markers or not.
-	const showMarkers = (min !== undefined && max !== undefined && typeof min === 'number' && typeof max === 'number' && min !== max)
+	let showMarkers = false
+	if (min !== undefined && max !== undefined && typeof min === 'number' && typeof max === 'number') {
+		if (min > max) {
+			let temp = max
+			max = min
+			min = temp
+		}
+		showMarkers = min !== max
+	}
 
 	// On markers, calculate relevant quantities.
 	let part, dash1, dash2, ticks

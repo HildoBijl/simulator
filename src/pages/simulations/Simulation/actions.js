@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { selectRandomly, removeKeys } from 'util'
 import { incrementSimulationField } from 'simulations'
 
-import { defaultAfterwards, getState, hasVariables, getFollowUpPage, getInitialVariables, runSimulationUpdateScript, switchVariableNames, evaluateExpression, getScriptError, getGeneralSimulationError, getSimulationEventError } from '../util'
+import { defaultAfterwards, getState, hasVariables, getFollowUpPage, getInitialVariables, runSimulationUpdateScript, switchVariableNames, evaluateExpression, getScriptError, getGeneralSimulationError, getFaultyVariableError, getSimulationEventError } from '../util'
 
 // useSimulationActions takes a simulation and a setHistory function, and returns a set of actions (functions) that can be called to adjust the simulation history. It also runs checks on the simulation on required parts (like when a specific update script is needed) and flips an error flag when something is not working properly.
 export function useSimulationActions(simulation, setHistory, clearHistory, setError) {
@@ -32,9 +32,16 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 			const startingPage = simulation.pages[pageId]
 			const state = { pageId }
 
-			// On variables, get their initial variables and already run (after checking it) the entry script of the initial page.
+			// On variables, set them up.
 			if (hasVariables(simulation)) {
+				// Initialize the variables (after checking them).
+				if (getFaultyVariableError(simulation)) {
+					setError(true)
+					return history
+				}
 				const initialVariables = getInitialVariables(simulation)
+
+				// Run the entry script of the first page (after checking it).
 				if (getScriptError(startingPage.entryScript, simulation)) {
 					setError(true)
 					return history

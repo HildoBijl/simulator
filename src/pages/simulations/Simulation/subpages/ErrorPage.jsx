@@ -5,8 +5,7 @@ import { numberToLetter, useClearTags } from 'util'
 import { Page, Code } from 'components'
 import { useIsOwner, pageIndexToString } from 'simulations'
 
-import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle, emptyDialTitle } from '../../settings'
-import { getVariableErrorMessage } from '../../validation'
+import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle, emptyEventTitle, emptyDialTitle, getVariableErrorMessage } from '../../util'
 
 const components = { // Map the error types to components that can display them.
 	// Simulation errors.

@@ -7,7 +7,7 @@ import MenuItem from '@mui/material/MenuItem'
 import { FormPart } from 'components'
 import { updateSimulation, pageIndexToString } from 'simulations'
 
-import { emptyPage } from '../../settings'
+import { emptyPage } from '../../util/settings'
 
 export function StartingPage({ simulation }) {
 	// Set up a handler to set the starting page.

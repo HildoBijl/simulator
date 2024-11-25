@@ -3,10 +3,7 @@ import { useCallback } from 'react'
 import { selectRandomly, removeKeys } from 'util'
 import { incrementSimulationField } from 'simulations'
 
-import { defaultAfterwards } from '../settings'
-import { getState, hasVariables, getFollowUpPage, getInitialVariables } from '../util'
-import { runSimulationUpdateScript, switchVariableNames, evaluateExpression, getScriptError } from '../scripts'
-import { getGeneralSimulationError, getSimulationEventError } from '../validation'
+import { defaultAfterwards, getState, hasVariables, getFollowUpPage, getInitialVariables, runSimulationUpdateScript, switchVariableNames, evaluateExpression, getScriptError, getGeneralSimulationError, getSimulationEventError } from '../util'
 
 // useSimulationActions takes a simulation and a setHistory function, and returns a set of actions (functions) that can be called to adjust the simulation history. It also runs checks on the simulation on required parts (like when a specific update script is needed) and flips an error flag when something is not working properly.
 export function useSimulationActions(simulation, setHistory, clearHistory, setError) {

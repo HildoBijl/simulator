@@ -8,7 +8,7 @@ import { setDoc } from 'firebase/firestore'
 import { FormPart, Label, Code } from 'components'
 import { getEventRef } from 'simulations'
 
-import { accordionStyle } from '../../settings'
+import { accordionStyle } from '../../util/settings'
 
 import { Event } from './Event'
 

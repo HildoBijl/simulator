@@ -12,7 +12,7 @@ import { nestedListToIndices, insertIntoArray } from 'util'
 import { FormPart, Label } from 'components'
 import { updateSimulation, getPageRef, movePage } from 'simulations'
 
-import { accordionStyle } from '../../settings'
+import { accordionStyle } from '../../util/settings'
 
 import { PageOrFolder } from './PageOrFolder'
 

@@ -1,11 +1,22 @@
 import { arrayFind, getBracketPositions } from 'util'
 
-import { hasVariables } from './util'
-import { getScriptError, getExpressionError, clearTags } from './scripts'
+import { hasVariables } from './simulations'
+import { getScriptError, getExpressionError, clearTags, preprocessScript } from './scripts'
 
 // isSimulationValid checks if the given simulation has any problems. It returns a boolean.
 export function isSimulationValid(simulation) {
 	return !getSimulationError(simulation)
+}
+
+// getStateError checks, for a given simulation, whether the state is still OK. Stuff like missing variables can be fixed on-the-go, but a pageId that is not known is a fatal error.
+export function getStateError(simulation, state) {
+	// When there is no state yet, then there cannot be erroneous data in the state. No error.
+	if (!state)
+		return undefined
+
+	// Check that the pageId from the state exists.
+	if (!simulation.pages[state.pageId])
+		return { source: 'state', type: 'page', subtype: 'missing' }
 }
 
 // canSimulationHaveErrors checks if a simulation can even have errors. If it's very basic, it does not.
@@ -22,16 +33,11 @@ export function canSimulationHaveErrors(simulation) {
 	return true
 }
 
-// getGeneralSimulationError looks for any error in the simulation that is generally a problem. (Like faulty variables.) It does not check for errors that are specific to certain situations (like entry/update scripts to specific pages or page options). On no errors it gives undefined.
+// getGeneralSimulationError looks for any error in the simulation that is generally a problem. (Like broken supporting functions.) It does not check for errors that are specific to certain situations (like entry/update scripts to specific pages or page options). On no errors it gives undefined.
 export function getGeneralSimulationError(simulation) {
 	// When the simulation can't have errors, don't run checks: return undefined immediately.
 	if (!canSimulationHaveErrors(simulation))
 		return
-
-	// Check for faulty variables.
-	const faultyVariable = getFaultyVariable(simulation)
-	if (faultyVariable)
-		return faultyVariable
 
 	// Check for faulty supporting functions.
 	const supportingFunctionsError = getSupportingFunctionsError(simulation)
@@ -49,6 +55,11 @@ export function getSimulationError(simulation) {
 	const generalError = getGeneralSimulationError(simulation)
 	if (generalError)
 		return generalError
+
+	// Check for faulty variables.
+	const faultyVariableError = getFaultyVariableError(simulation)
+	if (faultyVariableError)
+		return faultyVariableError
 
 	// Check all entry scripts.
 	const entryScriptError = getSimulationEntryScriptError(simulation)
@@ -70,66 +81,58 @@ export function getSimulationError(simulation) {
 	if (dialError)
 		return dialError
 
-	// Check the conditions for events.
+	// Check event errors.
 	const eventError = getSimulationEventError(simulation)
 	if (eventError)
 		return eventError
 }
 
-export function getFaultyVariable(simulation) {
-	const { variables } = simulation
-	const faultyVariable = arrayFind(Object.values(variables), variable => getVariableError(variable, variables))
-	return faultyVariable?.value
-}
-
-export function getVariableError(variable, variables) {
-	// Set up an error builder.
-	const buildError = (subtype) => ({ variable, type: 'variable', subtype })
-
-	// Check for a duplicate name.
-	if (Object.values(variables).find(otherVariable => otherVariable.id !== variable.id && otherVariable.name === variable.name))
-		return buildError('duplicateName')
-
-	// Check for value issues.
-	const { initialValue, min, max } = variable
-	if (min !== undefined && max !== undefined && min > max)
-		return buildError('minAboveMax')
-	if (initialValue !== undefined && min !== undefined && initialValue < min)
-		return buildError('initialBelowMin')
-	if (initialValue !== undefined && max !== undefined && initialValue > max)
-		return buildError('initialAboveMax')
-}
-
-export function getVariableErrorMessage(error) {
-	const { subtype } = error
-	return {
-		'duplicateName': 'Der Name dieses Parameters ist gleich einem anderen Parameter.',
-		'minAboveMax': 'Das Minimum darf nicht größer sein als das Maximum.',
-		'initialBelowMin': 'Der Anfangswert darf nicht kleiner als das Minimum sein.',
-		'initialAboveMax': 'Der Anfangswert darf nicht größer als das Maximum sein.',
-	}[subtype]
-}
-
 // getSupportingFunctionsError checks for a given simulation whether the supporting functions are OK. If so, undefined is given. If not, an error is returned.
 export function getSupportingFunctionsError(simulation) {
 	if (simulation.supportingFunctions) {
-		const error = getScriptError(simulation.supportingFunctions, { ...simulation, supportingFunctions: undefined })
+		const error = getScriptError(simulation.supportingFunctions, { ...simulation, supportingFunctions: undefined, variables: {} })
 		if (error)
 			return { source: 'simulation', type: 'supportingFunctions', error }
+	}
+}
+
+// getFaultyVariable takes a simulation and checks all variables, returning an error when a variable is faulty.
+export function getFaultyVariableError(simulation) {
+	const faultyVariable = arrayFind(Object.values(simulation.variables), variable => getVariableError(variable, simulation))
+	return faultyVariable?.value
+}
+
+export function getVariableError(variable, simulation) {
+	// Check for a duplicate name.
+	if (Object.values(simulation.variables).find(otherVariable => otherVariable.id !== variable.id && otherVariable.name === variable.name))
+		return { variable, type: 'variable', subtype: 'duplicateName' }
+
+	// Check for a faulty initial value.
+	const error = getExpressionError(variable.initialValue, { ...simulation, variables: {} }, { allowUndefined: true })
+	if (error)
+		return { variable, type: 'variable', subtype: 'initialValue', error }
+}
+
+export function getVariableErrorMessage(error) {
+	switch (error.subtype) {
+		case 'duplicateName':
+			return 'Der Name dieses Parameters ist gleich einem anderen Parameter.'
+		case 'initialValue':
+			return 'Der Parameter hat einen ungültigen Anfangswert.'
+		default:
+			throw new Error(`Invalid error subtype: could not determine what to do with the "variable" error and subtype "${error.subtype}".`)
 	}
 }
 
 // getSimulationEntryScriptError checks for a given simulation whether all entry scripts are OK. If so, undefined is given. If not, an error is returned.
 export function getSimulationEntryScriptError(simulation) {
 	// Walk through all pages to check their entry scripts.
-	const pageErrorObj = arrayFind(Object.values(simulation.pages), page => {
+	return arrayFind(Object.values(simulation.pages), page => {
 		// Check the page update script.
 		const pageError = getScriptError(page.entryScript, simulation)
 		if (pageError)
 			return { source: 'simulation', type: 'entryScript', subtype: 'page', error: pageError, page }
-	})
-	if (pageErrorObj)
-		return pageErrorObj.value
+	})?.value
 }
 
 // getSimulationUpdateScriptError checks for a given simulation whether all update scripts are OK. If so, undefined is given. If not, an error is returned.
@@ -140,7 +143,7 @@ export function getSimulationUpdateScriptError(simulation) {
 		return { source: 'simulation', type: 'updateScript', subtype: 'general', error: generalError }
 
 	// Check the page update scripts, both the main scripts and the ones per option.
-	const pageErrorObj = arrayFind(Object.values(simulation.pages), page => {
+	return arrayFind(Object.values(simulation.pages), page => {
 		// Check the page update script.
 		const pageError = getScriptError(page.updateScript, simulation)
 		if (pageError)
@@ -156,9 +159,7 @@ export function getSimulationUpdateScriptError(simulation) {
 			if (optionErrorObj)
 				return optionErrorObj.value
 		}
-	})
-	if (pageErrorObj)
-		return pageErrorObj.value
+	})?.value
 }
 
 // getDisplayScriptError looks at all scripts inside simulation display texts, like "your life points are {hp}." It checks all these small code snippets to see if they return an appropriate value.
@@ -172,7 +173,7 @@ export function getDisplayScriptError(simulation) {
 		return { source: 'simulation', type: 'displayScript', subtype: 'footer', ...footerError }
 
 	// Walk through the pages.
-	const pageErrorObj = arrayFind(Object.values(simulation.pages), page => {
+	return arrayFind(Object.values(simulation.pages), page => {
 		if (page.description) {
 			const descriptionError = evaluateTextWithScripts(page.description, simulation)
 			if (descriptionError)
@@ -186,7 +187,7 @@ export function getDisplayScriptError(simulation) {
 
 		// Within the page, walk through the options.
 		if (page.options) {
-			const optionErrorObj = arrayFind(page.options, (option, optionIndex) => {
+			return arrayFind(page.options, (option, optionIndex) => {
 				if (option.description) {
 					const descriptionError = evaluateTextWithScripts(option.description, simulation)
 					if (descriptionError)
@@ -197,28 +198,9 @@ export function getDisplayScriptError(simulation) {
 					if (feedbackError)
 						return { source: 'simulation', type: 'displayScript', subtype: 'option', field: 'feedback', page, option, optionIndex, ...feedbackError }
 				}
-			})
-			if (optionErrorObj)
-				return optionErrorObj.value
+			})?.value
 		}
-	})
-
-	// Check if an error was found.
-	if (pageErrorObj)
-		return pageErrorObj.value
-}
-
-// getDialError looks at the expressions inside the dials that have been defined. It checks the value, min and max.
-export function getDialError(simulation) {
-	const dialError = arrayFind((simulation.dials || []), dial => {
-		const fieldError = arrayFind(['value', 'min', 'max'], field => {
-			const error = getExpressionError(dial.value, simulation)
-			if (error)
-				return { source: 'simulation', type: 'dial', field, error, dial }
-		})
-		return fieldError?.value
-	})
-	return dialError?.value
+	})?.value
 }
 
 // evaluateTextWithScripts takes a piece of text, for instance a page description, and checks all display scripts in it. It returns an error object on an error.
@@ -237,31 +219,29 @@ export function evaluateTextWithScripts(text, simulation) {
 	// Walk through the brackets to test all expressions.
 	return arrayFind(bracketPositions, bracketSet => {
 		let expression = text.substring(bracketSet[0] + 1, bracketSet[1])
-		expression = clearTags(expression)
+		expression = preprocessScript(clearTags(expression))
 		const error = getExpressionError(expression, simulation)
 		if (error)
 			return { expression, error }
 	})?.value
 }
 
-// getSimulationEventError checks for a given simulation whether the events are OK. If so, undefined is returned. If not, an error is given.
-export function getSimulationEventError(simulation) {
-	const eventErrorObj = arrayFind(Object.values(simulation.events || {}), (event, eventIndex) => {
-		const conditionError = getExpressionError(event.condition, simulation, true)
-		if (conditionError)
-			return { source: 'simulation', type: 'event', subtype: 'condition', error: conditionError, event, eventIndex }
-	})
-	if (eventErrorObj)
-		return eventErrorObj.value
+// getDialError looks at the expressions inside the dials that have been defined. It checks the value, min and max.
+export function getDialError(simulation) {
+	return arrayFind((simulation.dials || []), dial => {
+		return arrayFind(['value', 'min', 'max'], field => {
+			const error = getExpressionError(dial[field], simulation, { requireNumber: true })
+			if (error)
+				return { source: 'simulation', type: 'dial', field, error, dial }
+		})?.value
+	})?.value
 }
 
-// getStateError checks, for a given simulation, whether the state is still OK. Stuff like missing variables can be fixed on-the-go, but a pageId that is not known is a fatal error.
-export function getStateError(simulation, state) {
-	// When there is no state yet, then there cannot be erroneous data in the state. No error.
-	if (!state)
-		return undefined
-
-	// Check that the pageId from the state exists. (If there is no pageId, then the simulation hasn't started yet; that's fine too.)
-	if (!simulation.pages[state.pageId])
-		return { source: 'state', type: 'page', subtype: 'missing' }
+// getSimulationEventError checks for a given simulation whether the events are OK. If so, undefined is returned. If not, an error is given.
+export function getSimulationEventError(simulation) {
+	return arrayFind(Object.values(simulation.events || {}), (event, eventIndex) => {
+		const conditionError = getExpressionError(event.condition, simulation, { requireBoolean: true })
+		if (conditionError)
+			return { source: 'simulation', type: 'event', subtype: 'condition', error: conditionError, event, eventIndex }
+	})?.value
 }

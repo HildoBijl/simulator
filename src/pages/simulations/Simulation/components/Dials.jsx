@@ -4,8 +4,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 
 import { bound, roundToDigits, getTickSize, range, usePrevious, useTransitionedValue, useAnimation, easeShift } from 'util'
 
-import { hasVariables } from '../../util'
-import { switchVariableNames, evaluateExpression } from '../../scripts'
+import { hasVariables, switchVariableNames, evaluateExpression } from '../../util'
 
 export function Dials({ simulation, page, state }) {
 	// Check if the Dials have to be shown.

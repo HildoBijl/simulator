@@ -22,9 +22,7 @@ import { Draggable } from '@hello-pangea/dnd'
 import { FormPart, TrackedTextField, TrackedCodeField, MCE } from 'components'
 import { deletePage, updatePage, pageIndexToString } from 'simulations'
 
-import { emptyPage, emptyFolder, emptyDialTitle, accordionStyle } from '../../settings'
-import { hasVariables, hasVideo } from '../../util'
-import { getScriptError } from '../../scripts'
+import { emptyPage, emptyFolder, emptyDialTitle, accordionStyle, hasVariables, hasVideo, getScriptError } from '../../util'
 
 import { Options, FollowUpDropdown, PageUpdateScript } from './Options'
 

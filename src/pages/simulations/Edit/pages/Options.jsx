@@ -19,9 +19,7 @@ import { numberToLetter, useClearTags } from 'util'
 import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'components'
 import { updatePage, moveOption, pageIndexToString } from 'simulations'
 
-import { emptyPage, emptyOption } from '../../settings'
-import { hasVariables } from '../../util'
-import { getScriptError } from '../../scripts'
+import { emptyPage, emptyOption, hasVariables, getScriptError } from '../../util'
 
 export function Options({ simulation, page }) {
 	const theme = useTheme()

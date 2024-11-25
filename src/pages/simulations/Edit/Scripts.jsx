@@ -11,7 +11,7 @@ import { useSimulation, pageIndexToString } from 'simulations'
 import { Page, FormPart } from 'components'
 
 import { hasVariables, hasScripts } from '../util'
-import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle } from '../settings'
+import { emptyPage, emptyOption, emptyVariableName, emptyVariableTitle } from '../util/settings'
 
 import { PageEntryScript, PageUpdateScript, OptionUpdateScript } from './pages'
 import { GeneralUpdateScript } from './variables'

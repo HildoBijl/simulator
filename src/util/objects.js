@@ -117,3 +117,12 @@ export function deepEquals(a, b) {
 	// On a basic type do a direct comparison.
 	return a === b
 }
+
+// getError runs a function and, if the function throws an error, the error is returned. (If not, nothing is returned.)
+export function getError(func) {
+	try {
+		func()
+	} catch (error) {
+		return error
+	}
+}

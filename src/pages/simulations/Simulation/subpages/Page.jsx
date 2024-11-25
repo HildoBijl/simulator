@@ -12,9 +12,7 @@ import { numberToLetter } from 'util'
 import { Page as PageContainer, InputParagraph, MCEContents } from 'components'
 import { useIsOwner, pageIndexToString } from 'simulations'
 
-import { emptyPage, emptyOption } from '../../settings'
-import { getVariables, getFollowUpPage, applyAutoplay } from '../../util'
-import { resolveScripts } from '../../scripts'
+import { emptyPage, emptyOption, getVariables, getFollowUpPage, applyAutoplay, resolveScripts } from '../../util'
 
 import { Dials } from '../components/Dials'
 

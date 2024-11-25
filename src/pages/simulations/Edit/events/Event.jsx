@@ -17,8 +17,7 @@ import { deleteField } from 'firebase/firestore'
 import { FormPart, TrackedTextField, TrackedCodeField } from 'components'
 import { updateEvent, deleteEvent, pageIndexToString } from 'simulations'
 
-import { emptyPage, emptyEventTitle, defaultAfterwards, accordionStyle } from '../../settings'
-import { getExpressionError } from '../../scripts'
+import { emptyPage, emptyEventTitle, defaultAfterwards, accordionStyle, getExpressionError } from '../../util'
 
 export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
 	// On a deleted event, don't display anything.
@@ -47,7 +46,7 @@ export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
 
 function ConditionField({ simulation, event }) {
 	// Set up an error detection function for the condition code field.
-	const getError = useCallback((condition) => getExpressionError(condition, simulation, true), [simulation])
+	const getError = useCallback((condition) => getExpressionError(condition, simulation, { requireBoolean: true }), [simulation])
 
 	// Render the field.
 	return <FormPart>

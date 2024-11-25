@@ -41,15 +41,6 @@ export function getTickSize(range, numPreferredTicks = 6) {
 	return candidates[bestIndex]
 }
 
-// fixNumber takes a number entered into an input field and automatically fixes common potential errors.
-export const fixNumber = str => str.replace(/[^0-9.-]/, '') // Remove unwanted sybols.
-	.replace(/(\..*)\./, (_, a) => a) // Remove a second period.
-	.replace(/(.*)-(.*)-(.*)/, (_, a, b, c) => a + b + c) // Remove two minus signs.
-	.replace(/(.*)-(.*)/, (_, a, b) => '-' + a + b) // Move a single minus sign forward.
-
-// strToNumber converts a string of a number to an actual number.
-export const strToNumber = str => str === '' ? undefined : str === '-' ? 0 : Number(str)
-
 // The following functions are easing functions, useful for setting up animations.
 export const easeInOut = x => (x * x) / (2 * (x * x - x) + 1)
 export const easeShift = x => x < 0.5 ? 2 * x ** 2 : 1 - 2 * (1 - x) ** 2

@@ -21,8 +21,7 @@ import { getId } from 'fb'
 import { FormPart, Label, TrackedTextField, TrackedCodeField } from 'components'
 import { updateSimulation, moveDial } from 'simulations'
 
-import { emptyDialTitle } from '../../settings'
-import { getExpressionError } from '../../scripts'
+import { emptyDialTitle, getExpressionError } from '../../util'
 
 export function DialsSettings({ simulation }) {
 	const theme = useTheme()
@@ -103,7 +102,7 @@ function DialSettings({ simulation, dial, dialIndex, expanded, flipExpand, remov
 	}, [expanded])
 
 	// Set up checking for fields.
-	const getError = useCallback((value) => value && getExpressionError(value, simulation), [simulation])
+	const getError = useCallback((value) => value && getExpressionError(value, simulation, { requireNumber: true }), [simulation])
 
 	// Render the dial form.
 	return <Draggable key={dialIndex} index={dialIndex} draggableId={dialIndex.toString()}>

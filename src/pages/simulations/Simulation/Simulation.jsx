@@ -7,8 +7,7 @@ import { useSimulation, useSimulationIdFromUrl, useIsOwner } from 'simulations'
 
 import { ErrorPage as GeneralErrorPage } from '../../ErrorPage'
 
-import { getState } from '../util'
-import { getSimulationError, getStateError } from '../validation'
+import { getState, getSimulationError, getStateError } from '../util'
 
 import { useSimulationActions } from './actions'
 import { ErrorPage, EmptySimulation, InitializingPage, Page } from './subpages'

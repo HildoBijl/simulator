@@ -9,9 +9,7 @@ import { setDoc } from 'firebase/firestore'
 import { Label, Code, FormPart, TrackedCodeField } from 'components'
 import { getVariableRef } from 'simulations'
 
-import { accordionStyle } from '../../settings'
-import { hasVariables } from '../../util'
-import { getScriptError } from '../../scripts'
+import { accordionStyle, hasVariables, getScriptError } from '../../util'
 
 import { Variable } from './Variable'
 import { DialsSettings } from './DialsSettings'
@@ -131,7 +129,7 @@ function ExtraOptions({ simulation }) {
 }
 
 export function SupportingFunctions({ simulation }) {
-	const getError = useCallback((supportingFunctions) => getScriptError(supportingFunctions, { ...simulation, supportingFunctions: undefined }), [simulation]) // Evaluate as regular script, without supporting functions.
+	const getError = useCallback((supportingFunctions) => getScriptError(supportingFunctions, { ...simulation, supportingFunctions: undefined, variables: {} }), [simulation]) // Evaluate as regular script, without supporting functions.
 	return <FormPart style={{ paddingTop: '0.5rem' }}>
 		<TrackedCodeField label={<>Unterstützende Funktionen</>} value={simulation.supportingFunctions} path="simulations" documentId={simulation.id} field="supportingFunctions" multiline={true} getError={getError} />
 		{simulation.supportingFunctions ? null : <Alert severity="info" sx={{ my: 2 }}>Sie können hier Ihre eigenen unterstützenden Javascript-Funktionen definieren, die dann in Update-Skripten, Anzeigeskripten auf Seiten und so weiter verwendet werden können. Denken Sie zum Beispiel an eine Zahlenformatierungsfunktion:<br /><Code>function formatNumber(num) &#123; return roundToDigits(num, 3).toString().replace(&quot;.&quot;, &quot;,&quot;) &#125;</Code><br />Die Möglichkeiten sind natürlich endlos. Jede Funktion, die Sie benötigen, kann hier hinzugefügt werden.</Alert>}

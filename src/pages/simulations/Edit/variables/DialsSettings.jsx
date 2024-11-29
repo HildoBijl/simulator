@@ -164,7 +164,7 @@ function DialsPosition({ simulation }) {
 		value = 'belowOptions'
 
 	// Render the drop-down menu.
-	const defaultValue = 'belowFooter'
+	const defaultValue = hasFooter ? 'belowFooter' : 'belowOptions'
 	const label = 'Position der Zahlenindikatoren auf der Seite'
 	return <FormControl fullWidth>
 		<InputLabel>{label}</InputLabel>

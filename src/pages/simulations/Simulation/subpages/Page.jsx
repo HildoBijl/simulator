@@ -38,13 +38,13 @@ export function Page({ simulation, history, state, chooseOption, goToNextPage, j
 			return // It's a question page but the question hasn't been answered. Can't auto-continue.
 		if (options[choice].feedback || page.feedback)
 			return // There's feedback to show. Don't auto-continue.
-		if (getFollowUpPage(page, simulation, choice) === 'end')
+		if (getFollowUpPage(simulation, state) === 'end')
 			return // After this the simulation is over. Don't auto-continue into nothingness.
 		goToNextPage(isOwner) // No reason found not to: let's auto-continue!
-	}, [page, simulation, choice, goToNextPage, isOwner])
+	}, [page, simulation, choice, state, goToNextPage, isOwner])
 
 	// Check what kind of button to show.
-	const atSimulationEnd = (options.length === 0 || choice !== undefined) && getFollowUpPage(page, simulation, choice) === 'end'
+	const atSimulationEnd = (options.length === 0 || choice !== undefined) && getFollowUpPage(simulation, state) === 'end'
 	const showNextButton = !atSimulationEnd && (options.length === 0 || choice !== undefined)
 
 	// Define what icons to show.

@@ -151,10 +151,10 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				if (state.experiencedEvents)
 					newState.experiencedEvents = state.experiencedEvents
 
-				// Find all events that did not fire/trigger before, but do fire now. On multiple, select one randomly.
-				const experiencedEvents = newState.experiencedEvents || []
+				// Find all events that trigger (and that have not reached their maximum triggers). On multiple, select one randomly.
+				const experiencedEvents = newState.experiencedEvents || {}
 				const variablesAsNames = switchVariableNames(variables, simulation)
-				const triggeredEvents = Object.values(simulation.events).filter(event => !experiencedEvents.includes(event.id) && evaluateExpression(event.condition, variablesAsNames))
+				const triggeredEvents = Object.values(simulation.events).filter(event => (experiencedEvents[event.id] || 0) < (event.maxTriggers === undefined ? Infinity : event.maxTriggers) && evaluateExpression(event.condition, variablesAsNames))
 				if (triggeredEvents.length > 0) {
 					const triggeredEvent = selectRandomly(triggeredEvents)
 
@@ -171,7 +171,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 					// Apply the event into the state.
 					newState.pageId = triggeredEvent.page || simulation.pageList[0] // Indicated or default, in case not set.
 					newState.event = triggeredEvent.id // For history display purposes.
-					newState.experiencedEvents = [...experiencedEvents, triggeredEvent.id] // To prevent events from triggering multiple times.
+					newState.experiencedEvents = { ...experiencedEvents, [triggeredEvent.id]: (experiencedEvents[triggeredEvent.id] || 0) + 1 } // Track the number of times an event got executed.
 				} else {
 					// If there was a jump-back page defined, jump back to it.
 					if (state.jumpPageId)

@@ -61,7 +61,7 @@ function EventsIntroduction({ addEvent }) {
 		<Alert severity="info" sx={{ my: 2 }}>
 			<p style={{ marginTop: 0 }}>Ein Ereignis ist eine besondere Situation, die eintritt, wenn eine bestimmte Bedingung erfüllt ist.</p>
 			<p style={{ marginBottom: 0 }}>Ein Ereignis hat eine Bedingung (Auslöser) wie &quot;<Code>hp &gt; 10 &amp;&amp; geld &lt;= 20</Code>&quot;. Wenn (beim Verlassen einer Seite) diese Bedingung erfüllt ist, wird dem Benutzer eine bestimmte neue Seite angezeigt, unabhängig von der Seite, die wir normalerweise aufrufen würden.</p>
-			<p>Ereignisse können nur einmal pro Simulationslauf ausgelöst werden. Wenn mehrere Ereignisse gleichzeitig eintreten, wird eines davon willkürlich ausgewählt. Weitere Einzelheiten zu Ereignissen finden Sie in der <Link to="/create/documentation" target="_blank">allgemeinen Dokumentation</Link>.</p>
+			<p>Ereignisse können mehrfach ausgelöst werden, sofern nicht ausdrücklich anders angegeben. Wenn mehrere Ereignisse gleichzeitig eintreten, wird eines davon willkürlich ausgewählt. Weitere Einzelheiten zu Ereignissen finden Sie in der <Link to="/create/documentation" target="_blank">allgemeinen Dokumentation</Link>.</p>
 		</Alert>
 		<FormPart>
 			<AddEvent addEvent={addEvent} />

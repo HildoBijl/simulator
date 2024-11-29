@@ -14,6 +14,7 @@ import Button from '@mui/material/Button'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { deleteField } from 'firebase/firestore'
 
+import { fixNumber, strToNumber } from 'util'
 import { FormPart, TrackedTextField, TrackedCodeField } from 'components'
 import { updateEvent, deleteEvent, pageIndexToString } from 'simulations'
 
@@ -36,6 +37,7 @@ export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
 			<ConditionField simulation={simulation} event={event} />
 			<PageDropdown simulation={simulation} event={event} />
 			<AfterwardsSetting simulation={simulation} event={event} />
+			<MaxTriggers simulation={simulation} event={event} />
 		</AccordionDetails>
 		<AccordionActions key="actions">
 			<Button onClick={duplicate}>Duplizieren</Button>
@@ -84,5 +86,11 @@ function AfterwardsSetting({ simulation, event }) {
 				<FormControlLabel value="eventFollowUp" control={<Radio />} label="Danach zur Seite springen, die in der Ereignisseite angegeben ist. (Die ursprüngliche Folgeseite wird ignoriert.)" />
 			</RadioGroup>
 		</FormControl>
+	</FormPart>
+}
+
+function MaxTriggers({ simulation, event }) {
+	return <FormPart>
+		<TrackedTextField label={`Maximale Anzahl von Triggern${event.maxTriggers === undefined ? ' (standard: unbegrenzt)' : ''}`} value={event.maxTriggers} path={`simulations/${simulation.id}/events`} documentId={event.id} field="maxTriggers" process={fixNumber} processSaveValue={strToNumber} />
 	</FormPart>
 }

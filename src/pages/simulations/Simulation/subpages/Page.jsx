@@ -12,7 +12,7 @@ import { numberToLetter } from 'util'
 import { Page as PageContainer, InputParagraph, MCEContents } from 'components'
 import { useIsOwner, pageIndexToString } from 'simulations'
 
-import { emptyPage, emptyOption, getVariables, getFollowUpPage, applyAutoplay, resolveScripts } from '../../util'
+import { emptyPage, emptyOption, hasVariables, getVariables, getFollowUpPage, applyAutoplay, resolveScripts } from '../../util'
 
 import { Dials } from '../components/Dials'
 
@@ -148,10 +148,17 @@ function AdminTool({ simulation, state, jumpToPage, reset }) {
 	const isOwner = useIsOwner(simulation)
 	if (!isOwner)
 		return null // Only show the tool for owners.
+	const variableValues = state.variablesAfter || state.variablesBefore || {}
 	return <>
-		<h4>Ersteller-Tools</h4>
+		<h3>Entwickler-Tools</h3>
 		<JumpDropDown {...{ simulation, state, jumpToPage }} />
 		<Button variant="contained" sx={{ margin: '1rem 0 0 0' }} onClick={() => reset(isOwner)}>Neu starten</Button>
+		{hasVariables(simulation) ? <>
+			<h4 style={{ marginTop: '1rem', marginBottom: '0.4rem' }}>Parameterwerte</h4>
+			<ul style={{ marginTop: '0.4rem', marginBottom: '0.4rem' }}>
+				{Object.values(simulation.variables).map(variable => <li key={variable.id}>{variable.name}: {JSON.stringify(variableValues[variable.id])}</li>)}
+			</ul>
+		</> : null}
 	</>
 }
 

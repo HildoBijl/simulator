@@ -141,9 +141,9 @@ function ConditionItem({ simulation, page, forPage, item, setItem, deleteItem })
 	const nextPage = getNextPage(simulation, page)
 	const gap = 0.8
 	return <Box sx={{ display: 'flex', flexFlow: 'row nowrap', alignItems: 'flex-start', my: 2 }}>
-		<Box sx={{ mr: 1, mt: 2 }}>
+		{/* <Box sx={{ mr: 1, mt: 2 }}>
 			<DragIndicator sx={{ cursor: 'grab' }} />
-		</Box>
+		</Box> */}
 		<Box sx={{
 			minWidth: 0, flexGrow: 1, display: 'flex', flexFlow: 'column nowrap', alignItems: 'stretch', gap: `${gap}rem`,
 			[theme.breakpoints.up('md')]: { flexFlow: 'row nowrap', alignItems: 'flex-start' },

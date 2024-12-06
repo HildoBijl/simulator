@@ -24,7 +24,8 @@ import { deletePage, updatePage, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyFolder, emptyDialTitle, accordionStyle, hasVariables, hasVideo, getScriptError } from '../../util'
 
-import { Options, FollowUpDropdown, PageUpdateScript } from './Options'
+import { FollowUpDropdown } from './FollowUpDropdown'
+import { Options, PageUpdateScript } from './Options'
 
 export function PageOrFolder(data) {
 	const { page } = data
@@ -135,7 +136,7 @@ function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, fl
 							{(allowAutoplay && !showAutoplay) ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => {
 								updatePage(simulation.id, id, { autoplay: true })
 								setShowAutoplay(true)
-							}}>Video direkt starten</Button> : null}
+							}}>Video direkt abspielen</Button> : null}
 						</FormPart>
 					</AccordionDetails>
 

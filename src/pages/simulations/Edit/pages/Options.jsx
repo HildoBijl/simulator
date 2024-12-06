@@ -21,6 +21,8 @@ import { updatePage, moveOption, pageIndexToString } from 'simulations'
 
 import { emptyPage, emptyOption, hasVariables, getScriptError } from '../../util'
 
+import { FollowUpDropdown } from './FollowUpDropdown'
+
 export function Options({ simulation, page }) {
 	const theme = useTheme()
 
@@ -228,48 +230,6 @@ function Option({ simulation, page, option, optionIndex, updatedIndex, expanded,
 				</> : null}
 			</Accordion>}
 	</Draggable>
-}
-
-export function FollowUpDropdown({ simulation, page, optionIndex }) {
-	const options = page.options || []
-	const option = options[optionIndex]
-	const forPage = (optionIndex === undefined)
-
-	// Set up a handler to save the follow-up page.
-	const setFollowUpPage = async (pageId) => {
-		if (forPage)
-			return await updatePage(simulation.id, page.id, { followUpPage: pageId === 'default' ? deleteField() : pageId })
-		const newOption = { ...option, followUpPage: pageId }
-		if (pageId === 'default')
-			delete newOption.followUpPage
-		return await updatePage(simulation.id, page.id, { options: [...options.slice(0, optionIndex), newOption, ...options.slice(optionIndex + 1)] })
-	}
-
-	// Determine the next page, which would be the standard option for follow-up.
-	const currPageIndex = simulation.pageList.findIndex(currPage => currPage.id === page.id)
-	const nextPage = simulation.pageList[currPageIndex + 1]
-
-	// Determine the extra message to show for the field, giving info on where this will be used.
-	const optionsWithFollowUp = (page.options || []).map(option => !!option.followUpPage)
-	const allOptionsHaveFollowUp = optionsWithFollowUp.every(value => value)
-	const noOptionsHaveFollowUp = !optionsWithFollowUp.some(value => value)
-	const optionsWithoutFollowUp = optionsWithFollowUp.map((value, index) => !value && numberToLetter(index).toUpperCase()).filter(value => value)
-	const extraMessage = allOptionsHaveFollowUp ? 'derzeit nicht verwendet; alle Möglichkeiten haben eine eigene Folgeseite' : noOptionsHaveFollowUp ? 'für alle Möglichkeiten, da keine eine eigene Folgeseite hat' : `für die Möglichkeit${optionsWithoutFollowUp.length === 1 ? ` (nur ${optionsWithoutFollowUp.join('/')})` : `en ${optionsWithoutFollowUp.join('/')}`} ohne eigene Folgeseite`
-	const label = forPage && options.length > 0 ? `Standard Folgeseite (${extraMessage})` : 'Folgeseite'
-
-	// Render the dropdown field.
-	const value = (forPage ? page.followUpPage : option.followUpPage) || 'default'
-	return <FormPart>
-		<FormControl fullWidth>
-			<InputLabel>{label}</InputLabel>
-			<Select value={value} label={label} onChange={(event) => setFollowUpPage(event.target.value)}>
-				<MenuItem key="default" value="default">{forPage ? <>Standard: Nächste Seite in der Reihenfolge (jetzt {nextPage ? `Seite ${pageIndexToString(nextPage.index)
-					} ` : 'das Ende der Simulation'})</> : <>Die Standardeinstellung dieser Frage verwenden</>}</MenuItem>
-				{simulation.pageList.map(otherPage => <MenuItem key={otherPage.id} value={otherPage.id}>{pageIndexToString(otherPage.index)} {otherPage.internalTitle || otherPage.title || emptyPage}</MenuItem>)}
-				<MenuItem key="end" value="end">Ende: Danach wird die Simulation beendet</MenuItem>
-			</Select>
-		</FormControl>
-	</FormPart>
 }
 
 export function PageUpdateScript({ simulation, page }) {

@@ -139,18 +139,19 @@ function ConditionItem({ simulation, page, forPage, item, setItem, deleteItem })
 	// Render the form.
 	const { condition } = item
 	const nextPage = getNextPage(simulation, page)
+	const gap = 0.8
 	return <Box sx={{ display: 'flex', flexFlow: 'row nowrap', alignItems: 'flex-start', my: 2 }}>
 		<Box sx={{ mr: 1, mt: 2 }}>
 			<DragIndicator sx={{ cursor: 'grab' }} />
 		</Box>
 		<Box sx={{
-			minWidth: 0, flexGrow: 1, display: 'flex', flexFlow: 'column nowrap', alignItems: 'stretch', gap: '0.8rem',
+			minWidth: 0, flexGrow: 1, display: 'flex', flexFlow: 'column nowrap', alignItems: 'stretch', gap: `${gap}rem`,
 			[theme.breakpoints.up('md')]: { flexFlow: 'row nowrap', alignItems: 'flex-start' },
 		}}>
-			<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: '48%' } }}>
+			<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: `calc(50% - ${gap/2}rem)` } }}>
 				<TrackedCodeField label={`Bedingung${condition ? '' : ' (z. B. "leben < 0 || geld >= 20")'}`} value={condition} setValue={setCondition} getError={getError} />
 			</Box>
-			<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: '48%' } }}>
+			<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: `calc(50% - ${gap/2}rem)` } }}>
 				<PageDropdown
 					simulation={simulation}
 					label="Entsprechende Folgeseite"

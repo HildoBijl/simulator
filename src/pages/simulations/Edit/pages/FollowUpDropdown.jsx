@@ -144,13 +144,13 @@ function ConditionItem({ simulation, page, forPage, item, setItem, deleteItem })
 			<DragIndicator sx={{ cursor: 'grab' }} />
 		</Box>
 		<Box sx={{
-			flexGrow: 1, display: 'flex', flexFlow: 'column nowrap', alignItems: 'stretch', gap: '0.8rem',
+			minWidth: 0, flexGrow: 1, display: 'flex', flexFlow: 'column nowrap', alignItems: 'stretch', gap: '0.8rem',
 			[theme.breakpoints.up('md')]: { flexFlow: 'row nowrap', alignItems: 'flex-start' },
 		}}>
-			<Box sx={{ flex: 1 }}>
+			<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: '48%' } }}>
 				<TrackedCodeField label={`Bedingung${condition ? '' : ' (z. B. "leben < 0 || geld >= 20")'}`} value={condition} setValue={setCondition} getError={getError} />
 			</Box>
-			<Box sx={{ flex: 1 }}>
+			<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: '48%' } }}>
 				<PageDropdown
 					simulation={simulation}
 					label="Entsprechende Folgeseite"

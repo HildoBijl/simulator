@@ -76,6 +76,11 @@ export function getSimulationError(simulation) {
 	if (displayScriptError)
 		return displayScriptError
 
+	// Check follow-up pages (their conditions).
+	const followUpPageError = getFollowUpPageError(simulation)
+	if (followUpPageError)
+		return followUpPageError
+
 	// Check dial errors.
 	const dialError = getDialError(simulation)
 	if (dialError)
@@ -223,6 +228,28 @@ export function evaluateTextWithScripts(text, simulation) {
 		const error = getExpressionError(expression, simulation)
 		if (error)
 			return { expression, error }
+	})?.value
+}
+
+// getFollowUpPageError checks the follow-up page settings. Specifically, the conditions for conditional follow-up pages must not give errors. This is for both the page and the options.
+export function getFollowUpPageError(simulation) {
+	return arrayFind(Object.values(simulation.pages), page => {
+		// Check the page follow-up.
+		const pageErrorObj = arrayFind((page.followUpPage === 'conditional' && page.followUpConditions) || [], item => getExpressionError(item.condition, simulation, { requireBoolean: true }))
+		if (pageErrorObj)
+			return { source: 'simulation', type: 'followUpPage', subtype: 'page', error: pageErrorObj.value, page, conditionIndex: pageErrorObj.index, condition: pageErrorObj.element.condition }
+
+		// Check the options update scripts.
+		if (page.options) {
+			const optionErrorObj = arrayFind(page.options, (option, optionIndex) => {
+				const conditionErrorObj = arrayFind((option.followUpPage === 'conditional' && option.followUpConditions) || [], item => getExpressionError(item.condition, simulation, { requireBoolean: true }))
+				console.log(conditionErrorObj)
+				if (conditionErrorObj)
+					return { source: 'simulation', type: 'followUpPage', subtype: 'option', error: conditionErrorObj.value, page, option, optionIndex, conditionIndex: conditionErrorObj.index, condition: conditionErrorObj.element.condition }
+			})
+			if (optionErrorObj)
+				return optionErrorObj.value
+		}
 	})?.value
 }
 

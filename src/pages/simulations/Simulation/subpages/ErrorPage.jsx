@@ -14,6 +14,7 @@ const components = { // Map the error types to components that can display them.
 	entryScript: EntryScriptError,
 	updateScript: UpdateScriptError,
 	displayScript: DisplayScriptError,
+	followUpPage: FollowUpPageError,
 	dial: DialError,
 	event: EventError,
 
@@ -66,7 +67,8 @@ function SupportingFunctionsError({ error }) {
 	return <>
 		<p>Es gibt einen Fehler in den unterstützenden Funktionen der Simulation.</p>
 		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
-		<p>Gehen Sie auf die Registerkarte Parameter, um den Fehler in den unterstützenden Funktionen zu beheben.</p></>
+		<p>Gehen Sie auf die Registerkarte Parameter, um den Fehler in den unterstützenden Funktionen zu beheben.</p>
+	</>
 }
 
 function EntryScriptError({ error }) {
@@ -142,6 +144,31 @@ function DisplayScriptError({ error }) {
 	return <>
 		<p>{source}</p>
 		{expression ? <p>Der fehlgeschlagene Ausdruck ist: <Code>{expression}</Code></p> : null}
+		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
+	</>
+}
+
+function FollowUpPageError({ error }) {
+	// Determine in which condition the error took place.
+	let source
+	console.log(error)
+	const { page, option, optionIndex, error: errorObj, condition, conditionIndex } = error
+	const optionTitle = useClearTags(option?.description && option?.description.split('\n')[0] || emptyOption)
+	switch (error.subtype) {
+		case 'page':
+			source = <>Es gibt einen Fehler in der Standard-Folgeseite von Seite <em>{pageIndexToString(page.index)} {page.title || emptyPage}</em></>
+			break
+		case 'option':
+			source = <>Es gibt einen Fehler in der Folgeseite von Seite <em>{pageIndexToString(page.index)} {page.title || emptyPage}</em> Antwortmöglichkeit <em>{numberToLetter(optionIndex).toUpperCase()}. {optionTitle}</em></>
+			break
+		default:
+			throw new Error(`Invalid update-script error subtype. Received an error for an update script with subtype "${error.subtype}" but could not process this properly.`)
+	}
+
+	// Set up the error message.
+	return <>
+		<p>{source}</p>
+		<p>Der Fehler trat in Bedingung Nummer {conditionIndex + 1} auf, in der Bedingung: <em>{condition}</em>.</p>
 		<p>Der Fehler lautet: <em>{errorObj.message}</em></p>
 	</>
 }

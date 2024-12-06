@@ -1,6 +1,6 @@
 import { arrayRemove, deleteField } from 'firebase/firestore'
 
-import { removeKeys, insertIntoArray, moveArrayElement } from 'util'
+import { insertIntoArray, moveArrayElement } from 'util'
 import { getDocumentRef, updateDocument, deleteDocument, getCollection } from 'fb'
 
 import { updateSimulation } from '../functions'

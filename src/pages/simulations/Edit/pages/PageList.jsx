@@ -8,7 +8,7 @@ import Alert from '@mui/material/Alert'
 import { Help as HelpIcon, Info as InfoIcon, Folder as FolderIcon, UnfoldLess as CloseIcon, UnfoldMore as OpenIcon, UnfoldLessDouble as CloseAllIcon, UnfoldMoreDouble as OpenAllIcon } from '@mui/icons-material'
 import { DragDropContext, Droppable } from '@hello-pangea/dnd'
 
-import { nestedListToIndices, insertIntoArray } from 'util'
+import { nestedListToIndices, insertIntoArray, isDragDataValid } from 'util'
 import { FormPart, Label } from 'components'
 import { updateSimulation, getPageRef, movePage } from 'simulations'
 
@@ -232,15 +232,6 @@ function AddButton({ onClick, children, title }) {
 			</Tooltip>
 		</AccordionSummary>
 	</Accordion>
-}
-
-function isDragDataValid(dragData, draggableList) {
-	const { draggableId, source, destination } = dragData
-	if (!destination)
-		return false
-	if (draggableList && draggableList[source.index].id !== draggableId)
-		return false
-	return true
 }
 
 // expandFolders takes a list of pages (or page IDs) with potential folders in them. It then not only turns the ID into the page/folder, but also (assuming the folder is opened) includes all pages (and recursively all folders) inside the folder. At the end it adds a folder-closer, which is needed for the dragging system.

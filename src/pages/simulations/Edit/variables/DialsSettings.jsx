@@ -17,6 +17,7 @@ import { DragIndicator as DragIndicatorIcon, ExpandMore as ExpandMoreIcon } from
 import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
+import { isDragDataValid } from 'util'
 import { getId } from 'fb'
 import { FormPart, Label, TrackedTextField, TrackedCodeField } from 'components'
 import { updateSimulation, moveDial } from 'simulations'
@@ -183,13 +184,4 @@ function AllowDialHidingSetting({ simulation }) {
 	return <FormGroup sx={{ my: 1, px: 1 }}>
 		<FormControlLabel control={<Switch checked={simulation.allowDialHiding || false} onChange={event => updateSimulation(simulation.id, { allowDialHiding: event.target.checked || deleteField() })} />} label="Seiten können individuell festlegen, ob und welche Zahlenindikatoren angezeigt werden sollen oder nicht." />
 	</FormGroup>
-}
-
-function isDragDataValid(dragData) {
-	const { draggableId, source, destination } = dragData
-	if (!destination)
-		return false
-	if (source.index !== parseInt(draggableId))
-		return false
-	return true
 }

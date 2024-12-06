@@ -144,3 +144,13 @@ export function useTransitionedValue(targetValue, transitionTime = 1000, easing 
 	// Return the value that we want to display.
 	return value
 }
+
+// isDragDataValid checks if the drag data provided by the dragging system is valid.
+export function isDragDataValid(dragData) {
+	const { draggableId, source, destination } = dragData
+	if (!destination)
+		return false
+	if (source.index !== parseInt(draggableId))
+		return false
+	return true
+}

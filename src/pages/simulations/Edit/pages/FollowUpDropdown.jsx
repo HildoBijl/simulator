@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -6,11 +6,11 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
+import { deleteField } from 'firebase/firestore'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { DragIndicator, AddCircle, Delete } from '@mui/icons-material'
 
-import { lastOf, numberToLetter } from 'util'
+import { lastOf, numberToLetter, isDragDataValid, moveArrayElement } from 'util'
 import { FormPart, TrackedCodeField } from 'components'
 import { updatePage, pageIndexToString } from 'simulations'
 
@@ -74,6 +74,7 @@ export function FollowUpDropdown({ simulation, page, optionIndex }) {
 }
 
 function ConditionalFields({ simulation, page, forPage, conditions, setConditions }) {
+	const theme = useTheme()
 	const hasFallback = (typeof lastOf(conditions) === 'string')
 	const fallback = hasFallback ? lastOf(conditions) : undefined
 
@@ -103,22 +104,45 @@ function ConditionalFields({ simulation, page, forPage, conditions, setCondition
 			setConditions(newConditions)
 	}
 
+	// Set up handlers for dragging answer options.
+	const onDragEnd = async (dragData) => {
+		if (!isDragDataValid(dragData))
+			return
+		const from = dragData.source.index
+		const to = dragData.destination.index
+		if (from !== to)
+			await setConditions(moveArrayElement(conditions, from, to))
+	}
+
 	// Render the conditions.
 	return <>
-		{conditions.filter(item => typeof item !== 'string').map((item, index) => <ConditionItem key={index} {...{
-			simulation, page, forPage, item,
-			setItem: (condition) => setItem(index, condition),
-			deleteItem: () => deleteItem(index),
-		}} />)}
+		<DragDropContext onDragEnd={onDragEnd}>
+			<Droppable droppableId="options">{(provided, snapshot) => (
+				<div
+					ref={provided.innerRef}
+					{...provided.droppableProps}
+					style={{
+						...(snapshot.isDraggingOver ? { background: theme.palette.mode === 'light' ? '#f7f7f7' : '#111' } : {})
+					}}
+				>
+					{conditions.filter(item => typeof item !== 'string').map((item, index) => <ConditionItem key={index} {...{
+						simulation, page, forPage, item, itemIndex: index, dragActive: snapshot.isDraggingOver,
+						setItem: (condition) => setItem(index, condition),
+						deleteItem: () => deleteItem(index),
+					}} />)}
+					{provided.placeholder}
+				</div>
+			)}</Droppable>
+		</DragDropContext>
 		<ConditionAdder addCondition={addItem} />
 		<ConditionFallback {...{ simulation, page, forPage, fallback, setFallback }} />
 		{conditions.length === 0 ? <Alert severity="info" sx={{ mb: 3 }}>Sie können hier oben verschiedene Bedingungen hinzufügen, die jeweils eine eigene Folgeseite haben. Die erste Bedingung, die zutrifft, wird verwendet.</Alert> : null}
 	</>
 }
 
-function ConditionItem({ simulation, page, forPage, item, setItem, deleteItem }) {
+function ConditionItem({ simulation, page, forPage, item, itemIndex, setItem, deleteItem, dragActive }) {
 	const theme = useTheme()
-
+	
 	// Define handlers.
 	const setPage = (page) => {
 		const newItem = { ...item, page }
@@ -140,33 +164,46 @@ function ConditionItem({ simulation, page, forPage, item, setItem, deleteItem })
 	const { condition } = item
 	const nextPage = getNextPage(simulation, page)
 	const gap = 0.8
-	return <Box sx={{ display: 'flex', flexFlow: 'row nowrap', alignItems: 'flex-start', my: 2 }}>
-		{/* <Box sx={{ mr: 1, mt: 2 }}>
-			<DragIndicator sx={{ cursor: 'grab' }} />
-		</Box> */}
-		<Box sx={{
-			minWidth: 0, flexGrow: 1, display: 'flex', flexFlow: 'column nowrap', alignItems: 'stretch', gap: `${gap}rem`,
-			[theme.breakpoints.up('md')]: { flexFlow: 'row nowrap', alignItems: 'flex-start' },
-		}}>
-			<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: `calc(50% - ${gap/2}rem)` } }}>
-				<TrackedCodeField label={`Bedingung${condition ? '' : ' (z. B. "leben < 0 || geld >= 20")'}`} value={condition} setValue={setCondition} getError={getError} />
-			</Box>
-			<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: `calc(50% - ${gap/2}rem)` } }}>
-				<PageDropdown
-					simulation={simulation}
-					label="Entsprechende Folgeseite"
-					before={{ default: forPage ? `Standard: Nächste Seite in der Reihenfolge (jetzt ${nextPage ? `Seite ${pageIndexToString(nextPage.index)}` : 'das Ende der Simulation'})` : 'Die Standardeinstellung dieser Frage verwenden' }}
-					after={{ end: 'Ende: Danach wird die Simulation beendet' }}
-					value={item.page || 'default'}
-					setValue={setPage}
-					noFormPart={true}
-				/>
-			</Box>
-		</Box>
-		<Box sx={{ ml: 1, mr: 0.5, mt: 2 }}>
-			<Delete sx={{ cursor: 'pointer', opacity: 0.5, '&:hover': { opacity: 1 } }} onClick={deleteItem} />
-		</Box>
-	</Box>
+	return <Draggable key={itemIndex} index={itemIndex} draggableId={itemIndex.toString()}>
+		{(provided, snapshot) =>
+			<Box
+				ref={provided.innerRef}
+				{...provided.draggableProps}
+				style={{
+					...provided.draggableProps.style, // Default drag style from the toolbox.
+					...(dragActive && !snapshot.isDragging ? { opacity: 0.7 } : { opacity: 1 }), // Further drag style customization.
+				}}
+				sx={{ background: theme.palette.background.default, display: 'flex', flexFlow: 'row nowrap', alignItems: 'flex-start', py: 1 }}
+			>
+				<Box sx={{ mr: 1, mt: 2 }}>
+					<span {...provided.dragHandleProps}>
+						<DragIndicator sx={{}} />
+					</span>
+				</Box>
+				<Box sx={{
+					minWidth: 0, flexGrow: 1, display: 'flex', flexFlow: 'column nowrap', alignItems: 'stretch', gap: `${gap}rem`,
+					[theme.breakpoints.up('md')]: { flexFlow: 'row nowrap', alignItems: 'flex-start' },
+				}}>
+					<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: `calc(50% - ${gap / 2}rem)` } }}>
+						<TrackedCodeField label={`Bedingung${condition ? '' : ' (z. B. "leben < 0 || geld >= 20")'}`} value={condition} setValue={setCondition} getError={getError} />
+					</Box>
+					<Box sx={{ flex: 1, maxWidth: '100%', [theme.breakpoints.up('md')]: { maxWidth: `calc(50% - ${gap / 2}rem)` } }}>
+						<PageDropdown
+							simulation={simulation}
+							label="Entsprechende Folgeseite"
+							before={{ default: forPage ? `Standard: Nächste Seite in der Reihenfolge (jetzt ${nextPage ? `Seite ${pageIndexToString(nextPage.index)}` : 'das Ende der Simulation'})` : 'Die Standardeinstellung dieser Frage verwenden' }}
+							after={{ end: 'Ende: Danach wird die Simulation beendet' }}
+							value={item.page || 'default'}
+							setValue={setPage}
+							noFormPart={true}
+						/>
+					</Box>
+				</Box>
+				<Box sx={{ ml: 1, mr: 0.5, mt: 2 }}>
+					<Delete sx={{ cursor: 'pointer', opacity: 0.5, '&:hover': { opacity: 1 } }} onClick={deleteItem} />
+				</Box>
+			</Box>}
+	</Draggable>
 }
 
 function ConditionAdder({ addCondition }) {

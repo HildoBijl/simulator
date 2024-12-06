@@ -6,20 +6,16 @@ import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import { DragIndicator as DragIndicatorIcon, ExpandMore as ExpandMoreIcon, UnfoldLess as CloseIcon, UnfoldMore as OpenIcon } from '@mui/icons-material'
-import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
+import { arrayUnion, arrayRemove } from 'firebase/firestore'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
-import { numberToLetter, useClearTags } from 'util'
+import { numberToLetter, useClearTags, isDragDataValid } from 'util'
 import { FormPart, Label, TrackedTextField, TrackedCodeField, MCE } from 'components'
-import { updatePage, moveOption, pageIndexToString } from 'simulations'
+import { updatePage, moveOption } from 'simulations'
 
-import { emptyPage, emptyOption, hasVariables, getScriptError } from '../../util'
+import { emptyOption, hasVariables, getScriptError } from '../../util'
 
 import { FollowUpDropdown } from './FollowUpDropdown'
 
@@ -257,15 +253,6 @@ export function OptionUpdateScript({ simulation, page, optionIndex, label = "Upd
 	return <FormPart>
 		<TrackedCodeField label={label} value={option.updateScript} path={`simulations/${simulation.id}/pages`} documentId={page.id} field="options" arrayValue={page.options} arrayIndex={optionIndex} arrayField="updateScript" multiline={true} getError={getError} />
 	</FormPart>
-}
-
-function isDragDataValid(dragData) {
-	const { draggableId, source, destination } = dragData
-	if (!destination)
-		return false
-	if (source.index !== parseInt(draggableId))
-		return false
-	return true
 }
 
 function applyMoveToIndex(move, index) {

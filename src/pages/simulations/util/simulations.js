@@ -70,8 +70,12 @@ export function findFollowUpPageFromConditions(simulation, variables, conditions
 
 		// Check the condition.
 		const { condition, page } = item
-		const conditionHolds = evaluateExpression(condition, variables, simulation.supportingFunctions)
-		return conditionHolds ? (page || 'default') : undefined
+		try {
+			const conditionHolds = evaluateExpression(condition, variables, simulation.supportingFunctions)
+			return conditionHolds ? (page || 'default') : undefined
+		} catch (error) {
+			return 'error'
+		}
 	})?.value
 
 	// We used 'default' as a placeholder, where it's normally undefined. Revert back.

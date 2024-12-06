@@ -127,9 +127,13 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 			if (options.length > 0 && choice === undefined)
 				throw new Error(`Invalid nextPage request: no option has been selected for the given state yet. Cannot go to the next page.`)
 
-			// Determine the next page: either the follow-up for the chosen option, the follow-up for the given page, the next page in the order, or (if not existing) the end. Apply it to the new state.
+			// Determine the next page for the state. On an error, note this and don't change anything.
 			const newState = {
 				pageId: getFollowUpPage(simulation, state),
+			}
+			if (newState.pageId === 'error') {
+				setError(true)
+				return history
 			}
 
 			// On variables, we should also check for events.

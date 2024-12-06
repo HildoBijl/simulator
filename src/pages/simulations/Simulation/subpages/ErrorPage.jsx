@@ -151,7 +151,6 @@ function DisplayScriptError({ error }) {
 function FollowUpPageError({ error }) {
 	// Determine in which condition the error took place.
 	let source
-	console.log(error)
 	const { page, option, optionIndex, error: errorObj, condition, conditionIndex } = error
 	const optionTitle = useClearTags(option?.description && option?.description.split('\n')[0] || emptyOption)
 	switch (error.subtype) {

@@ -243,7 +243,6 @@ export function getFollowUpPageError(simulation) {
 		if (page.options) {
 			const optionErrorObj = arrayFind(page.options, (option, optionIndex) => {
 				const conditionErrorObj = arrayFind((option.followUpPage === 'conditional' && option.followUpConditions) || [], item => getExpressionError(item.condition, simulation, { requireBoolean: true }))
-				console.log(conditionErrorObj)
 				if (conditionErrorObj)
 					return { source: 'simulation', type: 'followUpPage', subtype: 'option', error: conditionErrorObj.value, page, option, optionIndex, conditionIndex: conditionErrorObj.index, condition: conditionErrorObj.element.condition }
 			})

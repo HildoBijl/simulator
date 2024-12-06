@@ -24,7 +24,7 @@ export async function updatePage(simulationId, pageId, data) {
 // deletePage will remove a certain page from the database.
 export async function deletePage(simulation, pageToRemove) {
 	// Walk through the simulation pages and folders and remove any references to this page.
-	await Promise.all(!simulation.pages ? [] : Object.values(simulation.pages).map(async page => {
+	await Promise.all(Object.values(simulation.pages || []).map(async page => {
 		const update = {}
 
 		// On a folder, remove the page from its contents.
@@ -33,12 +33,25 @@ export async function deletePage(simulation, pageToRemove) {
 				update.contents = arrayRemove(pageToRemove.id)
 		}
 
-		// On a page, remove it when it appears as follow-up page for the page itself or for an option.
+		// On a page, remove any reference to the deleted page in follow-up pages.
 		if (page.type === 'page') {
+			// First check the page itself, both the follow-up page and any potential conditionals.
 			if (page.followUpPage === pageToRemove.id)
 				update.followUpPage = deleteField()
-			if ((page.options || []).some(option => option.followUpPage === pageToRemove.id))
-				update.options = page.options.map(option => option.followUpPage === pageToRemove.id ? removeKeys(option, 'followUpPage') : option)
+			if ((page.followUpConditions || []).some(item => item?.page === pageToRemove.id))
+				update.followUpConditions = page.followUpConditions.filter(item => item?.page !== pageToRemove.id)
+
+			// Then run the same checks for the options.
+			if ((page.options || []).some(option => option.followUpPage === pageToRemove.id || (option.followUpConditions || []).some(item => item?.page === pageToRemove.id))) {
+				update.options = page.options.map(option => {
+					option = { ...option }
+					if (option.followUpPage === pageToRemove.id)
+						delete option.followUpPage
+					if ((option.followUpConditions || []).some(item => item?.page === pageToRemove.id))
+						option.followUpConditions = option.followUpConditions.filter(item => item?.page !== pageToRemove.id)
+					return option
+				})
+			}
 		}
 
 		// Apply the update if needed.

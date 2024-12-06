@@ -4,9 +4,6 @@ import AccordionActions from '@mui/material/AccordionActions'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -16,9 +13,10 @@ import { deleteField } from 'firebase/firestore'
 
 import { fixNumber, strToNumber } from 'util'
 import { FormPart, TrackedTextField, TrackedCodeField } from 'components'
-import { updateEvent, deleteEvent, pageIndexToString } from 'simulations'
+import { updateEvent, deleteEvent } from 'simulations'
 
-import { emptyPage, emptyEventTitle, defaultAfterwards, accordionStyle, getExpressionError } from '../../util'
+import { emptyEventTitle, defaultAfterwards, accordionStyle, getExpressionError } from '../../util'
+import { PageDropdown } from '../pages'
 
 export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
 	// On a deleted event, don't display anything.
@@ -35,7 +33,7 @@ export function Event({ simulation, event, expanded, flipExpand, duplicate }) {
 				<TrackedTextField label={`Titel${event.title ? '' : ' (nur zur internen Verwendung)'}`} value={event.title} path={`simulations/${simulation.id}/events`} documentId={event.id} field="title" />
 			</FormPart>
 			<ConditionField simulation={simulation} event={event} />
-			<PageDropdown simulation={simulation} event={event} />
+			<JumpPageDropdown simulation={simulation} event={event} />
 			<AfterwardsSetting simulation={simulation} event={event} />
 			<MaxTriggers simulation={simulation} event={event} />
 		</AccordionDetails>
@@ -56,21 +54,14 @@ function ConditionField({ simulation, event }) {
 	</FormPart>
 }
 
-function PageDropdown({ simulation, event }) {
+function JumpPageDropdown({ simulation, event }) {
 	// Set up a handler to save the page.
 	const setPage = (pageId) => updateEvent(simulation.id, event.id, { page: pageId })
 
 	// Render the dropdown field.
 	const label = 'Seite, zu der gesprungen werden soll'
 	const value = event.page || simulation.pageList[0].id
-	return <FormPart>
-		<FormControl fullWidth>
-			<InputLabel>{label}</InputLabel>
-			<Select value={value} label={label} onChange={(event) => setPage(event.target.value)}>
-				{simulation.pageList.map(page => <MenuItem key={page.id} value={page.id}>{pageIndexToString(page.index)} {page.title || emptyPage}</MenuItem>)}
-			</Select>
-		</FormControl>
-	</FormPart>
+	return <PageDropdown {...{ simulation, label, value, setValue: setPage }} />
 }
 
 function AfterwardsSetting({ simulation, event }) {

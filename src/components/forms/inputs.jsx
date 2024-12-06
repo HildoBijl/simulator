@@ -6,7 +6,7 @@ import { deleteField } from 'firebase/firestore'
 import { useTrackedState } from 'util'
 import { updateDocument } from 'fb'
 
-export function TrackedTextField({ path, documentId, field, label, value: givenValue, arrayValue = [], arrayIndex, arrayField, multiline, process, processSaveValue, code, ...otherProps }) {
+export function TrackedTextField({ path, documentId, field, label, value: givenValue, setValue: givenSetValue, arrayValue = [], arrayIndex, arrayField, multiline, process, processSaveValue, code, ...otherProps }) {
 	// Track the given state to also update on external changes.
 	const [value, setValue] = useTrackedState(givenValue?.toString())
 
@@ -15,7 +15,9 @@ export function TrackedTextField({ path, documentId, field, label, value: givenV
 		const newValue = process ? process(event.target.value) : event.target.value
 		setValue(newValue)
 		let saveValue = processSaveValue ? processSaveValue(newValue) : newValue
-		if (arrayIndex !== undefined) { // Do we change a part of an array?
+		if (givenSetValue !== undefined) { // When a manual setter is defined, use that.
+			givenSetValue(saveValue)
+		} else if (arrayIndex !== undefined) { // Do we change a part of an array?
 			if (arrayField) { // The array contains objects and we need to change an element in the array.
 				updateDocument(path, documentId, { [field]: [...arrayValue.slice(0, arrayIndex), { ...arrayValue[arrayIndex], [arrayField]: saveValue }, ...arrayValue.slice(arrayIndex + 1)] })
 			} else { // The array contains only the text fields.

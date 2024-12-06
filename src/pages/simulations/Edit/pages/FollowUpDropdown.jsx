@@ -8,13 +8,13 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
-import { AddCircle } from '@mui/icons-material'
+import { DragIndicator, AddCircle, Delete } from '@mui/icons-material'
 
 import { lastOf, numberToLetter } from 'util'
-import { FormPart } from 'components'
+import { FormPart, TrackedCodeField } from 'components'
 import { updatePage, pageIndexToString } from 'simulations'
 
-import { emptyPage, hasVariables } from '../../util'
+import { emptyPage, hasVariables, getExpressionError } from '../../util'
 
 export function FollowUpDropdown({ simulation, page, optionIndex }) {
 	const options = page.options || []
@@ -45,10 +45,6 @@ export function FollowUpDropdown({ simulation, page, optionIndex }) {
 		return await updatePage(simulation.id, page.id, { options: [...options.slice(0, optionIndex), newOption, ...options.slice(optionIndex + 1)] })
 	}
 
-	// Determine the next page (to be displayed as standard follow-up page).
-	const currPageIndex = simulation.pageList.findIndex(currPage => currPage.id === page.id)
-	const nextPage = simulation.pageList[currPageIndex + 1]
-
 	// Determine the extra message to show for the field, giving info on where this will be used.
 	const optionsWithFollowUp = (page.options || []).map(option => !!option.followUpPage)
 	const allOptionsHaveFollowUp = optionsWithFollowUp.every(value => value)
@@ -58,6 +54,7 @@ export function FollowUpDropdown({ simulation, page, optionIndex }) {
 	const label = forPage && options.length > 0 ? `Standard Folgeseite (${extraMessage})` : 'Folgeseite'
 
 	// Render the dropdown field.
+	const nextPage = getNextPage(simulation, page)
 	const followUpPage = (forPage ? page.followUpPage : option.followUpPage) || 'default'
 	const followUpConditions = (forPage ? page.followUpConditions : option.followUpConditions) || []
 	return <>
@@ -80,11 +77,15 @@ function ConditionalFields({ simulation, page, forPage, conditions, setCondition
 	const hasFallback = (typeof lastOf(conditions) === 'string')
 	const fallback = hasFallback ? lastOf(conditions) : undefined
 
-	const setItem = () => { } // ToDo
+	// Set up a handler to change a specific item. (An item is a combination of a condition and a page.)
+	const setItem = (index, item) => setConditions([...conditions.slice(0, index), item, ...conditions.slice(index + 1)])
 
-	// Set up a handler to add a condition.
-	const addCondition = () => {
+	// Set up a handler to add/delete a condition.
+	const addItem = () => {
 		setConditions(hasFallback ? [...conditions.slice(0, -1), {}, lastOf(conditions)] : [...conditions, {}])
+	}
+	const deleteItem = (index) => {
+		setConditions([...conditions.slice(0, index), ...conditions.slice(index + 1)])
 	}
 
 	// Set up a handler to set the fallback value.
@@ -102,26 +103,77 @@ function ConditionalFields({ simulation, page, forPage, conditions, setCondition
 			setConditions(newConditions)
 	}
 
-	// ToDo: set addField handler.
-	// ToDo: how to remove them? Add cross.
-
+	// Render the conditions.
 	return <>
-		{conditions.filter(item => typeof item !== 'string').map((item, index) => <ConditionItem key={index} {...{ simulation, page, forPage, item, setItem }} />)}
-		<ConditionAdder addCondition={addCondition} />
+		{conditions.filter(item => typeof item !== 'string').map((item, index) => <ConditionItem key={index} {...{
+			simulation, page, forPage, item,
+			setItem: (condition) => setItem(index, condition),
+			deleteItem: () => deleteItem(index),
+		}} />)}
+		<ConditionAdder addCondition={addItem} />
 		<ConditionFallback {...{ simulation, page, forPage, fallback, setFallback }} />
 		{conditions.length === 0 ? <Alert severity="info" sx={{ mb: 3 }}>Sie können hier oben verschiedene Bedingungen hinzufügen, die jeweils eine eigene Folgeseite haben. Die erste Bedingung, die zutrifft, wird verwendet.</Alert> : null}
 	</>
 }
 
-function ConditionItem({ simulation, forPage, item, setItem }) {
-	return <p>ToDo: implement item.</p>
+function ConditionItem({ simulation, page, forPage, item, setItem, deleteItem }) {
+	const theme = useTheme()
+
+	// Define handlers.
+	const setPage = (page) => {
+		const newItem = { ...item, page }
+		if (page === 'default')
+			delete newItem.page
+		setItem(newItem)
+	}
+	const setCondition = (condition) => {
+		const newItem = { ...item, condition }
+		if (!condition)
+			delete newItem.condition
+		setItem(newItem)
+	}
+
+	// Set up error handling for the condition.
+	const getError = useCallback((condition) => getExpressionError(condition, simulation, { requireBoolean: true }), [simulation])
+
+	// Render the form.
+	const { condition } = item
+	const nextPage = getNextPage(simulation, page)
+	return <Box sx={{ display: 'flex', flexFlow: 'row nowrap', alignItems: 'flex-start', my: 2 }}>
+		<Box sx={{ mr: 1, mt: 2 }}>
+			<DragIndicator sx={{ cursor: 'grab' }} />
+		</Box>
+		<Box sx={{
+			flexGrow: 1, display: 'flex', flexFlow: 'column nowrap', alignItems: 'stretch', gap: '0.8rem',
+			[theme.breakpoints.up('md')]: { flexFlow: 'row nowrap', alignItems: 'flex-start' },
+		}}>
+			<Box sx={{ flex: 1 }}>
+				<TrackedCodeField label={`Bedingung${condition ? '' : ' (z. B. "leben < 0 || geld >= 20")'}`} value={condition} setValue={setCondition} getError={getError} />
+			</Box>
+			<Box sx={{ flex: 1 }}>
+				<PageDropdown
+					simulation={simulation}
+					label="Entsprechende Folgeseite"
+					before={{ default: forPage ? `Standard: Nächste Seite in der Reihenfolge (jetzt ${nextPage ? `Seite ${pageIndexToString(nextPage.index)}` : 'das Ende der Simulation'})` : 'Die Standardeinstellung dieser Frage verwenden' }}
+					after={{ end: 'Ende: Danach wird die Simulation beendet' }}
+					value={item.page || 'default'}
+					setValue={setPage}
+					noFormPart={true}
+				/>
+			</Box>
+		</Box>
+		<Box sx={{ ml: 1, mr: 0.5, mt: 2 }}>
+			<Delete sx={{ cursor: 'pointer', opacity: 0.5, '&:hover': { opacity: 1 } }} onClick={deleteItem} />
+		</Box>
+	</Box>
 }
 
 function ConditionAdder({ addCondition }) {
 	const theme = useTheme()
 	const height = '3px'
 	return <Box sx={{
-		height: '1rem', width: '100%', my: -1,
+		height: '1rem', width: '100%',
+		my: 1,
 		display: 'flex',
 		flexFlow: 'row nowrap',
 		alignItems: 'center',
@@ -135,14 +187,10 @@ function ConditionAdder({ addCondition }) {
 }
 
 function ConditionFallback({ simulation, page, forPage, fallback, setFallback }) {
-	// Determine the next page (to be displayed as standard follow-up page).
-	const currPageIndex = simulation.pageList.findIndex(currPage => currPage.id === page.id)
-	const nextPage = simulation.pageList[currPageIndex + 1]
-
-	// Render the dropdown list.
+	const nextPage = getNextPage(simulation, page)
 	return <PageDropdown
 		simulation={simulation}
-		label="Fallback, wenn keine Bedingung erfüllt ist"
+		label="Fallback Folgefrage, wenn keine Bedingung erfüllt ist"
 		before={{
 			default: forPage ? `Standard: Nächste Seite in der Reihenfolge (jetzt ${nextPage ? `Seite ${pageIndexToString(nextPage.index)}` : 'das Ende der Simulation'})` : 'Die Standardeinstellung dieser Frage verwenden'
 		}}
@@ -154,15 +202,22 @@ function ConditionFallback({ simulation, page, forPage, fallback, setFallback })
 	/>
 }
 
-export function PageDropdown({ simulation, before = {}, after = {}, label, value, setValue }) {
-	return <FormPart>
-		<FormControl fullWidth>
-			<InputLabel>{label}</InputLabel>
-			<Select value={value} label={label} onChange={(event) => setValue(event.target.value)}>
-				{Object.keys(before).map(key => before[key] ? <MenuItem key={key} value={key}>{before[key]}</MenuItem> : null)}
-				{simulation.pageList.map(otherPage => <MenuItem key={otherPage.id} value={otherPage.id}>{pageIndexToString(otherPage.index)} {otherPage.internalTitle || otherPage.title || emptyPage}</MenuItem>)}
-				{Object.keys(after).map(key => after[key] ? <MenuItem key={key} value={key}>{after[key]}</MenuItem> : null)}
-			</Select>
-		</FormControl>
-	</FormPart>
+export function PageDropdown({ simulation, before = {}, after = {}, label, value, setValue, noFormPart }) {
+	// Set up the dropdown.
+	const contents = <FormControl fullWidth>
+		<InputLabel>{label}</InputLabel>
+		<Select value={value} label={label} onChange={(event) => setValue(event.target.value)}>
+			{Object.keys(before).map(key => before[key] ? <MenuItem key={key} value={key}>{before[key]}</MenuItem> : null)}
+			{simulation.pageList.map(otherPage => <MenuItem key={otherPage.id} value={otherPage.id}>{pageIndexToString(otherPage.index)} {otherPage.internalTitle || otherPage.title || emptyPage}</MenuItem>)}
+			{Object.keys(after).map(key => after[key] ? <MenuItem key={key} value={key}>{after[key]}</MenuItem> : null)}
+		</Select>
+	</FormControl>
+
+	// Add a form part unless specifically indicated otherwise.
+	return noFormPart ? contents : <FormPart>{contents}</FormPart>
+}
+
+function getNextPage(simulation, page) {
+	const currPageIndex = simulation.pageList.findIndex(currPage => currPage.id === page.id)
+	return simulation.pageList[currPageIndex + 1]
 }

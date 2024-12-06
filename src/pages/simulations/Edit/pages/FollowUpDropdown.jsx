@@ -170,19 +170,22 @@ function ConditionItem({ simulation, page, forPage, item, setItem, deleteItem })
 
 function ConditionAdder({ addCondition }) {
 	const theme = useTheme()
-	const height = '3px'
+	const height = '2px'
+	const color = theme.palette.text.primary
 	return <Box sx={{
-		height: '1rem', width: '100%',
+		height: '1.2rem', width: '100%',
 		my: 1,
 		display: 'flex',
 		flexFlow: 'row nowrap',
 		alignItems: 'center',
 		justifyContent: 'center',
 		cursor: 'pointer',
+		opacity: 0.5,
+		'&:hover': { opacity: 1 },
 	}} onClick={addCondition}>
-		<Box sx={{ background: theme.palette.primary.main, height, flexGrow: 1 }} />
-		<Box sx={{ height }}><AddCircle sx={{ color: theme.palette.primary.main, transform: 'translateY(-45%)' }} /></Box>
-		<Box sx={{ background: theme.palette.primary.main, height, flexGrow: 1 }} />
+		<Box sx={{ background: color, height, flexGrow: 1 }} />
+		<Box sx={{ height }}><AddCircle sx={{ color, transform: 'translateY(-46%)' }} /></Box>
+		<Box sx={{ background: color, height, flexGrow: 1 }} />
 	</Box>
 }
 

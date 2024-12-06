@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTheme } from '@mui/material/styles'
 import Alert from '@mui/material/Alert'
+import Box from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import { arrayUnion, arrayRemove, deleteField } from 'firebase/firestore'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import { AddCircle } from '@mui/icons-material'
 
 import { lastOf, numberToLetter } from 'util'
 import { FormPart } from 'components'
@@ -69,19 +72,25 @@ export function FollowUpDropdown({ simulation, page, optionIndex }) {
 			value={followUpPage}
 			setValue={setFollowUpPage}
 		/>
-		{followUpPage === 'conditional' ? <ConditionalFields {...{ simulation, page, forPage, followUpConditions, setFollowUpConditions }} /> : null}
+		{followUpPage === 'conditional' ? <ConditionalFields {...{ simulation, page, forPage, conditions: followUpConditions, setConditions: setFollowUpConditions }} /> : null}
 	</>
 }
 
-function ConditionalFields({ simulation, page, forPage, followUpConditions, setFollowUpConditions }) {
+function ConditionalFields({ simulation, page, forPage, conditions, setConditions }) {
+	const hasFallback = (typeof lastOf(conditions) === 'string')
+	const fallback = hasFallback ? lastOf(conditions) : undefined
+
 	const setItem = () => { } // ToDo
 
+	// Set up a handler to add a condition.
+	const addCondition = () => {
+		setConditions(hasFallback ? [...conditions.slice(0, -1), {}, lastOf(conditions)] : [...conditions, {}])
+	}
+
 	// Set up a handler to set the fallback value.
-	const hasFallback = (typeof lastOf(followUpConditions) === 'string')
-	const fallback = hasFallback ? lastOf(followUpConditions) : undefined
 	const setFallback = (fallback) => {
 		// Remove potential old conditions.
-		let newConditions = hasFallback ? followUpConditions.slice(0, -1) : followUpConditions
+		let newConditions = hasFallback ? conditions.slice(0, -1) : conditions
 
 		// Add in the new conditions.
 		const shouldHaveFallback = (fallback !== 'default')
@@ -90,21 +99,39 @@ function ConditionalFields({ simulation, page, forPage, followUpConditions, setF
 
 		// On a change, apply it.
 		if (hasFallback || shouldHaveFallback)
-			setFollowUpConditions(newConditions)
+			setConditions(newConditions)
 	}
 
 	// ToDo: set addField handler.
 	// ToDo: how to remove them? Add cross.
 
 	return <>
-		{followUpConditions.filter(item => typeof item !== 'string').map((item, index) => <ConditionItem key={index} {...{ simulation, page, forPage, item, setItem }} />)}
+		{conditions.filter(item => typeof item !== 'string').map((item, index) => <ConditionItem key={index} {...{ simulation, page, forPage, item, setItem }} />)}
+		<ConditionAdder addCondition={addCondition} />
 		<ConditionFallback {...{ simulation, page, forPage, fallback, setFallback }} />
-		{followUpConditions.length === 0 ? <Alert severity="info" sx={{ mb: 3 }}>Sie können hier oben verschiedene Bedingungen hinzufügen, die jeweils eine eigene Folgeseite haben. Die erste Bedingung, die zutrifft, wird verwendet.</Alert> : null}
+		{conditions.length === 0 ? <Alert severity="info" sx={{ mb: 3 }}>Sie können hier oben verschiedene Bedingungen hinzufügen, die jeweils eine eigene Folgeseite haben. Die erste Bedingung, die zutrifft, wird verwendet.</Alert> : null}
 	</>
 }
 
 function ConditionItem({ simulation, forPage, item, setItem }) {
+	return <p>ToDo: implement item.</p>
+}
 
+function ConditionAdder({ addCondition }) {
+	const theme = useTheme()
+	const height = '3px'
+	return <Box sx={{
+		height: '1rem', width: '100%', my: -1,
+		display: 'flex',
+		flexFlow: 'row nowrap',
+		alignItems: 'center',
+		justifyContent: 'center',
+		cursor: 'pointer',
+	}} onClick={addCondition}>
+		<Box sx={{ background: theme.palette.primary.main, height, flexGrow: 1 }} />
+		<Box sx={{ height }}><AddCircle sx={{ color: theme.palette.primary.main, transform: 'translateY(-45%)' }} /></Box>
+		<Box sx={{ background: theme.palette.primary.main, height, flexGrow: 1 }} />
+	</Box>
 }
 
 function ConditionFallback({ simulation, page, forPage, fallback, setFallback }) {

@@ -150,11 +150,11 @@ function AdminTool({ simulation, state, jumpToPage, reset }) {
 		return null // Only show the tool for owners.
 	const variableValues = state.variablesAfter || state.variablesBefore || {}
 	return <>
-		<h3>Entwickler-Tools</h3>
+		<h3>Entwickler-Tools (Alles Folgende ist für die Benutzer nicht sichtbar)</h3>
 		<JumpDropDown {...{ simulation, state, jumpToPage }} />
 		<Button variant="contained" sx={{ margin: '1rem 0 0 0' }} onClick={() => reset(isOwner)}>Neu starten</Button>
 		{hasVariables(simulation) ? <>
-			<h4 style={{ marginTop: '1rem', marginBottom: '0.4rem' }}>Parameterwerte</h4>
+			<h4 style={{ marginTop: '1rem', marginBottom: '0.4rem' }}>Übersicht der Parameter für Entwickler</h4>
 			<ul style={{ marginTop: '0.4rem', marginBottom: '0.4rem' }}>
 				{Object.values(simulation.variables).map(variable => <li key={variable.id}>{variable.name}: {JSON.stringify(variableValues[variable.id])}</li>)}
 			</ul>

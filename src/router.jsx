@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import { Home, Test, ErrorPage, Create, Edit, Scripts, Documentation, Account, Simulation } from './pages'
+import { Home, Test, ErrorPage, Create, Edit, Scripts, Documentation, Account, Simulation, Import } from './pages'
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +27,10 @@ export const router = createBrowserRouter([
   {
     path: '/create/:simulationId',
     element: <Edit />,
+  },
+  {
+    path: '/create/:simulationId/import',
+    element: <Import />,
   },
   {
     path: '/account',

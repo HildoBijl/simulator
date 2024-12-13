@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Button from '@mui/material/Button'
 import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -20,6 +21,7 @@ export function OtherOptions({ simulation }) {
 		<FormPart style={{ display: 'flex', flexFlow: 'row wrap', gap: '0.5rem', alignItems: 'stretch', marginTop: '0.6rem' }}>
 			{!showHeader ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowHeader(true)}>Seitenkopf einstellen</Button> : null}
 			{!showFooter ? <Button variant="contained" style={{ flexGrow: 1 }} onClick={() => setShowFooter(true)}>Seitenfuß einstellen</Button> : null}
+			<Link to={`/create/${simulation.id}/import`} style={{ flexGrow: 1 }}><Button variant="contained" style={{ width: '100%' }}>Excel-Import/Export verwenden</Button></Link>
 		</FormPart>
 	</>
 }

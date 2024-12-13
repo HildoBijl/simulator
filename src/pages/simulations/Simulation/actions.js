@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { selectRandomly, removeKeys } from 'util'
 import { incrementSimulationField } from 'simulations'
 
-import { defaultAfterwards, getState, hasVariables, getFollowUpPage, getFollowUpConditions, getInitialVariables, runSimulationUpdateScript, switchVariableNames, evaluateExpression, getScriptError, getGeneralSimulationError, getFaultyVariableError, getSimulationEventError, findFollowUpPageFromConditions } from '../util'
+import { defaultAfterwards, getState, hasVariables, getFollowUpPage, getFollowUpConditions, getInitialVariables, runSimulationUpdateScript, switchVariableNames, evaluateExpression, getScriptError, getGeneralSimulationError, getFaultyVariableError, getSimulationEventError } from '../util'
 
 // useSimulationActions takes a simulation and a setHistory function, and returns a set of actions (functions) that can be called to adjust the simulation history. It also runs checks on the simulation on required parts (like when a specific update script is needed) and flips an error flag when something is not working properly.
 export function useSimulationActions(simulation, setHistory, clearHistory, setError) {
@@ -166,7 +166,6 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				const experiencedEvents = newState.experiencedEvents || {}
 				const variablesAsNames = switchVariableNames(variables, simulation)
 				const triggeredEvents = Object.values(simulation.events).filter(event => (experiencedEvents[event.id] || 0) < (event.maxTriggers === undefined ? Infinity : event.maxTriggers) && evaluateExpression(event.condition, variablesAsNames))
-				console.log(triggeredEvents)
 				if (triggeredEvents.length > 0) {
 					const triggeredEvent = selectRandomly(triggeredEvents)
 
@@ -184,15 +183,6 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 					newState.pageId = triggeredEvent.page || simulation.pageList[0] // Indicated or default, in case not set.
 					newState.event = triggeredEvent.id // For history display purposes.
 					newState.experiencedEvents = { ...experiencedEvents, [triggeredEvent.id]: (experiencedEvents[triggeredEvent.id] || 0) + 1 } // Track the number of times an event got executed.
-				} else {
-					// If we had an event and we need to jump back into the original sequence (a jumpedFromPage is defined) then do so. Determine the follow-up page based on the conditions and based on the current variables (possibly updated by the event).
-					if (state.jumpPage) {
-						newState.pageId = findFollowUpPageFromConditions(simulation, switchVariableNames(variables, simulation), state.jumpPage)
-						if (newState.pageId === 'error') {
-							setError(true)
-							return prevHistory
-						}
-					}
 				}
 
 				// Upon entering the new page (if it exists, and is not the end) run its entry script (after checking it).

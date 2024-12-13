@@ -40,6 +40,10 @@ export function getFollowUpConditions(simulation, state) {
 	const { pageId, choice } = state
 	const page = simulation.pages[pageId]
 
+	// First check for potential events that need to be jumped back from.
+	if (state.jumpPage)
+		return state.jumpPage // The conditions are already stored.
+
 	// When a choice has been made, check the option.
 	const option = (page.options || [])[choice]
 	if (option) {

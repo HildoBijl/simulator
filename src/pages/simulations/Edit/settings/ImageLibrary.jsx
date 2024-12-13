@@ -21,7 +21,10 @@ const maxLibrarySize = 2 * 1024 ** 2 // MB to bytes
 export function ImageLibrary({ simulation }) {
 	return <>
 		<h2>Bilddatenbank</h2>
-		{(simulation.images || []).length === 0 ? <Alert severity="info" sx={{ my: 2 }}>Sie können Bilder über ihre URL zu Simulationsseiten hinzufügen. Das Hinzufügen von Bildern, die bereits online sind, ist daher einfach. Ist Ihr Bild noch nicht online? Dann laden Sie es hier in Ihre eigene Bilddatenbank hoch, um eine URL zu erhalten.</Alert> : null}
+		{(simulation.images || []).length === 0 ? <Alert severity="info" sx={{ my: 2 }}>
+			<p style={{ marginTop: 0 }}>Sie können Bilder über ihre URL zu Simulationsseiten hinzufügen. Klicken Sie einfach mit der rechten Maustaste auf ein öffentlich zugängliches (oder freigegebenes) Bild, wählen Sie &quot;Bildadresse kopieren&quot; und verwenden Sie diese URL, um Ihr Bild in den Editor aufzunehmen. Das Hinzufügen von Bildern, die bereits online sind, ist daher einfach.</p>
+			<p style={{ marginTop: 0 }}>Ist Ihr Bild noch nicht online? Dann laden Sie es hier in Ihre eigene Bilddatenbank hoch, um eine URL zu erhalten.</p>
+		</Alert> : null}
 		<CurrentImages {...{ simulation }} />
 		<ImageUploader {...{ simulation }} />
 	</>

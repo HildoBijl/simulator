@@ -14,7 +14,7 @@ import { lastOf, numberToLetter, isDragDataValid, moveArrayElement } from 'util'
 import { FormPart, TrackedCodeField } from 'components'
 import { updatePage, pageIndexToString } from 'simulations'
 
-import { emptyPage, hasVariables, getExpressionError } from '../../util'
+import { emptyPage, hasVariables, getExpressionError, doesOptionUseDefaultFollowUp } from '../../util'
 
 export function FollowUpDropdown({ simulation, page, optionIndex }) {
 	const options = page.options || []
@@ -46,11 +46,11 @@ export function FollowUpDropdown({ simulation, page, optionIndex }) {
 	}
 
 	// Determine the extra message to show for the field, giving info on where this will be used.
-	const optionsWithFollowUp = (page.options || []).map(option => !!option.followUpPage)
-	const allOptionsHaveFollowUp = optionsWithFollowUp.every(value => value)
-	const noOptionsHaveFollowUp = !optionsWithFollowUp.some(value => value)
-	const optionsWithoutFollowUp = optionsWithFollowUp.map((value, index) => !value && numberToLetter(index).toUpperCase()).filter(value => value)
-	const extraMessage = allOptionsHaveFollowUp ? 'derzeit nicht verwendet; alle Möglichkeiten haben eine eigene Folgeseite' : noOptionsHaveFollowUp ? 'für alle Möglichkeiten, da keine eine eigene Folgeseite hat' : `für die Möglichkeit${optionsWithoutFollowUp.length === 1 ? ` (nur ${optionsWithoutFollowUp.join('/')})` : `en ${optionsWithoutFollowUp.join('/')}`} ohne eigene Folgeseite`
+	const optionsWithDefaultFollowUp = (page.options || []).map(option => doesOptionUseDefaultFollowUp(option))
+	const allOptionsHaveDefaultFollowUp = optionsWithDefaultFollowUp.every(value => value)
+	const noOptionsHaveDefaultFollowUp = !optionsWithDefaultFollowUp.some(value => value)
+	const optionsWithDefaultFollowUpIndices = optionsWithDefaultFollowUp.map((value, index) => value && numberToLetter(index).toUpperCase()).filter(value => value)
+	const extraMessage = noOptionsHaveDefaultFollowUp ? 'derzeit nicht verwendet; alle Möglichkeiten haben eine eigene Folgeseite' : allOptionsHaveDefaultFollowUp ? 'für alle Möglichkeiten, da alle die standard Folgeseite verwenden' : `für die Möglichkeit${optionsWithDefaultFollowUpIndices.length === 1 ? ` (nur ${optionsWithDefaultFollowUpIndices.join('/')})` : `en ${optionsWithDefaultFollowUpIndices.join('/')}`} ohne eigene Folgeseite`
 	const label = forPage && options.length > 0 ? `Standard Folgeseite (${extraMessage})` : 'Folgeseite'
 
 	// Render the dropdown field.
@@ -142,7 +142,7 @@ function ConditionalFields({ simulation, page, forPage, conditions, setCondition
 
 function ConditionItem({ simulation, page, forPage, item, itemIndex, setItem, deleteItem, dragActive }) {
 	const theme = useTheme()
-	
+
 	// Define handlers.
 	const setPage = (page) => {
 		const newItem = { ...item, page }

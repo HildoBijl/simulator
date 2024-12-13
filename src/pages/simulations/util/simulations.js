@@ -1,4 +1,4 @@
-import { arrayFind } from 'util'
+import { arrayFind, lastOf, isBasicObject } from 'util'
 
 import { switchVariableNames } from './variables'
 import { evaluateExpression } from './scripts'
@@ -80,4 +80,15 @@ export function findFollowUpPageFromConditions(simulation, variables, conditions
 
 	// We used 'default' as a placeholder, where it's normally undefined. Revert back.
 	return result === 'default' ? undefined : result
+}
+
+export function doesOptionUseDefaultFollowUp(option) {
+	if (!option.followUpPage)
+		return true // An undefined follow-up page: this is hence the default.
+	if (option.followUpPage !== 'conditional')
+		return false // A specifically defined follow-up page.
+	const followUpConditions = option.followUpConditions || []
+	if (followUpConditions.some(condition => isBasicObject(condition) && condition.page === undefined))
+		return true // Some condition has the default follow-up.
+	return typeof lastOf(followUpConditions) !== 'string' // The last entry (the back-up) is undefined. So the fallback is the default.
 }

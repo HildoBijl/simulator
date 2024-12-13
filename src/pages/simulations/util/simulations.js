@@ -26,22 +26,30 @@ export function getState(history) {
 
 // getFollowUpPage gets the follow-up page for the page specified in the given state. To determine it, it checks the options, the page follow-up, and applies defaults appropriately. 
 export function getFollowUpPage(simulation, state) {
+	// Get the conditions.
+	const conditions = getFollowUpConditions(simulation, state)
+
+	// Evaluate the conditions using the current variables.
+	const variables = state.variablesAfter || state.variablesBefore || {}
+	return findFollowUpPageFromConditions(simulation, switchVariableNames(variables, simulation), conditions)
+}
+
+// getFollowUpCondition gets the follow-up page for the page specified in the given state, but it only returns the list conditions and does not evaluate them yet.
+export function getFollowUpConditions(simulation, state) {
 	// Extract the state data.
-	const { pageId, choice, variablesBefore, variablesAfter } = state
+	const { pageId, choice } = state
 	const page = simulation.pages[pageId]
-	const variables = variablesAfter || variablesBefore || {}
-	const variablesAsNames = switchVariableNames(variables, simulation)
 
 	// When a choice has been made, check the option.
 	const option = (page.options || [])[choice]
 	if (option) {
-		const followUpPage = findFollowUpPage(simulation, variablesAsNames, option)
+		const followUpPage = extractFollowUpConditions(option)
 		if (followUpPage)
 			return followUpPage
 	}
 
-	// When no choice has been made, or the choice is not clear, apply page defaults.
-	const followUpPage = findFollowUpPage(simulation, variablesAsNames, page)
+	// When no choice has been made (or the option refers to defaults) then apply page defaults.
+	const followUpPage = extractFollowUpConditions(page)
 	if (followUpPage)
 		return followUpPage
 
@@ -50,16 +58,18 @@ export function getFollowUpPage(simulation, state) {
 	return nextInList || 'end'
 }
 
-// findFollowUpPage takes an object (like a page or option) that has a followUpPage and potentially a followUpConditions parameter. It extracts the follow-up page accordingly.
-export function findFollowUpPage(simulation, variables, object = {}) {
+// extractFollowUpConditions takes an object (like a page or option) that has a followUpPage and potentially a followUpConditions parameter. It extracts the follow-up page accordingly.
+export function extractFollowUpConditions(object = {}) {
 	const { followUpPage, followUpConditions } = object
-	if (followUpPage === 'conditional')
-		return findFollowUpPageFromConditions(simulation, variables, followUpConditions)
-	return followUpPage
+	return (followUpPage === 'conditional') ? followUpConditions : followUpPage
 }
 
 // findFollowUpPageFromConditions takes a list of conditions of the form [{condition: 'x < 0', page: 'someId'}, { ... }, 'fallbackPageId']. It finds the first condition that evaluates to true and returns the corresponding pageId. An undefined condition always defaults to false. The fallback is a string which always defaults to a true condition.
 export function findFollowUpPageFromConditions(simulation, variables, conditions = []) {
+	// Check a string case.
+	if (typeof conditions === 'string')
+		return conditions
+
 	// Walk through the conditions to find one that turns out to be true.
 	const result = arrayFind(conditions, item => {
 		// Check basic cases.

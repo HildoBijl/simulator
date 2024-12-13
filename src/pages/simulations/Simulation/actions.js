@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { selectRandomly, removeKeys } from 'util'
 import { incrementSimulationField } from 'simulations'
 
-import { defaultAfterwards, getState, hasVariables, getFollowUpPage, getInitialVariables, runSimulationUpdateScript, switchVariableNames, evaluateExpression, getScriptError, getGeneralSimulationError, getFaultyVariableError, getSimulationEventError } from '../util'
+import { defaultAfterwards, getState, hasVariables, getFollowUpPage, getFollowUpConditions, getInitialVariables, runSimulationUpdateScript, switchVariableNames, evaluateExpression, getScriptError, getGeneralSimulationError, getFaultyVariableError, getSimulationEventError, findFollowUpPageFromConditions } from '../util'
 
 // useSimulationActions takes a simulation and a setHistory function, and returns a set of actions (functions) that can be called to adjust the simulation history. It also runs checks on the simulation on required parts (like when a specific update script is needed) and flips an error flag when something is not working properly.
 export function useSimulationActions(simulation, setHistory, clearHistory, setError) {
@@ -116,9 +116,10 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 
 	// goToNextPage will go to the next page depending on the (confirmed) selected page option.
 	const goToNextPage = useCallback((devMode = false) => {
-		setHistory(history => {
+		setHistory(prevHistory => {
 			// Extract the current state and its parameters.
-			const state = getState(history)
+			let history = prevHistory
+			const state = getState(prevHistory)
 			const { pageId, choice, variablesBefore, variablesAfter } = state
 			const page = simulation.pages[pageId]
 
@@ -133,17 +134,17 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 			}
 			if (newState.pageId === 'error') {
 				setError(true)
-				return history
+				return prevHistory
 			}
 
-			// On variables, we should also check for events.
+			// On variables, we should also update the variables, check for events, etcetera.
 			if (hasVariables(simulation)) {
 				// When the page has no answer-options, still run the page update script (after checking it) since it hasn't been run yet.
 				let variables
 				if (options.length === 0) {
 					if (getScriptError(page.updateScript, simulation)) {
 						setError(true)
-						return history
+						return prevHistory
 					}
 					variables = runSimulationUpdateScript(page.updateScript, variablesBefore, simulation)
 					history = [...history.slice(0, -1), { ...state, variablesAfter: variables }]
@@ -154,7 +155,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				// Check all events for possible errors. If there are any, do not update.
 				if (getSimulationEventError(simulation)) {
 					setError(true)
-					return history
+					return prevHistory
 				}
 
 				// Copy necessary parameters into the new state.
@@ -165,13 +166,14 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				const experiencedEvents = newState.experiencedEvents || {}
 				const variablesAsNames = switchVariableNames(variables, simulation)
 				const triggeredEvents = Object.values(simulation.events).filter(event => (experiencedEvents[event.id] || 0) < (event.maxTriggers === undefined ? Infinity : event.maxTriggers) && evaluateExpression(event.condition, variablesAsNames))
+				console.log(triggeredEvents)
 				if (triggeredEvents.length > 0) {
 					const triggeredEvent = selectRandomly(triggeredEvents)
 
 					// Make sure that afterwards we go to the right page.
 					const afterwards = triggeredEvent.afterwards || defaultAfterwards
 					if (afterwards === 'originalFollowUp') {
-						newState.jumpPageId = state.jumpPageId || newState.pageId // Store the original follow-up as jump-back, unless one already existed, then keep that.
+						newState.jumpPage = state.jumpPage || getFollowUpConditions(simulation, state) // Remember the page we jumped from. On subsequent events, remember the one that was already stored and not the event page.
 					} else if (afterwards === 'eventFollowUp') {
 						// Don't store any original jump-back.
 					} else {
@@ -183,9 +185,14 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 					newState.event = triggeredEvent.id // For history display purposes.
 					newState.experiencedEvents = { ...experiencedEvents, [triggeredEvent.id]: (experiencedEvents[triggeredEvent.id] || 0) + 1 } // Track the number of times an event got executed.
 				} else {
-					// If there was a jump-back page defined, jump back to it.
-					if (state.jumpPageId)
-						newState.pageId = state.jumpPageId
+					// If we had an event and we need to jump back into the original sequence (a jumpedFromPage is defined) then do so. Determine the follow-up page based on the conditions and based on the current variables (possibly updated by the event).
+					if (state.jumpPage) {
+						newState.pageId = findFollowUpPageFromConditions(simulation, switchVariableNames(variables, simulation), state.jumpPage)
+						if (newState.pageId === 'error') {
+							setError(true)
+							return prevHistory
+						}
+					}
 				}
 
 				// Upon entering the new page (if it exists, and is not the end) run its entry script (after checking it).
@@ -193,7 +200,7 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 				if (newPage) {
 					if (getScriptError(newPage.entryScript, simulation)) {
 						setError(true)
-						return history
+						return prevHistory
 					}
 					newState.variablesBefore = runSimulationUpdateScript(newPage.entryScript, variables, simulation)
 				}

@@ -1,4 +1,3 @@
-
 // addWorksheet takes a workbook and adds a worksheet with the given title. It immediately also adds headers for the worksheet, as specified by the key-value-object headers.
 export function addWorksheet(workbook, title, headers) {
 	const worksheet = workbook.addWorksheet(title)
@@ -16,7 +15,8 @@ export function adjustColumnWidths(worksheet, minWidth, maxWidth) {
 			if (columnLength > maxLength)
 				maxLength = columnLength
 		})
-		column.width = Math.max(Math.min(maxLength, maxWidth), minWidth)
+		const factor = 1.15 // How much to multiply the character length by to get the column width.
+		column.width = Math.max(Math.min(maxLength * factor, maxWidth), minWidth)
 	})
 }
 

@@ -80,7 +80,7 @@ export function useIsOwner(simulation) {
 // processPages gets the raw pages out of the database and adds useful utility info. It receives an array of pageIds to process, as well as a dictionary of raw pages.
 function processPages(pageOrder = [], rawPages = {}, indices = []) {
 	// Process all pages in the pageOrder to get a pageTree.
-	const pageTree = pageOrder.map((pageId, index) => processPage(rawPages[pageId], rawPages, [...indices, index]))
+	const pageTree = pageOrder.map((pageId, index) => processPage(rawPages[pageId], rawPages, [...indices, index], undefined))
 
 	// Flatten the tree. For now also include folders.
 	const toArray = page => page.type === 'folder' ? [page, ...page.contents.map(page => toArray(page))] : page
@@ -91,19 +91,21 @@ function processPages(pageOrder = [], rawPages = {}, indices = []) {
 }
 
 // processPage takes a single (raw) page, possibly a folder with contents, and a list of (raw) pages. It processes the page, turning links to contents into actual links.
-function processPage(page, pages, indices) {
+function processPage(page, pages, indices, parent) {
 	// On a folder, recursively process subpages.
 	if (page.type === 'folder') {
-		return {
+		const result = {
 			...page,
+			parent,
 			index: indices,
-			contents: (page.contents || []).map((pageId, index) => processPage(pages[pageId], pages, [...indices, index])),
 		}
+		result.contents = (page.contents || []).map((pageId, index) => processPage(pages[pageId], pages, [...indices, index], result))
+		return result
 	}
 
 	// On a page run basic processing.
 	if (page.type === 'page')
-		return { ...page, index: indices }
+		return { ...page, index: indices, parent }
 
 	// Check for impossible cases.
 	throw new Error(`Invalid page type: received a page of type "${page.type}" but this type is not known.`)

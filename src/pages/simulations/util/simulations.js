@@ -8,6 +8,11 @@ export function hasVariables(simulation) {
 	return simulation?.variables && Object.keys(simulation.variables).length > 0
 }
 
+// hasFolders checks if a simulation has a folder for its pages.
+export function hasFolders(simulation) {
+	return Object.values(simulation.pages || {}).some(page => page.type === 'folder')
+}
+
 // hasScripts checks if the simulation as an update script anywhere.
 export function hasScripts(simulation) {
 	if (simulation.updateScript)

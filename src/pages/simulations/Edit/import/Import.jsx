@@ -1,10 +1,13 @@
 import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import Alert from '@mui/material/Alert'
 
 import { useUserId } from 'fb'
 import { useSimulation } from 'simulations'
 import { Page } from 'components'
+
+import { Description } from './Description'
+import { Download } from './Download'
+import { Upload } from './Upload'
 
 const EditPage = ({ children, tabs }) => {
 	const { simulationId } = useParams()
@@ -33,6 +36,8 @@ export function Import() {
 
 function ImportForSimulation({ simulation }) {
 	return <EditPage>
-		<Alert severity="warning" sx={{ my: 2 }}>Diese Seite befindet sich noch in der Entwicklung. Derzeit enthält sie nur Testfunktionen für Importe und Exporte.</Alert>
+		<Description />
+		<Download {...{ simulation }} />
+		<Upload {...{ simulation }} />
 	</EditPage>
 }

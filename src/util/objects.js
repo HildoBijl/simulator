@@ -65,6 +65,13 @@ export function removeKeys(obj, keysToRemove) {
 	return clone
 }
 
+// filterProperties takes an object and only picks certain attributes. It always returns a clone.
+export function selectAttributes(obj, keys = []) {
+	const result = {}
+	keys.forEach(key => result[key] = obj[key])
+	return result
+}
+
 // insertIntoArray takes an array like [2,3,4,5] and an index like 2, and adds the given items into that spot. So insertIntoArray([2,3,4,5], 2, 6, 7) will give [2,3,6,7,4,5]. It returns a copy; the original is not adjusted.
 export function insertIntoArray(array, index, ...toAdd) {
 	if (!Array.isArray(array))

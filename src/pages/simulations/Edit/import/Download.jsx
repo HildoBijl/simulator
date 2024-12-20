@@ -17,6 +17,7 @@ export function Download({ simulation }) {
 	</>
 }
 
+// downloadSimulation takes a simulation, turns it into an Excel file, and makes the browser download it.
 function downloadSimulation(simulation) {
 	const workbook = generateSimulationExcel(simulation)
 	downloadWorkbook(workbook)

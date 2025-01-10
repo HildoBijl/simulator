@@ -65,6 +65,18 @@ export function removeKeys(obj, keysToRemove) {
 	return clone
 }
 
+// removeUndefineds takes an object, clones it but removes all undefined parameters from it. (Or replaces it with the given value, if something is given.)
+export function removeUndefineds(obj, replacement) {
+	const clone = {}
+	Object.keys(obj).forEach(key => {
+		if (obj[key] !== undefined)
+			clone[key] = obj[key]
+		else if (replacement !== undefined)
+			clone[key] = replacement
+	})
+	return clone
+}
+
 // filterProperties takes an object and only picks certain attributes. It always returns a clone.
 export function selectAttributes(obj, keys = []) {
 	const result = {}

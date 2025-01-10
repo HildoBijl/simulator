@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import ExcelJS from 'exceljs'
 
@@ -9,6 +10,7 @@ import { WorkbookError, processWorkbook, applyChanges } from './util'
 
 export function Upload({ simulation }) {
 	const [workbook, setWorkbook] = useState()
+	const [applied, setApplied] = useState(false) // Have the changes successfully been applied?
 	return <>
 		<h2>Hochladen</h2>
 		<p>Wenn Sie eine Simulation als Excel-Datei erstellt haben, können Sie sie hier hochladen. Die Vorgehensweise ist wie folgt.</p>
@@ -18,12 +20,13 @@ export function Upload({ simulation }) {
 			<li>Wir erstellen einen kleinen Bericht darüber, was sich ändern wird.</li>
 			<li>Wenn Sie mit den Änderungen einverstanden sind, bestätigen Sie sie und die Änderungen werden übernommen. Achtung: Nach der Bestätigung können die Änderungen nicht mehr rückgängig gemacht werden!</li>
 		</ul>
-		<FileUploader {...{ setWorkbook }} />
-		{workbook ? <WorkbookReport {...{ simulation, workbook }} /> : null}
+		<FileUploader {...{ setWorkbook, setApplied }} />
+		{workbook ? <WorkbookReport {...{ simulation, workbook, setWorkbook, setApplied }} /> : null}
+		{applied ? <Alert type="success" sx={{ my: 2 }}>Die Änderungen wurden erfolgreich in die Simulation übernommen.</Alert> : null}
 	</>
 }
 
-function FileUploader({ setWorkbook }) {
+function FileUploader({ setWorkbook, setApplied }) {
 	const [file, setFile] = useState()
 	const [percentage, setPercentage] = useState()
 
@@ -31,6 +34,7 @@ function FileUploader({ setWorkbook }) {
 		// Start reading the file.
 		const file = event.target.files[0]
 		setFile(file)
+		setApplied(false)
 		const reader = new FileReader()
 		reader.readAsArrayBuffer(file)
 
@@ -71,17 +75,17 @@ function UploadButton({ onChange }) {
 	</Button>
 }
 
-function WorkbookReport({ simulation, workbook }) {
+function WorkbookReport({ simulation, workbook, setWorkbook, setApplied }) {
 	// Process the workbook. On an error, display the error report.
 	const { processedWorkbook, error } = useMemo(() => processWorkbook(workbook, simulation), [simulation, workbook])
 	if (error)
 		return <WorkbookError {...{ error }} />
 
 	// No errors found. Show the workbook report.
-	return <ProcessedWorkbookReport {...{ simulation, processedWorkbook }} />
+	return <ProcessedWorkbookReport {...{ simulation, processedWorkbook, setWorkbook, setApplied }} />
 }
 
-function ProcessedWorkbookReport({ simulation, processedWorkbook }) {
+function ProcessedWorkbookReport({ simulation, processedWorkbook, setWorkbook, setApplied }) {
 	return <>
 		<h4>Geplante Änderungen</h4>
 		<p>Die Datei ist hochgeladen und ausgewertet worden. Wenn sie umgesetzt wird, werden die folgenden Änderungen auf diese Simulation angewendet. (Geringfügige Änderungen wie z. B. Textänderungen werden hier nicht angezeigt.)</p>
@@ -90,7 +94,11 @@ function ProcessedWorkbookReport({ simulation, processedWorkbook }) {
 			<PageChanges {...{ simulation, processedWorkbook }} />
 		</ul>
 		<p>Möchten Sie diese Änderungen durchführen?</p>
-		<Button variant="contained" onClick={() => applyChanges(simulation, processedWorkbook)}>Änderungen durchführen</Button>
+		<Button variant="contained" onClick={() => {
+			applyChanges(simulation, processedWorkbook)
+			setWorkbook()
+			setApplied(true) // Show the success note.
+		}}>Änderungen durchführen</Button>
 	</>
 }
 

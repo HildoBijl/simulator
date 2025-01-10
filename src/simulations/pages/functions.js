@@ -17,8 +17,8 @@ export async function getPages(simulationId) {
 }
 
 // updatePage will update certain values for a page with a given simulationId and pageId.
-export async function updatePage(simulationId, pageId, data) {
-	return await updateDocument(`simulations/${simulationId}/pages`, pageId, data)
+export async function updatePage(simulationId, pageId, data, setOnNonExistent) {
+	return await updateDocument(`simulations/${simulationId}/pages`, pageId, data, setOnNonExistent)
 }
 
 // deletePage will remove a certain page from the database.

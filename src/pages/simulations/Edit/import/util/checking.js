@@ -1,26 +1,14 @@
-import { tabs, tabNames, headers } from './settings'
-
-// getWorkbookError tries to find an error for the given workbook. Is it in the right format? If not, some object is returned that gives info about what's wrong.
-export function getWorkbookError(workbook) {
-	// Check that the tabs are all there.
-	const missingTab = tabs.find(tab => !workbook.getWorksheet(tabNames[tab]))
-	if (missingTab)
-		return { type: 'missingTab', tab: missingTab }
-
-	// Check the headers for the various tabs.
-	const faultyTab = Object.keys(headers).find(tab => !areHeadersMatching(workbook, tab))
-	if (faultyTab)
-		return { type: 'faultyHeaders', tab: faultyTab }
+// ProcessingError is a custom-made Error type for workbook-processing-errors.
+export class ProcessingError extends Error {
+	constructor(data) {
+		super(`An error occurred processing the workbook. Data provided is: ${JSON.stringify(data)}.`)
+		this.type = 'ProcessingError'
+		this.data = data
+	}
 }
 
-// areHeadersMatching checks if the given tab in the workbook has its headers defined as expected.
-function areHeadersMatching(workbook, tab) {
-	const worksheet = workbook.getWorksheet(tabNames[tab])
-	return checkHeaders(worksheet, headers[tab])
-}
-
-// checkHeaders takes a worksheet and checks the headers.
-function checkHeaders(worksheet, headers) {
+// checkHeaders takes a worksheet and checks that the headers are as expected
+export function checkHeaders(worksheet, headers) {
 	// On a missing or empty worksheet, something is wrong.
 	if (!worksheet || worksheet.rowCount < 1)
 		return false

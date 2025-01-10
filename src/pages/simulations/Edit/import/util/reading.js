@@ -1,10 +1,18 @@
 import { tabNames, headers } from './settings'
+import { ProcessingError, checkHeaders } from './checking'
 
 // readSheet takes a worksheet and, based on the supposed headers it should have, reads the objects contained in it.
 export function readSheet(workbook, tab) {
 	// Extract the current worksheet and its headers.
 	const worksheet = workbook.getWorksheet(tabNames[tab])
+	if (!worksheet)
+		throw new ProcessingError({ type: 'missingTab', tab })
 	const currHeaders = headers[tab]
+
+	// Check that the headers match.
+	const sheetHeaders = headers[tab]
+	if (!checkHeaders(worksheet, sheetHeaders))
+		throw new ProcessingError({ type: 'faultyHeaders', tab })
 
 	// On no sheet, or no rows, don't read anything.
 	if (!worksheet || worksheet.rowCount <= 1)

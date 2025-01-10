@@ -1,3 +1,15 @@
+// isNumber checks if a given parameter is a number. Strings of numbers are allowed.
+export function isNumber(value) {
+  // Check boundary cases.
+  if (typeof value === 'string' && value.trim() === '')
+    return false
+  if (typeof value === 'object')
+    return false
+
+  // Go for the default comparison.
+  return !isNaN(value)
+}
+
 // bound will bound a number between a minimum and maximum.
 export function bound(value, min = 0, max = 1) {
 	return Math.min(Math.max(value, min), max)

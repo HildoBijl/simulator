@@ -4,8 +4,8 @@ import clsx from 'clsx'
 import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 
-import { getBaseUrl } from 'util'
-import { useAuthData, useUserId, signInWithGoogleRedirect, useUser } from 'fb'
+import { getBaseUrl, isLocalhost } from 'util'
+import { useAuthData, useUserId, signInWithGoogleRedirect, signInWithGooglePopup, useUser } from 'fb'
 import { useSimulationIds, createNewSimulation, useSimulation, useUserInvites, deleteSimulationInvite, acceptSimulationInvite } from 'simulations'
 import { Page } from 'components'
 
@@ -21,10 +21,11 @@ export function Create() {
 }
 
 export function CreateAsStranger() {
+  const signIn = isLocalhost() ? signInWithGooglePopup : signInWithGoogleRedirect // Redirect sign-in fails on localhost due to third-party storage partitioning issues.
   return <CreatePage>
     <h2>Anmeldung erforderlich</h2>
     <p>Um eine neue Simulation zu erstellen, müssen Sie angemeldet sein. Zurzeit ist es nur möglich, sich über Google anzumelden.</p>
-    <Button variant="contained" onClick={signInWithGoogleRedirect} sx={{ mt: 1 }}>Anmeldung über Google</Button>
+    <Button variant="contained" onClick={signIn} sx={{ mt: 1 }}>Anmeldung über Google</Button>
   </CreatePage>
 }
 

@@ -63,3 +63,11 @@ export function areBracketsProperlyNested(text) {
 	})
 	return !depthNegative && depth === 0
 }
+
+// toHtml turns a user-provided text into HTML, turning double enters into paragraphs and single enters into line-breaks. It only does this when there's no HTML inside of the string yet.
+export function toHtml(input) {
+	if (input.match(/<[a-zA-Z-]>/))
+		return input
+	const paragraphs = input.split(/(\r\n|\r|\n){2,}/).filter((_, index) => index % 2 === 0)
+	return `<p>${paragraphs.map(paragraph => paragraph.replace(/\r\n|\r|\n/g, '<br/>')).join('</p><p>')}</p>`
+}

@@ -42,7 +42,6 @@ export function addFolders(workbook, simulation) {
 // addPages takes a simulation workbook and adds a tab for all the pages. It doesn't return anything: the workbook is simply changed by reference.
 export function addPages(workbook, simulation) {
 	// If the simulation has folders, add a folder sheet first.
-	console.log(simulation, hasFolders(simulation), Object.values(simulation.pages || {}), Object.values(simulation.pages || {}).some(page => page.type === 'folder'))
 	if (hasFolders(simulation))
 		addFolders(workbook, simulation)
 

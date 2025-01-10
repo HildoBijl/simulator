@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import Button from '@mui/material/Button'
 import ExcelJS from 'exceljs'
 
+import { selectAttributes } from 'util'
 import { FormSubPart } from 'components'
 
 import { WorkbookError, processWorkbook, applyChanges } from './util'
@@ -53,11 +54,11 @@ function FileUploader({ setWorkbook }) {
 		}
 	}
 
-	// When a file is selected, show an upload notification, or an error if there's a problem.
+	// When a file is uploading, show an upload notification, or an error if there's a problem.
 	if (file)
 		return <p>Die Datei wird gerade hochgeladen. Der Upload ist zu {percentage}% abgeschlossen.</p>
 
-	// When no file is selected, show the upload button.
+	// When no file is uploading, show the upload button.
 	return <FormSubPart>
 		<UploadButton onChange={setAndSaveFile} />
 	</FormSubPart>
@@ -65,7 +66,7 @@ function FileUploader({ setWorkbook }) {
 
 function UploadButton({ onChange }) {
 	return <Button variant="contained" component="label">
-		Datei hochladen
+		Neue Datei hochladen
 		<input type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" onChange={onChange} hidden />
 	</Button>
 }
@@ -81,9 +82,6 @@ function WorkbookReport({ simulation, workbook }) {
 }
 
 function ProcessedWorkbookReport({ simulation, processedWorkbook }) {
-	// Interpret the workbook.
-
-	// Generate the report.
 	return <>
 		<h4>Geplante Änderungen</h4>
 		<p>Die Datei ist hochgeladen und ausgewertet worden. Wenn sie umgesetzt wird, werden die folgenden Änderungen auf diese Simulation angewendet. (Geringfügige Änderungen wie z. B. Textänderungen werden hier nicht angezeigt.)</p>
@@ -97,39 +95,35 @@ function ProcessedWorkbookReport({ simulation, processedWorkbook }) {
 }
 
 function FolderChanges({ simulation, processedWorkbook }) {
-	console.log(simulation, processedWorkbook)
-	const newFolders = processedWorkbook.folderList.filter(newFolder => simulation.pages[newFolder.id]?.type === 'folder').length
-	const deletedFolders = Object.values(simulation.pages).filter(oldFolder => processedWorkbook.folders[oldFolder]).length
+	// Calculate additions/updates/deletions.
+	const numAdded = processedWorkbook.folderList.filter(newFolder => !simulation.pages[newFolder.id]).length
+	const numUpdated = processedWorkbook.folderList.filter(newFolder => {
+		const oldFolder = simulation.pages[newFolder.id]
+		if (!oldFolder)
+			return false // The page is new, so it didn't change.
+		return Object.keys(selectAttributes(newFolder, ['title'])).some(key => oldFolder[key] !== newFolder[key]) // Some attribute in the page changed.
+	}).length
+	const numRemoved = Object.values(simulation.pages).filter(oldFolder => oldFolder.type === 'folder' && !processedWorkbook.folders[oldFolder.id]).length
 
-	// On no additions/deletions, show nothing. (Note: there might still be changes.)
-	if (newFolders === 0 && deletedFolders === 0)
-		return <li style={{ opacity: 0.3 }}>Es gibt keine wesentlichen Änderungen an den Ordnern.</li>
-	if (deletedFolders === 0)
-		return <li>Es {newFolders === 1 ? 'wird' : 'werden'} {newFolders} {newFolders === 1 ? 'neuer' : 'neue'} Ordner hinzugefügt.</li>
-	if (newFolders === 0)
-		return <li>Es {deletedFolders === 1 ? 'wird' : 'werden'} {deletedFolders} {deletedFolders === 1 ? 'bestehender' : 'bestehende'} Ordner gelöscht.</li>
-	return <li>Es {newFolders === 1 ? 'wird' : 'werden'} {newFolders} {newFolders === 1 ? 'neuer' : 'neue'} Ordner hinzugefügt und {deletedFolders} {deletedFolders === 1 ? 'bestehender' : 'bestehende'} Ordner gelöscht.</li>
+	// Show the statistics.
+	if (numAdded === 0 && numUpdated === 0 && numRemoved === 0)
+		return <li style={{ opacity: 0.4 }}>Es werden keine Ordner hinzugefügt, geändert oder entfernt.</li>
+	return <li>Für die Seitenordner: {numAdded === 1 ? 'ein Ordner wird' : `${numAdded} Ordner werden`} hinzugefügt, {numUpdated === 1 ? 'ein Ordner wird' : `${numUpdated} Ordner werden`} aktualisiert und {numRemoved === 1 ? 'ein Ordner wird' : `${numRemoved} Ordner werden`} entfernt.</li>
 }
 
 function PageChanges({ simulation, processedWorkbook }) {
-	return <li>Temp</li>
-	// // Get all the pages from the file.
-	// const pages = readSheet(workbook, 'pages')
+	// Calculate additions/updates/deletions.
+	const numAdded = processedWorkbook.pageList.filter(newPage => !simulation.pages[newPage.id]).length
+	const numUpdated = processedWorkbook.pageList.filter(newPage => {
+		const oldPage = simulation.pages[newPage.id]
+		if (!oldPage)
+			return false // The page is new, so it didn't change.
+		return Object.keys(selectAttributes(newPage, ['title', 'description'])).some(key => oldPage[key] !== newPage[key]) // Some attribute in the page changed.
+	}).length
+	const numRemoved = Object.values(simulation.pages).filter(oldPage => oldPage.type === 'page' && !processedWorkbook.pages[oldPage.id]).length
 
-	// return <li>Wir haben {pages.length} Seiten gefunden. (Deren Bearbeitung steht noch aus.)</li>
-
-	// // Get the statistics on added, updated and removed pages.
-	// const changes = { added: 0, updated: 0, removed: 0 }
-	// pages.forEach(page => {
-	// 	if (!page.id || !simulation.pages[page.id])
-	// 		changes.added++
-	// 	else if (Object.keys(page).some(key => page[key] !== simulation.pages[page.id][key]))
-	// 		changes.updated++
-	// })
-	// changes.removed = simulation.pageList.length - (pages.length - changes.added)
-
-	// // Show the statistics.
-	// if (Object.values(changes).every(value => value === 0))
-	// 	return <li>Es werden keine Seiten hinzugefügt, geändert oder entfernt.</li>
-	// return <li>Für die Seiten: {changes.added === 1 ? 'eine Seite wird' : `${changes.added} Seiten werden`} hinzugefügt, {changes.updated === 1 ? 'eine Seite wird' : `${changes.updated} Seiten werden`} aktualisiert und {changes.removed === 1 ? 'eine Seite wird' : `${changes.removed} Seiten werden`} entfernt.</li>
+	// Show the statistics.
+	if (numAdded === 0 && numUpdated === 0 && numRemoved === 0)
+		return <li style={{ opacity: 0.4 }}>Es werden keine Seiten hinzugefügt, geändert oder entfernt.</li>
+	return <li>Für die Seiten: {numAdded === 1 ? 'eine Seite wird' : `${numAdded} Seiten werden`} hinzugefügt, {numUpdated === 1 ? 'eine Seite wird' : `${numUpdated} Seiten werden`} aktualisiert und {numRemoved === 1 ? 'eine Seite wird' : `${numRemoved} Seiten werden`} entfernt.</li>
 }

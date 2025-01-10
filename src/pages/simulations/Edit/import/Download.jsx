@@ -3,7 +3,6 @@ import Button from '@mui/material/Button'
 import { generateSimulationWorkbook, downloadWorkbook } from './util'
 
 export function Download({ simulation }) {
-	console.log(simulation)
 	return <>
 		<h2>Herunterladen</h2>
 		<p>Sie können Ihre aktuelle Simulation als Excel-Datei herunterladen, um sie dann zu ändern und (unten) wieder hochzuladen.</p>

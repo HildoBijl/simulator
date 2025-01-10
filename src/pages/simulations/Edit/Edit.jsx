@@ -5,12 +5,9 @@ import { useUserId } from 'fb'
 import { useSimulation } from 'simulations'
 import { Page, useTab } from 'components'
 
-import { hasVariables } from '../util'
-
 import { Settings } from './settings'
 import { Pages } from './pages'
 import { Variables } from './variables'
-import { Events } from './events'
 
 const EditPage = ({ children, tabs }) => <Page title="Simulation bearbeiten" backButton="/create" tabs={tabs}>{children}</Page>
 
@@ -32,8 +29,6 @@ export function Edit() {
 
 	// Show the simulation form itself.
 	const tabs = ['Einstellungen', 'Seiten', 'Parameter']
-	if (hasVariables(simulation))
-		tabs.push('Ereignisse')
 	return <EditPage tabs={tabs}>
 		<EditForSimulation simulation={simulation} />
 	</EditPage>
@@ -41,6 +36,6 @@ export function Edit() {
 
 function EditForSimulation({ simulation }) {
 	const tab = useTab()
-	const Component = [Settings, Pages, Variables, Events][tab]
+	const Component = [Settings, Pages, Variables][tab]
 	return <Component simulation={simulation} />
 }

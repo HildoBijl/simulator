@@ -12,7 +12,7 @@ import { accordionStyle } from '../../util/settings'
 
 import { Event } from './Event'
 
-export function Events({ simulation }) {
+export function EventsSettings({ simulation }) {
 	// Set up manual expansion controls.
 	const [expanded, setExpanded] = useState({})
 	const flipExpand = (id) => setExpanded(expanded => ({ ...expanded, [id]: !expanded[id] }))
@@ -46,6 +46,7 @@ export function Events({ simulation }) {
 
 	// Render the events through an Accordion.
 	return <FormPart>
+		<h2>Ereignisse</h2>
 		<Label>Ereignisse</Label>
 		{order.map((eventId, index) => <Event key={eventId} {...{ simulation, event: events[eventId], index, expanded: !!expanded[eventId], flipExpand: () => flipExpand(eventId), duplicate: () => duplicateEvent(eventId) }} />)}
 		<Accordion sx={accordionStyle} onClick={() => addEvent()} expanded={false}>
@@ -58,14 +59,15 @@ export function Events({ simulation }) {
 
 function EventsIntroduction({ addEvent }) {
 	return <>
+		<h2>Ereignisse</h2>
+		<FormPart>
+			<AddEvent addEvent={addEvent} />
+		</FormPart>
 		<Alert severity="info" sx={{ my: 2 }}>
 			<p style={{ marginTop: 0 }}>Ein Ereignis ist eine besondere Situation, die eintritt, wenn eine bestimmte Bedingung erfüllt ist.</p>
 			<p style={{ marginBottom: 0 }}>Ein Ereignis hat eine Bedingung (Auslöser) wie &quot;<Code>hp &gt; 10 &amp;&amp; geld &lt;= 20</Code>&quot;. Wenn (beim Verlassen einer Seite) diese Bedingung erfüllt ist, wird dem Benutzer eine bestimmte neue Seite angezeigt, unabhängig von der Seite, die wir normalerweise aufrufen würden.</p>
 			<p>Ereignisse können mehrfach ausgelöst werden, sofern nicht ausdrücklich anders angegeben. Wenn mehrere Ereignisse gleichzeitig eintreten, wird eines davon willkürlich ausgewählt. Weitere Einzelheiten zu Ereignissen finden Sie in der <Link to="/create/documentation" target="_blank">allgemeinen Dokumentation</Link>.</p>
 		</Alert>
-		<FormPart>
-			<AddEvent addEvent={addEvent} />
-		</FormPart>
 	</>
 }
 

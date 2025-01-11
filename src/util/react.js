@@ -145,12 +145,15 @@ export function useTransitionedValue(targetValue, transitionTime = 1000, easing 
 	return value
 }
 
-// isDragDataValid checks if the drag data provided by the dragging system is valid.
-export function isDragDataValid(dragData) {
+// isDragDataValid checks if the drag data provided by the dragging system is valid. It works both for index-based draggable-IDs (numbers) and for ID-based draggable-IDs, but in the latter case a list of draggable IDs (or objects with IDs) needs to be provided to check.
+export function isDragDataValid(dragData, draggableList) {
 	const { draggableId, source, destination } = dragData
+	console.log(dragData)
 	if (!destination)
 		return false
-	if (source.index !== parseInt(draggableId))
+	if (!draggableList && (source.index !== parseInt(draggableId)))
+		return false
+	if (draggableList && (draggableList[source.index] !== draggableId && draggableList[source.index]?.id !== draggableId))
 		return false
 	return true
 }

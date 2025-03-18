@@ -37,6 +37,21 @@ Bitte wählen Sie eine der folgenden Optionen:
 
 *Hinweis*: Dies ist ein _wichtiger_ Hinweis.
 		</pre>
+		<h4>Antwortmöglichkeiten</h4>
+		<p>Die Antwortmöglichkeiten für jede Frage werden in der Spalte "Antwortmöglichkeiten" gespeichert. Jede Antwortmöglichkeit wird in einer neuen Zeile angegeben und hat das folgende Format:</p>
+		<pre>Beschreibung|Rückmeldung|Folgeseite</pre>
+		<p>Wobei:</p>
+		<ul>
+			<li><strong>Beschreibung</strong>: Der Text der Antwortmöglichkeit (in Markdown-Format)</li>
+			<li><strong>Rückmeldung</strong>: Die Rückmeldung, die angezeigt wird, wenn diese Option gewählt wird (in Markdown-Format)</li>
+			<li><strong>Folgeseite</strong>: Die ID der nächsten Seite (optional)</li>
+		</ul>
+		<p>Beispiel:</p>
+		<pre>
+**Ja, ich stimme zu**|Danke für Ihre Zustimmung!|next_page_id
+**Nein, ich lehne ab**|Das ist schade.|end
+		</pre>
+		<p>Sie können die Rückmeldung und Folgeseite weglassen, indem Sie einfach nichts nach dem | eingeben.</p>
 	</>
 }
 

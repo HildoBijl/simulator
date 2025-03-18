@@ -24,9 +24,35 @@ async function applyFolderAndPageChanges(simulation, processedWorkbook) {
 
 	// Update existing pages and add new ones.
 	await Promise.all(pageList.map(folder => {
-		const data = removeUndefineds(selectAttributes(folder, ['title', 'description']), deleteField())
-		if (data.description) // Convert Markdown to HTML
+		const data = removeUndefineds(selectAttributes(folder, ['title', 'description', 'options']), deleteField())
+		
+		// Convert description from Markdown to HTML
+		if (data.description) {
 			data.description = markdownToHtml(data.description)
+		}
+
+		// Parse options if they exist
+		if (data.options) {
+			data.options = data.options.split('\n')
+				.filter(line => line.trim()) // Remove empty lines
+				.map(line => {
+					const [description, feedback, followUpPage] = line.split('|')
+					const option = {}
+					
+					if (description) {
+						option.description = markdownToHtml(description)
+					}
+					if (feedback) {
+						option.feedback = markdownToHtml(feedback)
+					}
+					if (followUpPage) {
+						option.followUpPage = followUpPage
+					}
+					
+					return option
+				})
+		}
+
 		data.type = 'page'
 		updatePage(simulation.id, folder.id, data, true)
 	}))

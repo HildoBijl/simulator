@@ -126,7 +126,18 @@ function PageChanges({ simulation, processedWorkbook }) {
 		const oldPage = simulation.pages[newPage.id]
 		if (!oldPage)
 			return false // The page is new, so it didn't change.
-		return Object.keys(selectAttributes(newPage, ['title', 'description'])).some(key => oldPage[key] !== newPage[key]) // Some attribute in the page changed.
+		
+		// Check if basic attributes have changed
+		const basicAttributesChanged = Object.keys(selectAttributes(newPage, ['title', 'description'])).some(key => oldPage[key] !== newPage[key]);
+		
+		// Check if options have changed
+		const oldOptions = oldPage.options || [];
+		const newOptions = newPage.options || [];
+		const optionsChanged = 
+			oldOptions.length !== newOptions.length || 
+			JSON.stringify(oldOptions) !== JSON.stringify(newOptions);
+		
+		return basicAttributesChanged || optionsChanged;
 	}).length
 	const numRemoved = Object.values(simulation.pages).filter(oldPage => oldPage.type === 'page' && !processedWorkbook.pages[oldPage.id]).length
 

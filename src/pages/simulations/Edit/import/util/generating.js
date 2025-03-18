@@ -51,11 +51,20 @@ export function addPages(workbook, simulation) {
 
 	// Set up the sheet contents.
 	simulation.pageList.forEach(page => {
+		// Convert options to pipe-separated format
+		const optionsText = (page.options || []).map(option => {
+			const description = option.description ? htmlToMarkdown(option.description) : ''
+			const feedback = option.feedback ? htmlToMarkdown(option.feedback) : ''
+			const followUpPage = option.followUpPage || ''
+			return `${description}|${feedback}|${followUpPage}`
+		}).join('\n')
+
 		worksheet.addRow({
 			id: page.id,
 			parent: page.parent?.id,
 			title: page.title,
 			description: page.description ? htmlToMarkdown(page.description) : '',
+			options: optionsText,
 		})
 	})
 	adjustColumnWidths(worksheet, minColumnWidth, maxColumnWidth)

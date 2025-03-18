@@ -18,6 +18,7 @@ export const headers = {
 		parent: 'In Ordner',
 		title: 'Titel',
 		description: 'Beschreibung',
+		options: 'Antwortmöglichkeiten (eine pro Zeile, Format: Beschreibung|Rückmeldung|Folgeseite)',
 	},
 }
 

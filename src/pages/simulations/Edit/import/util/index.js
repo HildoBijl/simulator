@@ -6,3 +6,4 @@ export * from './reading' // General tools (not simulation-specific) to read Exc
 export * from './WorkbookError' // User-friendly rendering of errors provided by the checking scripts.
 export * from './processing' // Tools that turn an Excel file into a more processed format.
 export * from './applying' // Tools that apply a processed workbook to the database.
+export * from './markdown' // Tools for converting between HTML and Markdown

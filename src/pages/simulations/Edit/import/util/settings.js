@@ -3,6 +3,7 @@ export const tabNames = {
 	// settings: 'Einstellungen',
 	folders: 'Ordner',
 	pages: 'Seiten',
+	parameters: 'Parameter',
 }
 export const tabs = Object.keys(tabNames)
 
@@ -18,7 +19,15 @@ export const headers = {
 		parent: 'In Ordner',
 		title: 'Titel',
 		description: 'Beschreibung',
-		options: 'Antwortmöglichkeiten (eine pro Zeile, Format: Beschreibung|Rückmeldung|Folgeseite)',
+		options: 'Antwortmöglichkeiten (eine pro Zeile, Format: Beschreibung|Rückmeldung|Folgeseite|UpdateScript)',
+	},
+	parameters: {
+		id: 'ID',
+		name: 'Name',
+		description: 'Beschreibung',
+		defaultValue: 'Standardwert',
+		minValue: 'Minimalwert',
+		maxValue: 'Maximalwert',
 	},
 }
 

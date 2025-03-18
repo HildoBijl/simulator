@@ -1,6 +1,7 @@
 import { deleteField } from 'firebase/firestore'
 
-import { selectAttributes, removeUndefineds, toHtml } from 'util'
+import { selectAttributes, removeUndefineds } from 'util'
+import { markdownToHtml } from './markdown'
 
 import { updateSimulation, updatePage, deletePage } from 'simulations'
 
@@ -24,8 +25,8 @@ async function applyFolderAndPageChanges(simulation, processedWorkbook) {
 	// Update existing pages and add new ones.
 	await Promise.all(pageList.map(folder => {
 		const data = removeUndefineds(selectAttributes(folder, ['title', 'description']), deleteField())
-		if (data.description) // Ensure that the description is in HTML.
-			data.description = toHtml(data.description)
+		if (data.description) // Convert Markdown to HTML
+			data.description = markdownToHtml(data.description)
 		data.type = 'page'
 		updatePage(simulation.id, folder.id, data, true)
 	}))

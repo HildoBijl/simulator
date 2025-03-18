@@ -26,7 +26,9 @@
     "react-firebase-hooks": "^5.1.1",
     "react-helmet-async": "^2.0.5",
     "react-router-dom": "^6.22.2",
-    "tinymce": "^7.2.1"
+    "showdown": "^2.1.0",
+    "tinymce": "^7.2.1",
+    "turndown": "^7.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",

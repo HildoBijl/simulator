@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs'
 
 import { hasFolders } from '../../../util'
+import { htmlToMarkdown } from './markdown'
 
 import { tabNames, headers, minColumnWidth, maxColumnWidth } from './settings'
 import { addWorksheet, adjustColumnWidths } from './writing'
@@ -54,7 +55,7 @@ export function addPages(workbook, simulation) {
 			id: page.id,
 			parent: page.parent?.id,
 			title: page.title,
-			description: page.description,
+			description: page.description ? htmlToMarkdown(page.description) : '',
 		})
 	})
 	adjustColumnWidths(worksheet, minColumnWidth, maxColumnWidth)

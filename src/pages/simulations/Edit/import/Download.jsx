@@ -14,6 +14,29 @@ export function Download({ simulation }) {
 			<li>Wenn Sie ein neues Element wie eine neue Seite hinzufügen möchten, lassen Sie die ID leer. Wir werden beim Importieren eine ID generieren. (Sie können sich auch eine eigene ID ausdenken, aber das ist nicht empfehlenswert.)</li>
 			<li>Die ID wird auch für Links verwendet, z. B. welche Seite sich in welchem Ordner befindet. Wenn Sie Ihre eigenen Links einrichten wollen, können Sie auch hier die ID verwenden, oder Sie können die Zeilennummer der Excel-Datei verwenden. Beim Importieren werden die Zeilennummern dann durch die richtige ID ersetzt.</li>
 		</ul>
+		<h4>Formatierung von Texten</h4>
+		<p>Die Texte in den Beschreibungen werden in Markdown-Format gespeichert. Hier sind die wichtigsten Formatierungsmöglichkeiten:</p>
+		<ul>
+			<li><strong>Fett</strong>: Verwenden Sie <code>**Text**</code> oder <code>__Text__</code></li>
+			<li><em>Kursiv</em>: Verwenden Sie <code>*Text*</code> oder <code>_Text_</code></li>
+			<li>Listen: Verwenden Sie <code>- </code> oder <code>* </code> am Anfang jeder Zeile</li>
+			<li>Nummerierte Listen: Verwenden Sie <code>1. </code>, <code>2. </code> usw.</li>
+			<li>Links: Verwenden Sie <code>[Linktext](URL)</code></li>
+			<li>Zeilenumbrüche: Fügen Sie zwei Leerzeichen am Ende der Zeile ein</li>
+			<li>Absätze: Lassen Sie eine Leerzeile zwischen den Absätzen</li>
+		</ul>
+		<p>Beispiel:</p>
+		<pre>
+**Wichtige Frage**
+
+Bitte wählen Sie eine der folgenden Optionen:
+
+1. Erste Option
+2. Zweite Option
+3. Dritte Option
+
+*Hinweis*: Dies ist ein _wichtiger_ Hinweis.
+		</pre>
 	</>
 }
 

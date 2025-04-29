@@ -1,6 +1,7 @@
 import { deleteField } from 'firebase/firestore'
 
-import { selectAttributes, removeUndefineds, toHtml } from 'util'
+import { selectAttributes, removeUndefineds } from 'util'
+import { markdownToHtml } from './markdown'
 
 import { updateSimulation, updatePage, deletePage } from 'simulations'
 
@@ -21,11 +22,51 @@ async function applyFolderAndPageChanges(simulation, processedWorkbook) {
 		updatePage(simulation.id, folder.id, data, true)
 	}))
 
-	// Update existing pages and add new ones.
+// Update existing pages and add new ones.
 	await Promise.all(pageList.map(folder => {
-		const data = removeUndefineds(selectAttributes(folder, ['title', 'description']), deleteField())
-		if (data.description) // Ensure that the description is in HTML.
-			data.description = toHtml(data.description)
+		const data = removeUndefineds(selectAttributes(folder, ['title', 'description', 'options']), deleteField())
+
+		// Convert description from Markdown to HTML
+		if (data.description) {
+			data.description = markdownToHtml(data.description)
+		}
+
+		// Parse options if they exist
+		if (data.options) {
+			data.options = data.options.split('\n')
+				.filter(line => line.trim()) // Remove empty lines
+				.map(line => {
+					// Split by pipe character, but handle the case where some fields might be empty
+					const parts = line.split('|')
+					const description = parts[0] || ''
+					const feedback = parts[1] || ''
+					const followUpPage = parts[2] || ''
+					const updateScript = parts[3] || ''
+
+					const option = {}
+
+					if (description) {
+						option.description = markdownToHtml(description)
+					}
+					if (feedback) {
+						option.feedback = markdownToHtml(feedback)
+					}
+					if (followUpPage) {
+						option.followUpPage = followUpPage
+					}
+					if (updateScript) {
+						option.updateScript = updateScript
+					}
+
+					console.log("Processed option:", {
+						description: description.substring(0, 20) + (description.length > 20 ? '...' : ''),
+						hasUpdateScript: !!updateScript
+					})
+
+					return option
+				})
+		}
+
 		data.type = 'page'
 		updatePage(simulation.id, folder.id, data, true)
 	}))

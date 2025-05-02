@@ -21,7 +21,8 @@ export function processWorkbook(workbook, simulation) {
 export function processWorkbookInner(workbook) {
 	const folderData = processFolders(workbook)
 	const pageData = processPages(workbook, folderData)
-	return { ...folderData, ...pageData }
+	const parameterData = processParameters(workbook)
+	return { ...folderData, ...pageData, ...parameterData }
 }
 
 // processFolders takes a workbook and comes up with a data structure for the folders.
@@ -108,6 +109,86 @@ function processPages(workbook, folderData) {
 
 	// Return all derived parameters.
 	return { pages, pageList, pageIds, mainPages }
+}
+
+// processParameters puts the parameters/variables provided in the Excel file into a more manageable format.
+function processParameters(workbook) {
+	try {
+		const rawParameters = readSheet(workbook, 'parameters')
+
+		// If no parameters tab or empty, return empty structure
+		if (!rawParameters || rawParameters.length === 0) {
+			return { parameters: {}, parameterList: [] }
+		}
+
+		// Walk through the parameters to process their data
+		const parameters = {}
+		const parameterList = rawParameters.map(rawParameter => {
+			// Extract all needed fields from the raw data and ensure proper formatting
+			const parameter = {
+				id: rawParameter.id || getId(),
+				name: rawParameter.name || '',
+				title: rawParameter.description || rawParameter.title || '', // Accept either description or title
+				initialValue: rawParameter.defaultValue || rawParameter.initialValue || '0', // Accept either defaultValue or initialValue
+			}
+
+			// Add optional fields if they exist - ensure they're strings
+			if (rawParameter.minValue !== undefined && rawParameter.minValue !== null && rawParameter.minValue !== '') {
+				parameter.minValue = String(rawParameter.minValue)
+			}
+
+			if (rawParameter.maxValue !== undefined && rawParameter.maxValue !== null && rawParameter.maxValue !== '') {
+				parameter.maxValue = String(rawParameter.maxValue)
+			}
+
+			// Add to parameters object
+			parameters[parameter.id] = parameter
+			return parameter
+		})
+
+		// Debug logging
+		console.log("Processed parameters:", parameterList.map(p => ({
+			id: p.id,
+			name: p.name,
+			title: p.title,
+			initialValue: p.initialValue
+		})))
+
+		// Check for duplicate IDs
+		const duplicateId = parameterList.find((param, index) =>
+			parameterList.some((otherParam, otherIndex) =>
+				index < otherIndex && param.id === otherParam.id))?.id
+
+		if (duplicateId) {
+			throw new ProcessingError({ type: 'duplicateId', tab: 'parameters', id: duplicateId })
+		}
+
+		// Check for duplicate names
+		const parametersByName = {}
+		for (const param of parameterList) {
+			if (param.name && parametersByName[param.name]) {
+				throw new ProcessingError({
+					type: 'duplicateName',
+					tab: 'parameters',
+					name: param.name,
+					firstId: parametersByName[param.name].id,
+					secondId: param.id
+				})
+			}
+			if (param.name) {
+				parametersByName[param.name] = param
+			}
+		}
+
+		return { parameters, parameterList }
+	} catch (error) {
+		if (error.type === 'missingTab') {
+			// If the parameters tab doesn't exist, just return empty data
+			return { parameters: {}, parameterList: [] }
+		}
+		// Otherwise rethrow the error
+		throw error
+	}
 }
 
 // ensureId takes an ID or row-reference. If it's the latter (so a number) then it attempts to find the ID from the corresponding ID-list. On a failure, an error is thrown. It's useful to add tab-data about the referencing tab (origin) and the referenced tab (destination) which is shown in any potential error message to the user.

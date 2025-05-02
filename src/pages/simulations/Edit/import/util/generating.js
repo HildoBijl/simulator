@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs'
 
 import { hasFolders } from '../../../util'
+import { htmlToMarkdown } from './markdown'
 
 import { tabNames, headers, minColumnWidth, maxColumnWidth } from './settings'
 import { addWorksheet, adjustColumnWidths } from './writing'
@@ -9,6 +10,7 @@ import { addWorksheet, adjustColumnWidths } from './writing'
 export function generateSimulationWorkbook(simulation) {
 	let workbook = new ExcelJS.Workbook()
 	addPages(workbook, simulation)
+	addParameters(workbook, simulation)
 	return workbook
 }
 
@@ -50,12 +52,47 @@ export function addPages(workbook, simulation) {
 
 	// Set up the sheet contents.
 	simulation.pageList.forEach(page => {
+		// Convert options to pipe-separated format
+		const optionsText = (page.options || []).map(option => {
+			const description = option.description ? htmlToMarkdown(option.description) : ''
+			const feedback = option.feedback ? htmlToMarkdown(option.feedback) : ''
+			const followUpPage = option.followUpPage || ''
+			const updateScript = option.updateScript || ''
+			return `${description}|${feedback}|${followUpPage}|${updateScript}`
+		}).join('\n')
+
 		worksheet.addRow({
 			id: page.id,
 			parent: page.parent?.id,
 			title: page.title,
-			description: page.description,
+			description: page.description ? htmlToMarkdown(page.description) : '',
+			options: optionsText,
 		})
 	})
+	adjustColumnWidths(worksheet, minColumnWidth, maxColumnWidth)
+}
+
+// addParameters takes a simulation workbook and adds a tab for all parameters/variables.
+export function addParameters(workbook, simulation) {
+	// If there are no variables, don't add the tab
+	if (!simulation.variables || Object.keys(simulation.variables).length === 0) {
+		return
+	}
+
+	// Set up a tab for the parameters and add headers
+	const worksheet = addWorksheet(workbook, tabNames.parameters, headers.parameters)
+
+	// Add all parameters to the worksheet
+	Object.values(simulation.variables).forEach(variable => {
+		worksheet.addRow({
+			id: variable.id,
+			name: variable.name || '',
+			description: variable.title || '',
+			defaultValue: variable.initialValue || '',
+			minValue: variable.minValue || '',
+			maxValue: variable.maxValue || '',
+		})
+	})
+
 	adjustColumnWidths(worksheet, minColumnWidth, maxColumnWidth)
 }

@@ -21,6 +21,14 @@ export const headers = {
 		description: 'Beschreibung',
 		options: 'Antwortmöglichkeiten (eine pro Zeile, Format: [Beschreibung|Rückmeldung|Folgeseite|UpdateScript])',
 	},
+	parameters: {
+		id: 'ID',
+		name: 'Name',
+		description: 'Beschreibung',
+		defaultValue: 'Standardwert',
+		minValue: 'Minimalwert',
+		maxValue: 'Maximalwert',
+	},
 }
 
 // We set some settings for the output.

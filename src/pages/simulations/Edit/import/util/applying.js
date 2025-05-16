@@ -9,6 +9,7 @@ import { deleteVariable } from 'simulations/variables/functions'
 // applyChanges takes a simulation and an Excel workbook and applies the changes from that workbook into the Excel file.
 export async function applyChanges(simulation, processedWorkbook) {
 	await applyFolderAndPageChanges(simulation, processedWorkbook)
+	await applyParameterChanges(simulation, processedWorkbook) // Add this line to apply parameter changes too
 }
 
 // applyFolderAndPageChanges applies all changes for folders and pages. It first adds folders/pages, then updates the main simulation contents, and finally removes pages/folders. By doing it in this order, any simulation that receives updates will not get a completely faulty simulation state, reducing crashes.

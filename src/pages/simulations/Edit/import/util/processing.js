@@ -83,7 +83,7 @@ function processPages(workbook, folderData) {
 	const pageIds = [] // A look-up array that turns a row index into a folder ID.
 	const mainPages = [] // Which pages are in the main directory?
 	const pageList = rawPages.map((rawPage, index) => {
-		const page = selectAttributes(rawPage, ['id', 'title', 'description'])
+		const page = selectAttributes(rawPage, ['id', 'title', 'description', 'options'])
 		if (!rawPage.id)
 			page.id = getId()
 		pageIds[index] = page.id // Set up the ID look-up.

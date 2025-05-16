@@ -22,7 +22,7 @@ export function Upload({ simulation }) {
 		</ul>
 		<FileUploader {...{ setWorkbook, setApplied }} />
 		{workbook ? <WorkbookReport {...{ simulation, workbook, setWorkbook, setApplied }} /> : null}
-		{applied ? <Alert type="success" sx={{ my: 2 }}>Die Änderungen wurden erfolgreich in die Simulation übernommen.</Alert> : null}
+		{applied ? <Alert severity="success" sx={{ my: 2 }}>Die Änderungen wurden erfolgreich in die Simulation übernommen.</Alert> : null}
 	</>
 }
 
@@ -45,10 +45,14 @@ function FileUploader({ setWorkbook, setApplied }) {
 
 		// On a load (finish) event, update the workbook.
 		reader.onload = () => {
+			console.log("File loaded, creating workbook")
 			const workbook = new ExcelJS.Workbook()
 			const buffer = reader.result
 			workbook.xlsx.load(buffer).then(workbook => {
+				console.log("Workbook loaded successfully")
 				setWorkbook(workbook)
+			}).catch(error => {
+				console.error("Error loading workbook:", error)
 			})
 		}
 
@@ -77,61 +81,46 @@ function UploadButton({ onChange }) {
 
 function WorkbookReport({ simulation, workbook, setWorkbook, setApplied }) {
 	// Process the workbook. On an error, display the error report.
-	const { processedWorkbook, error } = useMemo(() => processWorkbook(workbook, simulation), [simulation, workbook])
-	if (error)
+	console.log("Processing workbook")
+	const { processedWorkbook, error } = useMemo(() => {
+		const result = processWorkbook(workbook, simulation)
+		console.log("Workbook processing result:", result)
+		return result
+	}, [simulation, workbook])
+
+	if (error) {
+		console.error("Error processing workbook:", error)
 		return <WorkbookError {...{ error }} />
+	}
 
 	// No errors found. Show the workbook report.
 	return <ProcessedWorkbookReport {...{ simulation, processedWorkbook, setWorkbook, setApplied }} />
 }
 
 function ProcessedWorkbookReport({ simulation, processedWorkbook, setWorkbook, setApplied }) {
-	// Add a test function to verify Firebase updates work
-	const testParameterUpdate = async () => {
-		try {
-			console.log("Testing direct parameter update...")
-			const { db } = await import('firebase/firestore');
-			const { doc, setDoc } = await import('firebase/firestore');
+	// Debug workbook content
+	const debugWorkbook = () => {
+		console.log("Processed Workbook Content:", processedWorkbook)
 
-			// Create a test parameter if simulation.variables doesn't exist
-			if (!simulation.variables) {
-				simulation.variables = {};
-			}
-
-			// Create a test parameter ID or use an existing one
-			const testParamId = Object.keys(simulation.variables)[0] || 'test_param_' + Date.now();
-
-			// Define test data
-			const testData = {
-				name: 'Test Parameter ' + Date.now(),
-				title: 'Test Description',
-				initialValue: '42'
-			};
-
-			console.log('Updating parameter:', testParamId, testData);
-
-			// Try direct Firebase update
-			const paramRef = doc(db, `simulations/${simulation.id}/variables`, testParamId);
-			await setDoc(paramRef, testData, { merge: true });
-
-			console.log('Direct parameter update successful!');
-
-			// Also try with the updateVariable function for comparison
-			const { updateVariable } = await import('simulations/variables/functions');
-			await updateVariable(simulation.id, 'test_param_2_' + Date.now(), {
-				name: 'Test Parameter 2',
-				title: 'Another Test',
-				initialValue: '99'
-			});
-
-			console.log('Update via updateVariable successful!');
-
-			alert('Test parameter update successful! Check the console for details.');
-		} catch (error) {
-			console.error('Error during test parameter update:', error);
-			alert('Error during test: ' + error.message);
+		// Debug sheets
+		if (workbook) {
+			console.log("Excel Sheets:")
+			workbook.eachSheet(sheet => {
+				console.log(`Sheet: ${sheet.name}, Row Count: ${sheet.rowCount}`)
+				if (sheet.name === 'Parameters') {
+					console.log("Parameters sheet rows:")
+					sheet.eachRow((row, rowNumber) => {
+						if (rowNumber > 1) { // Skip header
+							const values = row.values
+							console.log(`Row ${rowNumber}:`, values)
+						}
+					})
+				}
+			})
 		}
-	};
+
+		alert("Workbook content logged to console. Check browser console for details.")
+	}
 
 	return <>
 		<h4>Geplante Änderungen</h4>
@@ -143,19 +132,20 @@ function ProcessedWorkbookReport({ simulation, processedWorkbook, setWorkbook, s
 		</ul>
 		<p>Möchten Sie diese Änderungen durchführen?</p>
 		<Button variant="contained" onClick={() => {
+			console.log("Applying changes from workbook:", processedWorkbook)
 			applyChanges(simulation, processedWorkbook)
 			setWorkbook()
 			setApplied(true) // Show the success note.
 		}}>Änderungen durchführen</Button>
 
-		{/* Add test button for debugging */}
+		{/* Debug button for examining workbook content */}
 		<Button
 			variant="outlined"
 			color="secondary"
-			onClick={testParameterUpdate}
+			onClick={debugWorkbook}
 			sx={{ ml: 2 }}
 		>
-			Test Parameter Update
+			Debug Workbook Content
 		</Button>
 	</>
 }

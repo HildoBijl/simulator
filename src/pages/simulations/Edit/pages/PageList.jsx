@@ -253,6 +253,11 @@ function expandFolders(pageList, pages, expandedMap, moveData, topLevel = true) 
 		// Ensure we have a page object.
 		if (typeof page === 'string')
 			page = pages[page]
+			if (!page) {
+				// Adds safety check for non-existing pages
+				console.warn(`Page with ID "${page} not found. It may have been deleted."`);
+				return null;
+			}
 
 		// For folders, add an opener and a closer and, if needed, contents.
 		if (page.type === 'folder') {
@@ -271,9 +276,10 @@ function expandFolders(pageList, pages, expandedMap, moveData, topLevel = true) 
 					contents = insertIntoArray(contents, index, pageToMove.id)
 				}
 
-				// Add the contents.
-				value.splice(1, 0, ...expandFolders(contents || [], pages, expandedMap, moveData, false))
-			}
+				// Add the contents, but filter out nulls
+				const processedContents = expandFolders(contents || [], pages, expandedMap, moveData, false)
+					.filter(Boolean) // Filter out null values
+				value.splice(1, 0, ...processedContents)}
 
 			// Return the result.
 			return value
@@ -282,7 +288,8 @@ function expandFolders(pageList, pages, expandedMap, moveData, topLevel = true) 
 		// For pages directly return the page.
 		if (page.type === 'page')
 			return page
-	})
+		return null  // safety default
+	}).filter(Boolean);
 }
 
 // getMoveData takes a (flattened) list of pages and a move command: which should move to where. It then determines which page will be moved, from which folder, to which folder, and what the new index there will be.

@@ -80,10 +80,16 @@ export function useIsOwner(simulation) {
 // processPages gets the raw pages out of the database and adds useful utility info. It receives an array of pageIds to process, as well as a dictionary of raw pages.
 function processPages(pageOrder = [], rawPages = {}, indices = []) {
 	// Process all pages in the pageOrder to get a pageTree.
-	const pageTree = pageOrder.map((pageId, index) => processPage(rawPages[pageId], rawPages, [...indices, index], undefined))
+	const pageTree = pageOrder.map((pageId, index) =>
+		processPage(rawPages[pageId], rawPages, [...indices, index], undefined)
+	).filter(Boolean);
 
 	// Flatten the tree. For now also include folders.
-	const toArray = page => page.type === 'folder' ? [page, ...page.contents.map(page => toArray(page))] : page
+	const toArray = page => {
+		if (!page) return [];
+		return page.type === 'folder' ? [page, ...page.contents.map(page => toArray(page))] : page
+	}
+
 	const pageListFull = pageTree.map(page => toArray(page)).flat(Infinity)
 	const pages = arrayToObject(pageListFull, page => ({ key: page.id, value: page }))
 	const pageList = pageListFull.filter(page => page.type === 'page') // Only keep actual pages.
@@ -92,6 +98,12 @@ function processPages(pageOrder = [], rawPages = {}, indices = []) {
 
 // processPage takes a single (raw) page, possibly a folder with contents, and a list of (raw) pages. It processes the page, turning links to contents into actual links.
 function processPage(page, pages, indices, parent) {
+
+	if (!page) {
+		console.warn('Attempted to process a non-existent page (possibly recently deleted)');
+		return null;  // gets filtered out in processPages
+	}
+
 	// On a folder, recursively process subpages.
 	if (page.type === 'folder') {
 		const result = {

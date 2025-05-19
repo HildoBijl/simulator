@@ -270,7 +270,9 @@ function expandFolders(pageList, pages, expandedMap, moveData, topLevel = true) 
 				let contents = page.contents || []
 				if (pageToMove && originFolder && originFolder.id === page.id) {
 					const index = contents.indexOf(pageToMove.id)
-					contents = [...contents.slice(0, index), ...contents.slice(index + 1)]
+					if (index !== -1) { // Only splice if found
+						contents = [...contents.slice(0, index), ...contents.slice(index + 1)];
+					}
 				}
 				if (pageToMove && destinationFolder && destinationFolder.id === page.id) {
 					contents = insertIntoArray(contents, index, pageToMove.id)
@@ -278,8 +280,9 @@ function expandFolders(pageList, pages, expandedMap, moveData, topLevel = true) 
 
 				// Add the contents, but filter out nulls
 				const processedContents = expandFolders(contents || [], pages, expandedMap, moveData, false)
-					.filter(Boolean) // Filter out null values
-				value.splice(1, 0, ...processedContents)}
+					.filter(Boolean); // Filter out null values
+				value.splice(1, 0, ...processedContents);
+			}
 
 			// Return the result.
 			return value
@@ -294,39 +297,94 @@ function expandFolders(pageList, pages, expandedMap, moveData, topLevel = true) 
 
 // getMoveData takes a (flattened) list of pages and a move command: which should move to where. It then determines which page will be moved, from which folder, to which folder, and what the new index there will be.
 function getMoveData(simulation, draggableList, from, to) {
-	// Find the page to be move.
+	// Find the page to be moved
 	const pageToMove = draggableList[from]
 	if (!pageToMove) {
-		console.warn('Cannot process move - page at source index not found');
-		return null;
+		console.warn("Cannot process move - page at source index not found");
+		return {}; // Return empty object to avoid further errors
 	}
 
-	// If a folder is moved right after its closer, consider it as "at the same place".
+	// If a folder is moved right after its closer, consider it as "at the same place"
 	if (pageToMove.type === 'folder' && to - from === 1)
 		to = from
 
-	// Determine the origin of the page that will be moved.
-	const originFolder = Object.values(simulation.pages).find(page => page.type === 'folder' && page.contents && page.contents.find(folderContent => folderContent.id === pageToMove.id))
+	// Determine the origin of the page that will be moved - with proper null checks
+	const originFolder = Object.values(simulation.pages).find(page => {
+		if (!page || page.type !== 'folder' || !page.contents) return false;
+		// Ensure contents doesn't have null items and check if this folder contains our page
+		return page.contents.filter(Boolean).some(folderContent => {
+			// Handle both object and string references
+			return (typeof folderContent === 'string' && folderContent === pageToMove.id) ||
+				(folderContent && folderContent.id === pageToMove.id);
+		});
+	});
 
-	// Determine the destination, and the index within the destination folder.
-	let destinationFolder, index
+	// Determine the destination, and the index within the destination folder
+	let destinationFolder, index;
+
 	if (to === 0) {
-		index = 0
+		index = 0;
 	} else {
-		const shouldComeAfter = draggableList[to <= from ? to - 1 : to]
-		const shouldComeBefore = draggableList[to <= from ? to : to + 1]
-		if (shouldComeAfter && shouldComeAfter.type === 'folder' && !shouldComeAfter.closer) { // Should it be put into a (closed) folder?
-			destinationFolder = shouldComeAfter
-			index = shouldComeBefore.id === shouldComeAfter.id ? (shouldComeAfter.contents?.length || 0) : 0 // For a closed folder, put at the end. For an open folder, put at the start.
+		const shouldComeAfter = draggableList[to <= from ? to - 1 : to];
+		const shouldComeBefore = draggableList[to <= from ? to : to + 1];
+
+		// Ensure both reference objects exist
+		if (!shouldComeAfter) {
+			console.warn("Reference page for positioning not found");
+			return {};
+		}
+
+		if (shouldComeAfter && shouldComeAfter.type === 'folder' && !shouldComeAfter.closer) {
+			// Should it be put into a (closed) folder?
+			destinationFolder = shouldComeAfter;
+			index = shouldComeBefore && shouldComeBefore.id === shouldComeAfter.id ?
+				(shouldComeAfter.contents?.length || 0) : 0;
+			// For a closed folder, put at the end. For an open folder, put at the start.
 		} else {
-			destinationFolder = Object.values(simulation.pages).find(page => page.type === 'folder' && page.contents && page.contents.find(folderContent => folderContent.id === shouldComeAfter.id))
-			const destinationArray = destinationFolder ? destinationFolder.contents : simulation.pageTree
-			index = destinationArray.findIndex(page => page.id === shouldComeAfter.id) + 1
-			const oldIndex = destinationArray.findIndex(page => page.id === pageToMove.id)
+			// Find destination folder with proper null checks
+			destinationFolder = Object.values(simulation.pages).find(page => {
+				if (!page || page.type !== 'folder' || !page.contents) return false;
+
+				// Check if this folder contains the reference page
+				return page.contents.filter(Boolean).some(folderContent => {
+					// Handle both object and string references
+					if (!shouldComeBefore) return false;
+
+					return (typeof folderContent === 'string' && folderContent === shouldComeBefore.id) ||
+						(folderContent && folderContent.id === shouldComeBefore.id);
+				});
+			});
+
+			// Calculate proper index with null checks
+			const destinationArray = destinationFolder ?
+				(destinationFolder.contents || []).filter(Boolean) :
+				(simulation.pageTree || []).filter(Boolean);
+
+			// Find index safely with null checks
+			let foundIndex = -1;
+			if (shouldComeBefore) {
+				for (let i = 0; i < destinationArray.length; i++) {
+					const item = destinationArray[i];
+					if ((typeof item === 'string' && item === shouldComeBefore.id) ||
+						(item && item.id === shouldComeBefore.id)) {
+						foundIndex = i;
+						break;
+					}
+				}
+			}
+
+			index = foundIndex !== -1 ? foundIndex + 1 : destinationArray.length;
+
+			// Adjust index if moving within the same container
+			const oldIndex = destinationArray.findIndex(item => {
+				return (typeof item === 'string' && item === pageToMove.id) ||
+					(item && item.id === pageToMove.id);
+			});
+
 			if (oldIndex !== -1 && oldIndex < index)
-				index-- // If the item was already in this list prior to the index, the desired index should be one lower.
+				index--; // If the item was already in this list prior to the index, the desired index should be one lower
 		}
 	}
 
-	return { pageToMove, originFolder, destinationFolder, index }
+	return { pageToMove, originFolder, destinationFolder, index };
 }

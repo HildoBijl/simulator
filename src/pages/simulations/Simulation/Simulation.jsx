@@ -51,6 +51,21 @@ function SimulationWithData({ simulation }) {
 	const [error, setError] = useState(false) // Tracks if an error was encountered during simulation run-time.
 	const state = getState(history)
 
+	// Verify the simulation has valid pages before proceeding
+	useEffect(() => {
+		if (simulation.pageList.length === 0) {
+			console.error("Simulation has no pages");
+			return;
+		}
+
+		// Check if the starting page exists
+		const startingPageId = simulation.startingPage || simulation.pageList[0]?.id;
+		if (!startingPageId || !simulation.pages[startingPageId]) {
+			console.error("Starting page not found or invalid");
+			setError(true);
+		}
+	}, [simulation]);
+
 	// Check for an error in the state. (For instance an outdated pageId.)
 	const stateError = useMemo(() => getStateError(simulation, state), [simulation, state])
 

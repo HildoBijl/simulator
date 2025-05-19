@@ -69,11 +69,15 @@ export async function deletePage(simulation, pageToRemove) {
 	const update = {}
 	if (simulation.pageOrder.includes(pageToRemove.id))
 		update.pageOrder = arrayRemove(pageToRemove.id)
+
 	if (simulation.startingPage === pageToRemove.id) {
-		if (simulation.pageOrder.length === 1)
-			update.startingPage = deleteField() // Last page. Delete it.
-		else
-			update.startingPage = simulation.pageOrder.find(pageId => pageId !== pageToRemove.id) // Find the first page in the order that's not this page.
+		// Find a valid new starting page
+		const remainingPages = (simulation.pageList || [])
+			.filter(page => page.id !== pageToRemove.id && simulation.pages[page.id])
+
+		update.startingPage = remainingPages.length > 0
+			? remainingPages[0].id
+			: deleteField(); // If no valid pages remain, remove the startingPage property
 	}
 	await updateSimulation(simulation.id, update)
 

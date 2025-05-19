@@ -27,10 +27,36 @@ export function useSimulationActions(simulation, setHistory, clearHistory, setEr
 			if (history && history.length > 0)
 				return history
 
-			// Determine the starting page.
-			const pageId = simulation.startingPage || simulation.pageList[0]
-			const startingPage = simulation.pages[pageId]
-			const state = { pageId }
+			// Determine the starting page with proper error handling
+			let pageId = simulation.startingPage || simulation.pageList[0]?.id
+			if (!pageId) {
+				console.error("No valid starting page found for simulation");
+				return history; // Return existing history to prevent crash
+			}
+
+			// Check if the pageId actually exists in pages
+			if (!simulation.pages[pageId]) {
+				console.warn(`Starting page ${pageId} not found, falling back to first available page`);
+
+				// Find the first valid page
+				const firstValidPage = simulation.pageList.find(page => simulation.pages[page.id]);
+
+				if (!firstValidPage) {
+					console.error("No valid pages found in simulation");
+					return history; // Return existing history to prevent crash
+				}
+
+				pageId = firstValidPage.id;
+			}
+
+			const startingPage = simulation.pages[pageId];
+			// Additional safety check
+			if (!startingPage) {
+				console.error(`Unable to find a valid starting page for simulation`);
+				return history;
+			}
+
+			const state = { pageId };
 
 			// On variables, set them up.
 			if (hasVariables(simulation)) {

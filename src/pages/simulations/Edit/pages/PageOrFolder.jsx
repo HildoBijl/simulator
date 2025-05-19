@@ -29,10 +29,15 @@ import { Options, PageUpdateScript } from './Options'
 
 export function PageOrFolder(data) {
 	const { page } = data
+	if (!page) {
+		console.warn('Attempted to render a non-existent page');
+		return null;
+	}
 	if (page.type === 'folder')
 		return <Folder {...data} />
 	if (page.type === 'page')
 		return <Page {...data} />
+	return null;  // safety default
 }
 
 function Page({ simulation, page, dragIndex, listIndex, expanded, isDragging, flipExpand }) {

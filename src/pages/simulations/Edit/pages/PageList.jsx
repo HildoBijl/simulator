@@ -296,6 +296,10 @@ function expandFolders(pageList, pages, expandedMap, moveData, topLevel = true) 
 function getMoveData(simulation, draggableList, from, to) {
 	// Find the page to be move.
 	const pageToMove = draggableList[from]
+	if (!pageToMove) {
+		console.warn('Cannot process move - page at source index not found');
+		return null;
+	}
 
 	// If a folder is moved right after its closer, consider it as "at the same place".
 	if (pageToMove.type === 'folder' && to - from === 1)

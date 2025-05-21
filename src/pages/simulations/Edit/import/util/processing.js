@@ -4,6 +4,7 @@ import { getId } from 'fb'
 import { rowShift } from './settings'
 import { ProcessingError } from './checking'
 import { readSheet } from './reading'
+import { tabNames } from './settings'
 
 // processWorkbook takes a workbook (we assume it's been checked for errors) and processes it to a more structured data format. It calls an inner function and, on a ProcessingError, simply returns said error instead of the processed workbook.
 export function processWorkbook(workbook, simulation) {
@@ -77,6 +78,9 @@ function processFolders(workbook) {
 function processPages(workbook, folderData) {
 	const { folders, folderIds } = folderData
 	const rawPages = readSheet(workbook, 'pages')
+	
+	// Create array to track the original order from the Excel file
+	const rawPageOrder = [];
 
 	// Walk through the pages to process their data.
 	const pages = {}
@@ -87,9 +91,15 @@ function processPages(workbook, folderData) {
 		if (!rawPage.id)
 			page.id = getId()
 		pageIds[index] = page.id // Set up the ID look-up.
+		
+		// Save the ID to our raw page order in the original Excel order
+		// Only add to rawPageOrder if it's in the main directory (no parent)
+		const parentId = ensureId(rawPage.parent, folderIds, 'folders')
+		if (parentId === undefined) {
+			rawPageOrder.push(page.id);
+		}
 
 		// Process the parent of the page.
-		const parentId = ensureId(rawPage.parent, folderIds, 'folders')
 		if (parentId && !folders[parentId])
 			throw new ProcessingError({ type: 'invalidId', id: parentId, originTab: 'folders', destinationTab: 'folders' })
 		if (parentId === undefined)
@@ -107,8 +117,41 @@ function processPages(workbook, folderData) {
 	if (duplicateId)
 		throw new ProcessingError({ type: 'duplicateId', tab: 'pages', id: duplicateId })
 
+	// NEW: Extract the folder IDs in their original order from the folders worksheet
+	const folderWorksheet = workbook.getWorksheet(tabNames.folders);
+	const mainFolderIds = [];
+	
+	if (folderWorksheet && folderWorksheet.rowCount > 1) {
+		// Skip the header row (row 1)
+		for (let i = 2; i <= folderWorksheet.rowCount; i++) {
+			const row = folderWorksheet.getRow(i);
+			const folderId = row.getCell(1).value; // ID is in first column
+			const parentId = row.getCell(2).value; // Parent is in second column
+			
+			// Only add folders that are in the main directory (no parent)
+			if (folderId && (!parentId || parentId === '' || parentId === null)) {
+				mainFolderIds.push(folderId);
+			}
+		}
+	}
+	
+	// NEW: Combine folders and pages in original order
+	// First add folders that are in the main directory
+	mainFolderIds.forEach(folderId => {
+		// Only add if not already in rawPageOrder
+		if (!rawPageOrder.includes(folderId)) {
+			rawPageOrder.push(folderId);
+		}
+	});
+	
+	// Log the order information for debugging
+	console.log("Excel import - Original Order:", {
+		mainFolderIds,
+		rawPageOrder
+	});
+	
 	// Return all derived parameters.
-	return { pages, pageList, pageIds, mainPages }
+	return { pages, pageList, pageIds, mainPages, rawPageOrder }
 }
 
 // processParameters puts the parameters/variables provided in the Excel file into a more manageable format.

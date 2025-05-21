@@ -74,7 +74,26 @@ async function applyFolderAndPageChanges(simulation, processedWorkbook) {
 	}))
 
 	// Update the page order of the main simulation
-	await updateSimulation(simulation.id, { pageOrder: [...processedWorkbook.mainFolders.map(folder => folder.id), ...processedWorkbook.mainPages.map(page => page.id)] })
+	// FIXED: Preserve original Excel sheet row order instead of grouping folders first then pages
+	// Get the order directly from the worksheet rows to maintain original order
+	let newPageOrder = [];
+	
+	// Check if we have raw Excel data in processedWorkbook
+	if (processedWorkbook.rawPageOrder && processedWorkbook.rawPageOrder.length > 0) {
+		// If the raw order is available, use it directly
+		newPageOrder = processedWorkbook.rawPageOrder;
+	} else {
+		// Fall back to the previous logic but with console warning
+		console.warn('Raw page order not available, falling back to default ordering logic');
+		newPageOrder = [...processedWorkbook.mainFolders.map(folder => folder.id), 
+		               ...processedWorkbook.mainPages.map(page => page.id)];
+	}
+	
+	// Apply the page order update
+	await updateSimulation(simulation.id, { 
+		pageOrder: newPageOrder,
+		lastModified: new Date().toISOString()
+	});
 
 	// Delete old pages
 	const pagesToRemove = Object.values(simulation.pages).filter(oldPage => oldPage.type === 'page' && !processedWorkbook.pages[oldPage.id])

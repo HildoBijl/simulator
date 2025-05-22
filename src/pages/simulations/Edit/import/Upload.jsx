@@ -129,6 +129,7 @@ function ProcessedWorkbookReport({ simulation, processedWorkbook, setWorkbook, s
 			<FolderChanges {...{ simulation, processedWorkbook }} />
 			<PageChanges {...{ simulation, processedWorkbook }} />
 			<ParameterChanges {...{ simulation, processedWorkbook }} />
+			<PageOrderChanges {...{ simulation, processedWorkbook }} />
 		</ul>
 		<p>Möchten Sie diese Änderungen durchführen?</p>
 		<Button variant="contained" onClick={() => {
@@ -248,4 +249,54 @@ function ParameterChanges({ simulation, processedWorkbook }) {
 		{numRemoved === 1 ? 'ein Parameter wird' : `${numRemoved} Parameter werden`} entfernt
 		{numRemoved > 0 && <span> ({removedParams.map(p => p.name || '[kein Name]').join(', ')})</span>}.
 	</li>
+}
+
+// Component to show the page order changes based on the "Reihenfolge" columns
+function PageOrderChanges({ simulation, processedWorkbook }) {
+	// If no raw page order is available, don't show anything
+	if (!processedWorkbook.rawPageOrder || processedWorkbook.rawPageOrder.length === 0) {
+		return <li style={{ opacity: 0.4 }}>Keine Änderungen in der Seitenreihenfolge.</li>;
+	}
+
+	// Count how many pages and folders are in the order
+	const pageCount = processedWorkbook.rawPageOrder.filter(id => 
+		processedWorkbook.pages[id] && 
+		(!simulation.pages[id] || simulation.pages[id].type === 'page')
+	).length;
+	
+	const folderCount = processedWorkbook.rawPageOrder.filter(id => 
+		processedWorkbook.folders[id] && 
+		(!simulation.pages[id] || simulation.pages[id].type === 'folder')
+	).length;
+
+	// Create a list of the first few items to show as examples
+	const orderPreview = processedWorkbook.rawPageOrder.slice(0, 5).map(id => {
+		const item = processedWorkbook.pages[id] || processedWorkbook.folders[id];
+		if (!item) return `Unbekannt (${id})`;
+		return `${item.title || 'Ohne Titel'} (${item.type === 'folder' ? 'Ordner' : 'Seite'})`;
+	}).join(', ');
+
+	return (
+		<li>
+			<div>Die Reihenfolge der Seiten und Ordner wurde basierend auf den "Reihenfolge"-Spalten aktualisiert.</div>
+			<div style={{ margin: '0.5em 0' }}>
+				• Elemente mit einer "Reihenfolge" werden nach den angegebenen Nummern sortiert
+			</div>
+			<div style={{ margin: '0.5em 0' }}>
+				• Die Reihenfolge wird aus Spalte F in "Seiten" und Spalte D in "Ordner" entnommen
+			</div>
+			<div style={{ margin: '0.5em 0' }}>
+				• Insgesamt werden {pageCount + folderCount} Elemente sortiert
+				{pageCount > 0 && ` (${pageCount} Seiten`}
+				{pageCount > 0 && folderCount > 0 && ' und '}
+				{folderCount > 0 && `${folderCount} Ordner`}
+				{(pageCount > 0 || folderCount > 0) && ')'}
+			</div>
+			{processedWorkbook.rawPageOrder.length > 0 && 
+				<div style={{ fontSize: '0.9em', marginTop: '0.5em' }}>
+					Die ersten Elemente sind: {orderPreview}{processedWorkbook.rawPageOrder.length > 5 ? '...' : ''}
+				</div>
+			}
+		</li>
+	);
 }

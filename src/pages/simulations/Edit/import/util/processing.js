@@ -80,7 +80,11 @@ function processPages(workbook, folderData) {
 	const rawPages = readSheet(workbook, 'pages')
 	
 	// Create array to track the original order from the Excel file
-	const rawPageOrder = [];
+	let rawPageOrder = [];
+
+	// Create arrays to separately track page items and folder items with their order values
+	const pageItems = [];
+	const folderItems = [];
 
 	// Walk through the pages to process their data.
 	const pages = {}
@@ -92,11 +96,23 @@ function processPages(workbook, folderData) {
 			page.id = getId()
 		pageIds[index] = page.id // Set up the ID look-up.
 		
-		// Save the ID to our raw page order in the original Excel order
-		// Only add to rawPageOrder if it's in the main directory (no parent)
+		// Get the order value from the Excel file (if exists)
+		// It should be in column F (6th column) in the pages sheet
+		const orderValue = rawPage.order !== undefined && rawPage.order !== null ? 
+			parseInt(rawPage.order, 10) : 
+			null; // No default order value
+		
 		const parentId = ensureId(rawPage.parent, folderIds, 'folders')
+		
+		// Keep track of pages/folders with their order value
+		// Only track items that are in the main directory (no parent)
 		if (parentId === undefined) {
-			rawPageOrder.push(page.id);
+			// Store the item with its ID and order value if it has an explicit order
+			if (orderValue !== null && !isNaN(orderValue)) {
+				const item = { id: page.id, order: orderValue, type: 'page' };
+				pageItems.push(item);
+				console.log(`Found page with order: ${page.title || 'Untitled'} (${page.id}) - Order: ${orderValue}`);
+			}
 		}
 
 		// Process the parent of the page.
@@ -117,9 +133,8 @@ function processPages(workbook, folderData) {
 	if (duplicateId)
 		throw new ProcessingError({ type: 'duplicateId', tab: 'pages', id: duplicateId })
 
-	// NEW: Extract the folder IDs in their original order from the folders worksheet
+	// Extract the folder IDs and their order values from the folders worksheet
 	const folderWorksheet = workbook.getWorksheet(tabNames.folders);
-	const mainFolderIds = [];
 	
 	if (folderWorksheet && folderWorksheet.rowCount > 1) {
 		// Skip the header row (row 1)
@@ -127,27 +142,68 @@ function processPages(workbook, folderData) {
 			const row = folderWorksheet.getRow(i);
 			const folderId = row.getCell(1).value; // ID is in first column
 			const parentId = row.getCell(2).value; // Parent is in second column
+			const orderValue = row.getCell(4).value; // Order is in column D (4th column)
 			
-			// Only add folders that are in the main directory (no parent)
+			// Check if this folder is in folderIds and has no parent
 			if (folderId && (!parentId || parentId === '' || parentId === null)) {
-				mainFolderIds.push(folderId);
+				// Process the order value to ensure it's a valid number
+				const parsedOrder = orderValue !== undefined && orderValue !== null && orderValue !== '' ? 
+					parseInt(orderValue, 10) : null;
+				
+				// Only add folders with valid explicit order values
+				if (parsedOrder !== null && !isNaN(parsedOrder)) {
+					folderItems.push({ 
+						id: folderId, 
+						order: parsedOrder,
+						type: 'folder'
+					});
+					console.log(`Found folder with order: ${folders[folderId]?.title || 'Untitled'} (${folderId}) - Order: ${parsedOrder}`);
+				}
 			}
 		}
 	}
 	
-	// NEW: Combine folders and pages in original order
-	// First add folders that are in the main directory
-	mainFolderIds.forEach(folderId => {
-		// Only add if not already in rawPageOrder
-		if (!rawPageOrder.includes(folderId)) {
-			rawPageOrder.push(folderId);
-		}
+	// Log found ordered items
+	console.log("Excel import - Found ordered items:", {
+		orderedPages: pageItems.length,
+		orderedFolders: folderItems.length,
 	});
 	
+	// Combine all items with explicit order values
+	const allOrderedItems = [...pageItems, ...folderItems];
+	
+	// Sort the items by their order value (ascending)
+	const orderedItems = allOrderedItems.sort((a, b) => a.order - b.order);
+	
+	// Create arrays for unordered items (those without explicit order values)
+	const unorderedPages = mainPages
+		.filter(page => !pageItems.some(item => item.id === page.id))
+		.map(page => ({ id: page.id, type: 'page' }));
+	
+	const unorderedFolders = Object.values(folders)
+		.filter(folder => !folderItems.some(item => item.id === folder.id))
+		.filter(folder => !folderData.folderList.some(f => f.id !== folder.id && (f.contents || []).includes(folder.id))) // Only root folders
+		.map(folder => ({ id: folder.id, type: 'folder' }));
+	
+	// Create the final order: first the explicitly ordered items, then unordered pages, then unordered folders
+	const allItems = [
+		...orderedItems,
+		...unorderedPages,
+		...unorderedFolders
+	];
+	
+	// Create the raw page order based on all items
+	rawPageOrder = allItems.map(item => item.id);
+	
 	// Log the order information for debugging
-	console.log("Excel import - Original Order:", {
-		mainFolderIds,
-		rawPageOrder
+	console.log("Excel import - Final order information:", {
+		orderedItems: orderedItems.map(item => ({ 
+			id: item.id, 
+			order: item.order, 
+			type: item.type,
+			title: (item.type === 'page' ? pages[item.id]?.title : folders[item.id]?.title) || 'Untitled'
+		})),
+		finalOrder: rawPageOrder
 	});
 	
 	// Return all derived parameters.

@@ -13,6 +13,7 @@ export const headers = {
 		id: 'ID',
 		parent: 'In Ordner',
 		title: 'Titel',
+		order: 'Reihenfolge',  // Column D in Ordner sheet
 	},
 	pages: {
 		id: 'ID',
@@ -20,6 +21,7 @@ export const headers = {
 		title: 'Titel',
 		description: 'Beschreibung',
 		options: 'Antwortmöglichkeiten (eine pro Zeile, Format: [Beschreibung|Rückmeldung|Folgeseite|UpdateScript])',
+		order: 'Reihenfolge',  // Column F in Seiten sheet
 	},
 	parameters: {
 		id: 'ID',

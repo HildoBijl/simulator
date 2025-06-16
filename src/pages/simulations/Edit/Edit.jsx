@@ -27,6 +27,10 @@ export function Edit() {
 	if (!simulation)
 		return <EditPage><p>Simulation laden...</p></EditPage>
 
+	// If a lockedAfter timestamp has been defined, and if it's in the past, then show a note that the simulation cannot be changed.
+	if (simulation.lockedAfter && simulation.lockedAfter < new Date())
+		return <EditPage><p>Simulation ist gesperrt. Sie können die Simulation nicht mehr bearbeiten, da der dafür vorgesehene Zeitraum überschritten wurde.</p></EditPage>
+
 	// Show the simulation form itself.
 	const tabs = ['Einstellungen', 'Seiten', 'Parameter']
 	return <EditPage tabs={tabs}>

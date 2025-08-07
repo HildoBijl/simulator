@@ -4,6 +4,7 @@ export const tabNames = {
 	folders: 'Ordner',
 	pages: 'Seiten',
 	parameters: 'Parameter',
+	events: 'Ereignisse',
 }
 export const tabs = Object.keys(tabNames)
 
@@ -28,6 +29,14 @@ export const headers = {
 		defaultValue: 'Standardwert',
 		minValue: 'Minimalwert',
 		maxValue: 'Maximalwert',
+	},
+	events: {
+		id: 'ID',
+		title: 'Titel',
+		condition: 'Bedingung',
+		page: 'Zielseite',
+		afterwards: 'Danach',
+		maxTriggers: 'Max. Trigger',
 	},
 }
 

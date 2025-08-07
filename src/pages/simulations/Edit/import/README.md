@@ -9,6 +9,7 @@ Your Excel file should contain the following sheets:
 1. **Ordner** (Folders)
 2. **Seiten** (Pages)
 3. **Parameter** (Parameters) - Optional
+4. **Ereignisse** (Events) - Optional
 
 ### 1. Ordner Sheet (Folders)
 
@@ -56,6 +57,19 @@ The "Parameter" sheet requires the following columns:
 | E | Minimalwert | Minimum value (optional) |
 | F | Maximalwert | Maximum value (optional) |
 
+### 4. Ereignisse Sheet (Optional)
+
+The "Ereignisse" sheet requires the following columns:
+
+| Column | Header | Description |
+|--------|---------|-------------|
+| A | ID | Unique identifier for the event. Leave empty for new events |
+| B | Titel | The event's title |
+| C | Bedingung | The event's condition (e.g., "score > 5") |
+| D | Zielseite | The page to navigate to after the event (e.g., "page123") |
+| E | Danach | What happens after the event ("originalFollowUp", "eventFollowUp") |
+| F | Max. Trigger | Maximum number of times the event can trigger (optional) |
+
 ## Best Practices
 
 1. **IDs**
@@ -78,6 +92,12 @@ The "Parameter" sheet requires the following columns:
    - Default values are required
    - Min/Max values are optional but must be valid numbers if provided
 
+5. **Events**
+   - Event IDs must be unique
+   - Conditions must be valid expressions
+   - Follow-up pages must exist
+   - Max triggers must be a valid number or empty
+
 ## Common Issues to Avoid
 
 1. **Header Issues**
@@ -89,11 +109,13 @@ The "Parameter" sheet requires the following columns:
    - Don't include formulas in cells
    - Avoid special characters in IDs
    - Keep answer options in the correct pipe-separated format
+   - Ensure event conditions are valid expressions
 
 3. **Reference Issues**
    - Don't reference non-existent folder IDs
    - Avoid circular folder references
    - Ensure follow-up page IDs exist when referenced
+   - Ensure event conditions are valid expressions
 
 ## Import Process
 
@@ -108,10 +130,11 @@ The "Parameter" sheet requires the following columns:
 
 If you encounter errors during import:
 
-1. Check that all sheet names are correct (Ordner, Seiten, Parameter)
+1. Check that all sheet names are correct (Ordner, Seiten, Parameter, Ereignisse)
 2. Verify that all required columns are present and in the correct order
 3. Look for duplicate IDs within each sheet
-4. Ensure all referenced IDs (folders, follow-up pages) exist
+4. Ensure all referenced IDs (folders, follow-up pages, events) exist
 5. Validate that the answer options follow the correct format
+6. Ensure event conditions are valid expressions
 
 For technical support or questions about specific errors, please contact the system administrator. 

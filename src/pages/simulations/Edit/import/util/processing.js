@@ -3,7 +3,7 @@ import { getId } from 'fb'
 
 import { rowShift } from './settings'
 import { ProcessingError } from './checking'
-import { readSheet } from './reading'
+import { readSheet, readSheetRequired } from './reading'
 import { tabNames } from './settings'
 
 // processWorkbook takes a workbook (we assume it's been checked for errors) and processes it to a more structured data format. It calls an inner function and, on a ProcessingError, simply returns said error instead of the processed workbook.
@@ -23,12 +23,23 @@ export function processWorkbookInner(workbook) {
 	const folderData = processFolders(workbook)
 	const pageData = processPages(workbook, folderData)
 	const parameterData = processParameters(workbook)
-	return { ...folderData, ...pageData, ...parameterData }
+	const eventData = processEvents(workbook)
+	return { ...folderData, ...pageData, ...parameterData, ...eventData }
 }
 
 // processFolders takes a workbook and comes up with a data structure for the folders.
 function processFolders(workbook) {
-	const rawFolders = readSheet(workbook, 'folders')
+	const rawFolders = readSheet(workbook, 'folders') // Use readSheet (non-required) for folders
+	
+	// If no folders exist, return empty structure
+	if (rawFolders.length === 0) {
+		return {
+			folders: {},
+			folderList: [],
+			folderIds: [],
+			mainFolders: []
+		}
+	}
 
 	// Walk through the folders to process their data and ensure they all have an ID.
 	const folders = {}
@@ -77,7 +88,7 @@ function processFolders(workbook) {
 // processPages puts the pages provided in the Excel file into a more manageable format.
 function processPages(workbook, folderData) {
 	const { folders, folderIds } = folderData
-	const rawPages = readSheet(workbook, 'pages')
+	const rawPages = readSheetRequired(workbook, 'pages') // Pages are required
 	
 	// Create array to track the original order from the Excel file
 	const rawPageOrder = [];
@@ -154,84 +165,88 @@ function processPages(workbook, folderData) {
 	return { pages, pageList, pageIds, mainPages, rawPageOrder }
 }
 
-// processParameters puts the parameters/variables provided in the Excel file into a more manageable format.
+// processParameters handles the optional parameters tab
 function processParameters(workbook) {
-	try {
-		const rawParameters = readSheet(workbook, 'parameters')
-
-		// If no parameters tab or empty, return empty structure
-		if (!rawParameters || rawParameters.length === 0) {
-			return { parameters: {}, parameterList: [] }
+	const rawParameters = readSheet(workbook, 'parameters') // Use readSheet (non-required) for parameters
+	
+	// If no parameters exist, return empty structure
+	if (rawParameters.length === 0) {
+		return {
+			parameters: {},
+			parameterList: []
 		}
-
-		// Walk through the parameters to process their data
-		const parameters = {}
-		const parameterList = rawParameters.map(rawParameter => {
-			// Extract all needed fields from the raw data and ensure proper formatting
-			const parameter = {
-				id: rawParameter.id || getId(),
-				name: rawParameter.name || '',
-				title: rawParameter.description || rawParameter.title || '', // Accept either description or title
-				initialValue: rawParameter.defaultValue || rawParameter.initialValue || '0', // Accept either defaultValue or initialValue
-			}
-
-			// Add optional fields if they exist - ensure they're strings
-			if (rawParameter.minValue !== undefined && rawParameter.minValue !== null && rawParameter.minValue !== '') {
-				parameter.minValue = String(rawParameter.minValue)
-			}
-
-			if (rawParameter.maxValue !== undefined && rawParameter.maxValue !== null && rawParameter.maxValue !== '') {
-				parameter.maxValue = String(rawParameter.maxValue)
-			}
-
-			// Add to parameters object
-			parameters[parameter.id] = parameter
-			return parameter
-		})
-
-		// Debug logging
-		console.log("Processed parameters:", parameterList.map(p => ({
-			id: p.id,
-			name: p.name,
-			title: p.title,
-			initialValue: p.initialValue
-		})))
-
-		// Check for duplicate IDs
-		const duplicateId = parameterList.find((param, index) =>
-			parameterList.some((otherParam, otherIndex) =>
-				index < otherIndex && param.id === otherParam.id))?.id
-
-		if (duplicateId) {
-			throw new ProcessingError({ type: 'duplicateId', tab: 'parameters', id: duplicateId })
-		}
-
-		// Check for duplicate names
-		const parametersByName = {}
-		for (const param of parameterList) {
-			if (param.name && parametersByName[param.name]) {
-				throw new ProcessingError({
-					type: 'duplicateName',
-					tab: 'parameters',
-					name: param.name,
-					firstId: parametersByName[param.name].id,
-					secondId: param.id
-				})
-			}
-			if (param.name) {
-				parametersByName[param.name] = param
-			}
-		}
-
-		return { parameters, parameterList }
-	} catch (error) {
-		if (error.type === 'missingTab') {
-			// If the parameters tab doesn't exist, just return empty data
-			return { parameters: {}, parameterList: [] }
-		}
-		// Otherwise rethrow the error
-		throw error
 	}
+
+	// Process parameters...
+	const parameters = {}
+	const parameterList = rawParameters.map((rawParam, index) => {
+		const param = selectAttributes(rawParam, ['id', 'name', 'description', 'defaultValue', 'minValue', 'maxValue'])
+		if (!rawParam.id)
+			param.id = getId()
+		parameters[param.id] = param
+		return param
+	})
+
+	// Check for duplicate IDs
+	const duplicateId = parameterList.find((param, index) => 
+		parameterList.some((otherParam, otherIndex) => 
+			index < otherIndex && param.id === otherParam.id
+		)
+	)?.id
+	if (duplicateId)
+		throw new ProcessingError({ type: 'duplicateId', tab: 'parameters', id: duplicateId })
+
+	return { parameters, parameterList }
+}
+
+// processEvents handles the optional events tab
+function processEvents(workbook) {
+	const rawEvents = readSheet(workbook, 'events') // Use readSheet (non-required) for events
+	
+	// If no events exist, return empty structure
+	if (rawEvents.length === 0) {
+		return {
+			events: {},
+			eventList: []
+		}
+	}
+
+	// Process events...
+	const events = {}
+	const eventList = rawEvents.map((rawEvent, index) => {
+		const event = selectAttributes(rawEvent, ['id', 'title', 'condition', 'page', 'afterwards', 'maxTriggers'])
+		if (!rawEvent.id)
+			event.id = getId()
+		
+		// Convert maxTriggers to number if provided
+		if (event.maxTriggers !== undefined && event.maxTriggers !== '') {
+			event.maxTriggers = parseInt(event.maxTriggers)
+			if (isNaN(event.maxTriggers)) {
+				delete event.maxTriggers
+			}
+		} else {
+			delete event.maxTriggers
+		}
+		
+		// Validate afterwards field
+		if (event.afterwards && !['originalFollowUp', 'eventFollowUp'].includes(event.afterwards)) {
+			event.afterwards = 'originalFollowUp' // Default value
+		}
+		
+		events[event.id] = event
+		return event
+	})
+
+	// Check for duplicate IDs
+	const duplicateId = eventList.find((event, index) => 
+		eventList.some((otherEvent, otherIndex) => 
+			index < otherIndex && event.id === otherEvent.id
+		)
+	)?.id
+	if (duplicateId)
+		throw new ProcessingError({ type: 'duplicateId', tab: 'events', id: duplicateId })
+
+	return { events, eventList }
 }
 
 // ensureId takes an ID or row-reference. If it's the latter (so a number) then it attempts to find the ID from the corresponding ID-list. On a failure, an error is thrown. It's useful to add tab-data about the referencing tab (origin) and the referenced tab (destination) which is shown in any potential error message to the user.

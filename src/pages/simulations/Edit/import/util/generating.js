@@ -11,6 +11,7 @@ export function generateSimulationWorkbook(simulation) {
 	let workbook = new ExcelJS.Workbook()
 	addPages(workbook, simulation)
 	addParameters(workbook, simulation)
+	addEvents(workbook, simulation)
 	return workbook
 }
 
@@ -91,6 +92,31 @@ export function addParameters(workbook, simulation) {
 			defaultValue: variable.initialValue || '',
 			minValue: variable.minValue || '',
 			maxValue: variable.maxValue || '',
+		})
+	})
+
+	adjustColumnWidths(worksheet, minColumnWidth, maxColumnWidth)
+}
+
+// addEvents takes a simulation workbook and adds a tab for all events.
+export function addEvents(workbook, simulation) {
+	// If there are no events, don't add the tab
+	if (!simulation.events || Object.keys(simulation.events).length === 0) {
+		return
+	}
+
+	// Set up a tab for the events and add headers
+	const worksheet = addWorksheet(workbook, tabNames.events, headers.events)
+
+	// Add all events to the worksheet
+	Object.values(simulation.events).forEach(event => {
+		worksheet.addRow({
+			id: event.id,
+			title: event.title || '',
+			condition: event.condition || '',
+			page: event.page || '',
+			afterwards: event.afterwards || '',
+			maxTriggers: event.maxTriggers || '',
 		})
 	})
 

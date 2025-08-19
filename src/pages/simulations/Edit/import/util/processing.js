@@ -3,7 +3,7 @@ import { getId } from 'fb'
 
 import { rowShift } from './settings'
 import { ProcessingError } from './checking'
-import { readSheet } from './reading'
+import { readSheet, readSheetRequired } from './reading'
 import { tabNames } from './settings'
 
 // processWorkbook takes a workbook (we assume it's been checked for errors) and processes it to a more structured data format. It calls an inner function and, on a ProcessingError, simply returns said error instead of the processed workbook.
@@ -23,12 +23,23 @@ export function processWorkbookInner(workbook) {
 	const folderData = processFolders(workbook)
 	const pageData = processPages(workbook, folderData)
 	const parameterData = processParameters(workbook)
-	return { ...folderData, ...pageData, ...parameterData }
+	const eventData = processEvents(workbook)
+	return { ...folderData, ...pageData, ...parameterData, ...eventData }
 }
 
 // processFolders takes a workbook and comes up with a data structure for the folders.
 function processFolders(workbook) {
-	const rawFolders = readSheet(workbook, 'folders')
+	const rawFolders = readSheet(workbook, 'folders') // Use readSheet (non-required) for folders
+	
+	// If no folders exist, return empty structure
+	if (rawFolders.length === 0) {
+		return {
+			folders: {},
+			folderList: [],
+			folderIds: [],
+			mainFolders: []
+		}
+	}
 
 	// Walk through the folders to process their data and ensure they all have an ID.
 	const folders = {}
@@ -77,10 +88,14 @@ function processFolders(workbook) {
 // processPages puts the pages provided in the Excel file into a more manageable format.
 function processPages(workbook, folderData) {
 	const { folders, folderIds } = folderData
-	const rawPages = readSheet(workbook, 'pages')
+	const rawPages = readSheetRequired(workbook, 'pages') // Pages are required
 	
 	// Create array to track the original order from the Excel file
-	const rawPageOrder = [];
+	let rawPageOrder = [];
+
+	// Create arrays to separately track page items and folder items with their order values
+	const pageItems = [];
+	const folderItems = [];
 
 	// Walk through the pages to process their data.
 	const pages = {}
@@ -92,11 +107,23 @@ function processPages(workbook, folderData) {
 			page.id = getId()
 		pageIds[index] = page.id // Set up the ID look-up.
 		
-		// Save the ID to our raw page order in the original Excel order
-		// Only add to rawPageOrder if it's in the main directory (no parent)
+		// Get the order value from the Excel file (if exists)
+		// It should be in column F (6th column) in the pages sheet
+		const orderValue = rawPage.order !== undefined && rawPage.order !== null ? 
+			parseInt(rawPage.order, 10) : 
+			null; // No default order value
+		
 		const parentId = ensureId(rawPage.parent, folderIds, 'folders')
+		
+		// Keep track of pages/folders with their order value
+		// Only track items that are in the main directory (no parent)
 		if (parentId === undefined) {
-			rawPageOrder.push(page.id);
+			// Store the item with its ID and order value if it has an explicit order
+			if (orderValue !== null && !isNaN(orderValue)) {
+				const item = { id: page.id, order: orderValue, type: 'page' };
+				pageItems.push(item);
+				console.log(`Found page with order: ${page.title || 'Untitled'} (${page.id}) - Order: ${orderValue}`);
+			}
 		}
 
 		// Process the parent of the page.
@@ -117,9 +144,8 @@ function processPages(workbook, folderData) {
 	if (duplicateId)
 		throw new ProcessingError({ type: 'duplicateId', tab: 'pages', id: duplicateId })
 
-	// NEW: Extract the folder IDs in their original order from the folders worksheet
+	// Extract the folder IDs and their order values from the folders worksheet
 	const folderWorksheet = workbook.getWorksheet(tabNames.folders);
-	const mainFolderIds = [];
 	
 	if (folderWorksheet && folderWorksheet.rowCount > 1) {
 		// Skip the header row (row 1)
@@ -127,111 +153,156 @@ function processPages(workbook, folderData) {
 			const row = folderWorksheet.getRow(i);
 			const folderId = row.getCell(1).value; // ID is in first column
 			const parentId = row.getCell(2).value; // Parent is in second column
+			const orderValue = row.getCell(4).value; // Order is in column D (4th column)
 			
-			// Only add folders that are in the main directory (no parent)
+			// Check if this folder is in folderIds and has no parent
 			if (folderId && (!parentId || parentId === '' || parentId === null)) {
-				mainFolderIds.push(folderId);
+				// Process the order value to ensure it's a valid number
+				const parsedOrder = orderValue !== undefined && orderValue !== null && orderValue !== '' ? 
+					parseInt(orderValue, 10) : null;
+				
+				// Only add folders with valid explicit order values
+				if (parsedOrder !== null && !isNaN(parsedOrder)) {
+					folderItems.push({ 
+						id: folderId, 
+						order: parsedOrder,
+						type: 'folder'
+					});
+					console.log(`Found folder with order: ${folders[folderId]?.title || 'Untitled'} (${folderId}) - Order: ${parsedOrder}`);
+				}
 			}
 		}
 	}
 	
-	// NEW: Combine folders and pages in original order
-	// First add folders that are in the main directory
-	mainFolderIds.forEach(folderId => {
-		// Only add if not already in rawPageOrder
-		if (!rawPageOrder.includes(folderId)) {
-			rawPageOrder.push(folderId);
-		}
+	// Log found ordered items
+	console.log("Excel import - Found ordered items:", {
+		orderedPages: pageItems.length,
+		orderedFolders: folderItems.length,
 	});
 	
+	// Combine all items with explicit order values
+	const allOrderedItems = [...pageItems, ...folderItems];
+	
+	// Sort the items by their order value (ascending)
+	const orderedItems = allOrderedItems.sort((a, b) => a.order - b.order);
+	
+	// Create arrays for unordered items (those without explicit order values)
+	const unorderedPages = mainPages
+		.filter(page => !pageItems.some(item => item.id === page.id))
+		.map(page => ({ id: page.id, type: 'page' }));
+	
+	const unorderedFolders = Object.values(folders)
+		.filter(folder => !folderItems.some(item => item.id === folder.id))
+		.filter(folder => !folderData.folderList.some(f => f.id !== folder.id && (f.contents || []).includes(folder.id))) // Only root folders
+		.map(folder => ({ id: folder.id, type: 'folder' }));
+	
+	// Create the final order: first the explicitly ordered items, then unordered pages, then unordered folders
+	const allItems = [
+		...orderedItems,
+		...unorderedPages,
+		...unorderedFolders
+	];
+	
+	// Create the raw page order based on all items
+	rawPageOrder = allItems.map(item => item.id);
+	
 	// Log the order information for debugging
-	console.log("Excel import - Original Order:", {
-		mainFolderIds,
-		rawPageOrder
+	console.log("Excel import - Final order information:", {
+		orderedItems: orderedItems.map(item => ({ 
+			id: item.id, 
+			order: item.order, 
+			type: item.type,
+			title: (item.type === 'page' ? pages[item.id]?.title : folders[item.id]?.title) || 'Untitled'
+		})),
+		finalOrder: rawPageOrder
 	});
 	
 	// Return all derived parameters.
 	return { pages, pageList, pageIds, mainPages, rawPageOrder }
 }
 
-// processParameters puts the parameters/variables provided in the Excel file into a more manageable format.
+// processParameters handles the optional parameters tab
 function processParameters(workbook) {
-	try {
-		const rawParameters = readSheet(workbook, 'parameters')
-
-		// If no parameters tab or empty, return empty structure
-		if (!rawParameters || rawParameters.length === 0) {
-			return { parameters: {}, parameterList: [] }
+	const rawParameters = readSheet(workbook, 'parameters') // Use readSheet (non-required) for parameters
+	
+	// If no parameters exist, return empty structure
+	if (rawParameters.length === 0) {
+		return {
+			parameters: {},
+			parameterList: []
 		}
-
-		// Walk through the parameters to process their data
-		const parameters = {}
-		const parameterList = rawParameters.map(rawParameter => {
-			// Extract all needed fields from the raw data and ensure proper formatting
-			const parameter = {
-				id: rawParameter.id || getId(),
-				name: rawParameter.name || '',
-				title: rawParameter.description || rawParameter.title || '', // Accept either description or title
-				initialValue: rawParameter.defaultValue || rawParameter.initialValue || '0', // Accept either defaultValue or initialValue
-			}
-
-			// Add optional fields if they exist - ensure they're strings
-			if (rawParameter.minValue !== undefined && rawParameter.minValue !== null && rawParameter.minValue !== '') {
-				parameter.minValue = String(rawParameter.minValue)
-			}
-
-			if (rawParameter.maxValue !== undefined && rawParameter.maxValue !== null && rawParameter.maxValue !== '') {
-				parameter.maxValue = String(rawParameter.maxValue)
-			}
-
-			// Add to parameters object
-			parameters[parameter.id] = parameter
-			return parameter
-		})
-
-		// Debug logging
-		console.log("Processed parameters:", parameterList.map(p => ({
-			id: p.id,
-			name: p.name,
-			title: p.title,
-			initialValue: p.initialValue
-		})))
-
-		// Check for duplicate IDs
-		const duplicateId = parameterList.find((param, index) =>
-			parameterList.some((otherParam, otherIndex) =>
-				index < otherIndex && param.id === otherParam.id))?.id
-
-		if (duplicateId) {
-			throw new ProcessingError({ type: 'duplicateId', tab: 'parameters', id: duplicateId })
-		}
-
-		// Check for duplicate names
-		const parametersByName = {}
-		for (const param of parameterList) {
-			if (param.name && parametersByName[param.name]) {
-				throw new ProcessingError({
-					type: 'duplicateName',
-					tab: 'parameters',
-					name: param.name,
-					firstId: parametersByName[param.name].id,
-					secondId: param.id
-				})
-			}
-			if (param.name) {
-				parametersByName[param.name] = param
-			}
-		}
-
-		return { parameters, parameterList }
-	} catch (error) {
-		if (error.type === 'missingTab') {
-			// If the parameters tab doesn't exist, just return empty data
-			return { parameters: {}, parameterList: [] }
-		}
-		// Otherwise rethrow the error
-		throw error
 	}
+
+	// Process parameters...
+	const parameters = {}
+	const parameterList = rawParameters.map((rawParam, index) => {
+		const param = selectAttributes(rawParam, ['id', 'name', 'description', 'defaultValue', 'minValue', 'maxValue'])
+		if (!rawParam.id)
+			param.id = getId()
+		parameters[param.id] = param
+		return param
+	})
+
+	// Check for duplicate IDs
+	const duplicateId = parameterList.find((param, index) => 
+		parameterList.some((otherParam, otherIndex) => 
+			index < otherIndex && param.id === otherParam.id
+		)
+	)?.id
+	if (duplicateId)
+		throw new ProcessingError({ type: 'duplicateId', tab: 'parameters', id: duplicateId })
+
+	return { parameters, parameterList }
+}
+
+// processEvents handles the optional events tab
+function processEvents(workbook) {
+	const rawEvents = readSheet(workbook, 'events') // Use readSheet (non-required) for events
+	
+	// If no events exist, return empty structure
+	if (rawEvents.length === 0) {
+		return {
+			events: {},
+			eventList: []
+		}
+	}
+
+	// Process events...
+	const events = {}
+	const eventList = rawEvents.map((rawEvent, index) => {
+		const event = selectAttributes(rawEvent, ['id', 'title', 'condition', 'page', 'afterwards', 'maxTriggers'])
+		if (!rawEvent.id)
+			event.id = getId()
+		
+		// Convert maxTriggers to number if provided
+		if (event.maxTriggers !== undefined && event.maxTriggers !== '') {
+			event.maxTriggers = parseInt(event.maxTriggers)
+			if (isNaN(event.maxTriggers)) {
+				delete event.maxTriggers
+			}
+		} else {
+			delete event.maxTriggers
+		}
+		
+		// Validate afterwards field
+		if (event.afterwards && !['originalFollowUp', 'eventFollowUp'].includes(event.afterwards)) {
+			event.afterwards = 'originalFollowUp' // Default value
+		}
+		
+		events[event.id] = event
+		return event
+	})
+
+	// Check for duplicate IDs
+	const duplicateId = eventList.find((event, index) => 
+		eventList.some((otherEvent, otherIndex) => 
+			index < otherIndex && event.id === otherEvent.id
+		)
+	)?.id
+	if (duplicateId)
+		throw new ProcessingError({ type: 'duplicateId', tab: 'events', id: duplicateId })
+
+	return { events, eventList }
 }
 
 // ensureId takes an ID or row-reference. If it's the latter (so a number) then it attempts to find the ID from the corresponding ID-list. On a failure, an error is thrown. It's useful to add tab-data about the referencing tab (origin) and the referenced tab (destination) which is shown in any potential error message to the user.

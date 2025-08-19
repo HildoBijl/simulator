@@ -4,6 +4,7 @@ export const tabNames = {
 	folders: 'Ordner',
 	pages: 'Seiten',
 	parameters: 'Parameter',
+	events: 'Ereignisse',
 }
 export const tabs = Object.keys(tabNames)
 
@@ -13,6 +14,7 @@ export const headers = {
 		id: 'ID',
 		parent: 'In Ordner',
 		title: 'Titel',
+		order: 'Reihenfolge',  // Column D in Ordner sheet
 	},
 	pages: {
 		id: 'ID',
@@ -20,6 +22,7 @@ export const headers = {
 		title: 'Titel',
 		description: 'Beschreibung',
 		options: 'Antwortmöglichkeiten (eine pro Zeile, Format: [Beschreibung|Rückmeldung|Folgeseite|UpdateScript])',
+		order: 'Reihenfolge',  // Column F in Seiten sheet
 	},
 	parameters: {
 		id: 'ID',
@@ -28,6 +31,14 @@ export const headers = {
 		defaultValue: 'Standardwert',
 		minValue: 'Minimalwert',
 		maxValue: 'Maximalwert',
+	},
+	events: {
+		id: 'ID',
+		title: 'Titel',
+		condition: 'Bedingung',
+		page: 'Zielseite',
+		afterwards: 'Danach',
+		maxTriggers: 'Max. Trigger',
 	},
 }
 

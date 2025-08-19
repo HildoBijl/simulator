@@ -5,8 +5,11 @@ import { ProcessingError, checkHeaders } from './checking'
 export function readSheet(workbook, tab) {
 	// Extract the current worksheet and its headers.
 	const worksheet = workbook.getWorksheet(tabNames[tab])
+	
+	// If worksheet doesn't exist, return empty array (to match download behavior)
 	if (!worksheet)
-		throw new ProcessingError({ type: 'missingTab', tab })
+		return []
+	
 	const currHeaders = headers[tab]
 
 	// Check that the headers match.
@@ -27,6 +30,15 @@ export function readSheet(workbook, tab) {
 		rows.push(rowAsObj)
 	})
 	return rows
+}
+
+// readSheetRequired throws an error if tab is missing (for required tabs like 'pages')
+export function readSheetRequired(workbook, tab) {
+	const worksheet = workbook.getWorksheet(tabNames[tab])
+	if (!worksheet)
+		throw new ProcessingError({ type: 'missingTab', tab })
+	
+	return readSheet(workbook, tab)
 }
 
 // rowToObject turns a table row into an object, based on provided keys and a mapping.

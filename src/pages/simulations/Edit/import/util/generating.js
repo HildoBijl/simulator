@@ -20,21 +20,40 @@ export function addFolders(workbook, simulation) {
 	// Set up a worksheet with headers.
 	const worksheet = addWorksheet(workbook, tabNames.folders, headers.folders)
 
+	// Create a helper function to get the order of an item in its parent
+	const getOrderInParent = (itemId, parentFolder) => {
+		if (!parentFolder) {
+			// Item is in the main directory - check pageOrder
+			const pageOrder = simulation.pageOrder || []
+			const index = pageOrder.indexOf(itemId)
+			return index >= 0 ? index + 1 : null // Convert to 1-based indexing
+		} else {
+			// Item is in a folder - check folder contents
+			const contents = parentFolder.contents || []
+			const index = contents.findIndex(item => item.id === itemId)
+			return index >= 0 ? index + 1 : null // Convert to 1-based indexing
+		}
+	}
+
 	// Set up a handler to recursively add an element to the sheet.
-	const addTreeElement = (folder) => {
+	const addTreeElement = (folder, parent = null) => {
 		if (folder.type !== 'folder')
 			return
+
+		// Get the order value for this folder
+		const orderValue = getOrderInParent(folder.id, parent)
 
 		// Add the row to the sheet.
 		worksheet.addRow({
 			id: folder.id,
 			parent: folder.parent?.id,
 			title: folder.title,
+			order: orderValue,
 		})
 
 		// Recursively add contents.
 		const contents = folder.contents || []
-		contents.forEach(subpage => addTreeElement(subpage))
+		contents.forEach(subpage => addTreeElement(subpage, folder))
 	}
 
 	// Add all the pages in the main folder.
@@ -51,6 +70,21 @@ export function addPages(workbook, simulation) {
 	// Set up a tab for the pages and add headers.
 	const worksheet = addWorksheet(workbook, tabNames.pages, headers.pages)
 
+	// Create a helper function to get the order of an item in its parent
+	const getOrderInParent = (itemId, parentFolder) => {
+		if (!parentFolder) {
+			// Item is in the main directory - check pageOrder
+			const pageOrder = simulation.pageOrder || []
+			const index = pageOrder.indexOf(itemId)
+			return index >= 0 ? index + 1 : null // Convert to 1-based indexing
+		} else {
+			// Item is in a folder - check folder contents
+			const contents = parentFolder.contents || []
+			const index = contents.findIndex(item => item.id === itemId)
+			return index >= 0 ? index + 1 : null // Convert to 1-based indexing
+		}
+	}
+
 	// Set up the sheet contents.
 	simulation.pageList.forEach(page => {
 		// Convert options to pipe-separated format
@@ -62,12 +96,16 @@ export function addPages(workbook, simulation) {
 			return `${description}|${feedback}|${followUpPage}|${updateScript}`
 		}).join('\n')
 
+		// Get the order value for this page
+		const orderValue = getOrderInParent(page.id, page.parent)
+
 		worksheet.addRow({
 			id: page.id,
 			parent: page.parent?.id,
 			title: page.title,
 			description: page.description ? htmlToMarkdown(page.description) : '',
 			options: optionsText,
+			order: orderValue,
 		})
 	})
 	adjustColumnWidths(worksheet, minColumnWidth, maxColumnWidth)
